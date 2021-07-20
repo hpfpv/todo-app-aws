@@ -2,9 +2,6 @@ import boto3
 import json
 import os
 import logging
-from collections import defaultdict
-from functools import reduce
-from boto3.dynamodb.conditions import Key, And
 
 client = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
@@ -13,7 +10,7 @@ logger.setLevel(logging.INFO)
 def getTodoJson(item):
     todo = {}
     todo["todoID"] = item["todoID"]["S"]
-    todo["userD"] = item["userID"]["S"]
+    todo["userID"] = item["userID"]["S"]
     todo["dateCreated"] = item["dateCreated"]["S"]
     todo["description"] = item["description"]["S"]
     todo["dateDue"] = item["dateDue"]["S"]

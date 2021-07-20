@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: "todo_houessou_com"
+Description: "Stack for todo-houessou-com"
 
 Globals:
   Function:
@@ -20,7 +20,7 @@ Resources:
               issuer: !Join [ '', [ 'https://cognito-idp.', '${AWS::Region}', '.amazonaws.com/', !Ref TodoUserPool ] ] 
               audience: 
                 - !Ref TodoUserPoolClient 
-        DefaultAuthorizer: NONE
+        DefaultAuthorizer: TodoAuthorizer
       CorsConfiguration:
         AllowMethods:
           - GET
@@ -31,20 +31,22 @@ Resources:
           - '*'
            
   home:
-  Type: AWS::Serverless::Function
-  Properties:
-    Environment: 
-      Variables:
-        TODO_TABLE: !Ref TodoTable 
-    CodeUri: ./functions
-    Handler: home.lambda_handler
-    Events:
-      getmysfitsApi:
-        Type: HttpApi
-        Properties:
-          ApiId: !Ref MainHttpApi
-          Path: /
-          Method: GET
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODO_TABLE: !Ref TodoTable 
+      CodeUri: ./functions
+      Handler: home.lambda_handler
+      Events:
+        getmysfitsApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MainHttpApi
+            Path: /
+            Method: GET
+            Auth:  
+              Authorizer: NONE
                    
   getTodos:
     Type: AWS::Serverless::Function
@@ -86,6 +88,8 @@ Resources:
             ApiId: !Ref MainHttpApi
             Path: /{userID}/todos/{todoID}
             Method: GET
+            Auth:  
+              Authorizer: NONE
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -109,6 +113,8 @@ Resources:
             ApiId: !Ref MainHttpApi
             Path: /{userID}/todos/add
             Method: POST
+            Auth:  
+              Authorizer: NONE
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -130,7 +136,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref MainHttpApi
-            Path: /{userID}/todos/{todoID}/update
+            Path: /{userID}/todos/{todoID}/complete
             Method: POST
             Auth:  
               Authorizer: NONE
@@ -186,15 +192,13 @@ Resources:
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: "TodoTablehouessoucom"
+      TableName: !Sub 'TodoTable-${AWS::StackName}'
       BillingMode: PROVISIONED
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
       AttributeDefinitions: 
         - AttributeName: "todoID"
-          AttributeType: "S"
-        - AttributeName: "userID"
           AttributeType: "S"
       KeySchema: 
         - AttributeName: "todoID"

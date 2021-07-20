@@ -3,6 +3,7 @@ import json
 import os
 import logging
 
+
 client = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

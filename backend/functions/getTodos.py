@@ -3,8 +3,10 @@ import json
 import os
 import logging
 from collections import defaultdict
+from boto3.dynamodb.conditions import Key
 
-client = boto3.client('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+todoTable = dynamodb.Table(os.environ['TODO_TABLE'])
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -16,7 +18,7 @@ def getTodosJson(items):
     for item in items:
         todo = {}
         todo["todoID"] = item["todoID"]["S"]
-        todo["userD"] = item["userID"]["S"]
+        todo["userID"] = item["userID"]["S"]
         todo["dateCreated"] = item["dateCreated"]["S"]
         todo["description"] = item["description"]["S"]
         todo["dateDue"] = item["dateDue"]["S"]
@@ -27,17 +29,8 @@ def getTodosJson(items):
 def getTodos(userID):
     # Use the DynamoDB API Query to retrieve todos from the table that belong
     # to the specified userID.
-    response = client.query(
-        TableName=os.environ['TODO_TABLE'],
-        ExpressionAttributeValues={
-            ':user': {
-                'S': userID
-            },
-            ':comp': {
-                'BOOL': False
-            }        
-        },
-        KeyConditionExpression = 'userID = :user AND completed = :comp'
+    response = todoTable.query(
+        KeyConditionExpression = Key('userID').eq(userID)
     )
     logging.info(response["Items"])
     todoList = getTodosJson(response["Items"])
@@ -45,10 +38,9 @@ def getTodos(userID):
 
 def lambda_handler(event, context):
     logger.info(event)
-    userID = event["Query"]
-    print("Getting all todos")
-
-    items = getTodos()
+    userID = event["pathParameters"]["userID"]
+    print(f"Getting all todos for user {userID}")
+    items = getTodos(userID)
     logger.info(items)
     return {
         'statusCode': 200,
