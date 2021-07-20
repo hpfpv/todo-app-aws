@@ -1,2 +1,2 @@
 # todo-app-aws
- Todo app on AWS
+ Serverless Todo app on AWS - API, Lambda, DynamoDB

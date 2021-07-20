@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "todo_houessou_com"
+
+Globals:
+  Function:
+    Runtime: python3.8
+
+Resources:
+  MainHttpApi:
+    Type: AWS::Serverless::HttpApi
+    DependsOn: TodoUserPool
+    Properties:
+      StageName: dev
+      Auth:
+        Authorizers:
+          TodoAuthorizer:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer: !Join [ '', [ 'https://cognito-idp.', '${AWS::Region}', '.amazonaws.com/', !Ref TodoUserPool ] ] 
+              audience: 
+                - !Ref TodoUserPoolClient 
+        DefaultAuthorizer: NONE
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+        AllowOrigins:
+          - https://todo.houessou.com
+        AllowHeaders:
+          - '*'
+           
+  home:
+  Type: AWS::Serverless::Function
+  Properties:
+    Environment: 
+      Variables:
+        TODO_TABLE: !Ref TodoTable 
+    CodeUri: ./functions
+    Handler: home.lambda_handler
+    Events:
+      getmysfitsApi:
+        Type: HttpApi
+        Properties:
+          ApiId: !Ref MainHttpApi
+          Path: /
+          Method: GET
+                   
+  getTodos:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODO_TABLE: !Ref TodoTable 
+      CodeUri: ./functions
+      Handler: getTodos.lambda_handler
+      Events:
+        getmysfitsApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MainHttpApi
+            Path: /{userID}/todos
+            Method: GET
+            Auth:  
+              Authorizer: NONE
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 'dynamodb:*'
+              Resource:
+                - !GetAtt 'TodoTable.Arn'
+                   
+  getTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODO_TABLE: !Ref TodoTable 
+      CodeUri: ./functions
+      Handler: getTodo.lambda_handler
+      Events:
+        getmysfitApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MainHttpApi
+            Path: /{userID}/todos/{todoID}
+            Method: GET
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 'dynamodb:*'
+              Resource:
+                - !GetAtt 'TodoTable.Arn'
+            
+  addTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODO_TABLE: !Ref TodoTable 
+      CodeUri: ./functions
+      Handler: addTodo.lambda_handler
+      Events:
+        getmysfitApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MainHttpApi
+            Path: /{userID}/todos/add
+            Method: POST
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 'dynamodb:*'
+              Resource:
+                - !GetAtt 'TodoTable.Arn'
+  
+  completeTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODO_TABLE: !Ref TodoTable 
+      CodeUri: ./functions
+      Handler: completeTodo.lambda_handler
+      Events:
+        getmysfitApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MainHttpApi
+            Path: /{userID}/todos/{todoID}/update
+            Method: POST
+            Auth:  
+              Authorizer: NONE
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 'dynamodb:*'
+              Resource:
+                - !GetAtt 'TodoTable.Arn'
+
+
+  TodoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub 'UserPool-${AWS::StackName}'
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+  
+  TodoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: !Sub 'UserPoolClient-${AWS::StackName}'
+        AllowedOAuthFlows:
+          - implicit
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthScopes:
+          - phone
+          - email
+          - openid
+          - profile
+          - aws.cognito.signin.user.admin
+        UserPoolId:
+          Ref: TodoUserPool
+        CallbackURLs: 
+          - https://todo.houessou.com
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        GenerateSecret: false
+        SupportedIdentityProviders: 
+          - COGNITO
+  # Cognito user pool domain
+  TodoUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain 
+    Properties:
+      UserPoolId: !Ref TodoUserPool
+      Domain: auth-todo-houessou-com
+  
+ # dynamoDB table to store mysfits
+  TodoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "TodoTablehouessoucom"
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      AttributeDefinitions: 
+        - AttributeName: "todoID"
+          AttributeType: "S"
+        - AttributeName: "userID"
+          AttributeType: "S"
+      KeySchema: 
+        - AttributeName: "todoID"
+          KeyType: "HASH"
+      
+
+Outputs:
+  MainHttpApi:
+    Value: !Join [ '', ['https://', !Ref MainHttpApi, '.execute-api.us-east-1.amazonaws.com/dev'] ]
+    Export:
+      Name: !Sub "${AWS::StackName}-MainHttpApiURL"
+  TodoUserPool:
+    Value: !Ref TodoUserPool
+    Export:
+      Name: !Sub "${AWS::StackName}-TodoUserPool"
+  TodoUserPoolArn:
+    Value: !GetAtt 'TodoUserPool.Arn'
+    Export:
+      Name: !Sub "${AWS::StackName}-TodoUserPoolArn"
+  TodoUserPoolClient:
+    Value: !Ref TodoUserPoolClient
+    Export:
+      Name: !Sub "${AWS::StackName}-TodoUserPoolClient"
+  TodoTable:
+    Value: !Ref TodoTable 
+    Export:
+      Name: !Sub "${AWS::StackName}-TodoTable"
+  TodoTableArn:
+    Value: !GetAtt 'TodoTable.Arn' 
+    Export:
+      Name: !Sub "${AWS::StackName}-TodoTableArn"
+  StackName: 
+    Value: !Sub "${AWS::StackName}"
