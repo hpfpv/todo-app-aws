@@ -72,6 +72,7 @@ Resources:
               Action: 'dynamodb:*'
               Resource:
                 - !GetAtt 'TodoTable.Arn'
+                - !Join [ '', [ !GetAtt 'TodoTable.Arn', '/index/*' ] ]  
                    
   getTodo:
     Type: AWS::Serverless::Function
@@ -200,9 +201,23 @@ Resources:
       AttributeDefinitions: 
         - AttributeName: "todoID"
           AttributeType: "S"
+        - AttributeName: "userID"
+          AttributeType: "S"
       KeySchema: 
         - AttributeName: "todoID"
           KeyType: "HASH"
+      GlobalSecondaryIndexes:
+        - IndexName: "userIDIndex"
+          KeySchema:
+            - AttributeName: "userID"
+              KeyType: "HASH"
+            - AttributeName: "todoID"
+              KeyType: "RANGE"
+          Projection: 
+            ProjectionType: "ALL"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
       
 
 Outputs:

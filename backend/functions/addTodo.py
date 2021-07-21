@@ -13,12 +13,13 @@ dateTimeObj = datetime.now()
 def lambda_handler(event, context):
     logger.info(event)
     eventBody = json.loads(event["body"])
+    userID = event["pathParameters"]["userID"]
     todo = {}
     todo["todoID"] = {
         "S": str(uuid.uuid4())
         }
     todo["userID"] = {
-        "S": eventBody["userID"]
+        "S": userID
         }
     todo["dateCreated"] = {
         "S": str(dateTimeObj)

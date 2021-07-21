@@ -5,8 +5,7 @@ import logging
 from collections import defaultdict
 from boto3.dynamodb.conditions import Key
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-todoTable = dynamodb.Table(os.environ['TODO_TABLE'])
+client = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -23,14 +22,26 @@ def getTodosJson(items):
         todo["description"] = item["description"]["S"]
         todo["dateDue"] = item["dateDue"]["S"]
         todo["completed"] = item["completed"]["BOOL"]
-        todoList["mysfits"].append(todo)
+        todoList["todos"].append(todo)
     return todoList
  
 def getTodos(userID):
     # Use the DynamoDB API Query to retrieve todos from the table that belong
     # to the specified userID.
-    response = todoTable.query(
-        KeyConditionExpression = Key('userID').eq(userID)
+    filter = "userID"
+    response = client.query(
+        TableName=os.environ['TODO_TABLE'],
+        IndexName=filter+'Index',
+        KeyConditions={
+            filter: {
+                'AttributeValueList': [
+                    {
+                        'S': userID
+                    }
+                ],
+                'ComparisonOperator': "EQ"
+            }
+        }
     )
     logging.info(response["Items"])
     todoList = getTodosJson(response["Items"])
@@ -42,6 +53,19 @@ def lambda_handler(event, context):
     print(f"Getting all todos for user {userID}")
     items = getTodos(userID)
     logger.info(items)
+    response = defaultdict(list)
+    data = json.loads(items)
+    for item in data["todos"]:
+        todo = {}
+        if str(item["completed"]) == "False":
+            todo["todoID"] = item["todoID"]
+            todo["dateCreated"] = item["dateCreated"]
+            todo["description"] = item["description"]
+            todo["dateDue"] = item["dateDue"]
+            todo["completed"] = item["completed"]
+            response["todos"].append(todo)
+
+    logger.info(response)
     return {
         'statusCode': 200,
         'headers': {
@@ -50,6 +74,6 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Methods': 'GET',
             'Content-Type': 'application/json'
         },
-        'body': items
+        'body': json.dumps(response)
     }
 
