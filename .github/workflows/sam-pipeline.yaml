@@ -1,4 +1,4 @@
-name: SAM Deploy 
+name: SAM Deploy todo-houessou-com
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
           ## python -m nose2 test_getTodos.lambda_handler test_addTodo.lambda_handler test_completeTodo.lambda_handler
 
 # sam deploy
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name todo-houessou-com --s3-bucket 'aws-sam-cli-managed-default-samclisourcebucket-1m8qnzobarz4q' --capabilities CAPABILITY_IAM --region 'us-east-1'
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name 'todo-houessou-com' --s3-bucket 'aws-sam-cli-managed-default-samclisourcebucket-1m8qnzobarz4q' --capabilities CAPABILITY_IAM --region 'us-east-1'
