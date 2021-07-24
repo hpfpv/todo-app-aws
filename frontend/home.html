@@ -39,7 +39,7 @@
                     <br>
                     <b>Due Date:</b> {{todo.dateDue}}
                     <br>
-                    <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#descriptionModal" data-todoID="{{todo.todoID}}">Details</button>
+                    <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#descriptionModal" data-todoid="{{todo.todoID}}">Details</button>
                     <br>
                 </p>
               <br>
@@ -69,7 +69,7 @@
               <p id="profileDateCreated"><b>Created Date:</b> {{todo.dateCreated}}</p>
               <br>
               <p align="center">
-                <button id="completedButton" align="center" type="button" ng-click="completdClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
+                <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
                 <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Todo Completed!</button>
               </p>
             </div>
@@ -174,12 +174,12 @@
     }
 
     $("#newTodoForm").submit(function(event) {
-      event.preventDefault();
-      $('#newTodoModal').modal('toggle')
-      var title = document.getElementById('newTodoModalTitle').value;
-      var dateDue = document.getElementById('newTodoModalDateDue').value;
-      var description = document.getElementById('newTodoModalDescription').value;
-      addTodo(dateDue, title, description);
+        event.preventDefault();
+        $('#newTodoModal').modal('toggle')
+        var title = document.getElementById('newTodoModalTitle').value;
+        var dateDue = document.getElementById('newTodoModalDateDue').value;
+        var description = document.getElementById('newTodoModalDescription').value;
+        addTodo(dateDue, title, description);
     });
 
     app.controller('todosListController', function($scope) {
@@ -200,13 +200,12 @@
     });
 
     $('#descriptionModal').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget);
-      var todoID = button.data('todoID');
-      getTodo(todoID, updateModalText);
+        var button = $(event.relatedTarget);
+        var todoID = button.data('todoid');
+        getTodo(todoID, updateModalText);
     });
 
     function updateModalText(descriptionTodo) {
-
         applyDescriptionScope(descriptionTodo);
 
         if (descriptionTodo.completed == true) {
@@ -214,7 +213,6 @@
         } else {
             markNotCompleted();
         }
-
     }
 
     function markCompleted() {
@@ -229,13 +227,13 @@
 
 
     function applyGridScope(todosList) {
-    gridScope.todos = todosList;
-    gridScope.$apply();
+        ridScope.todos = todosList;
+        gridScope.$apply();
     }
 
     function applyDescriptionScope(todo) {
-    descriptionScope.descriptionTodo = todo;
-    descriptionScope.$apply();
+        descriptionScope.descriptionTodo = todo;
+        descriptionScope.$apply();
     }
 
     function login(){
@@ -375,7 +373,7 @@
         headers : {'Authorization' : idJwt },
         success : function(response) {
             console.log('todo' + todoID)
-            callback(response.todos);
+            callback(response);
         },
         error : function(response) {
             console.log("could not retrieve todo.");

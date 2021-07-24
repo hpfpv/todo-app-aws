@@ -54,20 +54,6 @@ def lambda_handler(event, context):
     print(f"Getting all todos for user {userID}")
     items = getTodos(userID)
     logger.info(items)
-    response = defaultdict(list)
-    data = json.loads(items)
-    for item in data["todos"]:
-        todo = {}
-        if str(item["completed"]) == "False":
-            todo["todoID"] = item["todoID"]
-            todo["dateCreated"] = item["dateCreated"]
-            todo["title"] = item["title"]
-            todo["description"] = item["description"]
-            todo["dateDue"] = item["dateDue"]
-            todo["completed"] = item["completed"]
-            response["todos"].append(todo)
-
-    logger.info(response)
     return {
         'statusCode': 200,
         'headers': {
@@ -76,6 +62,6 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Methods': 'GET',
             'Content-Type': 'application/json'
         },
-        'body': json.dumps(response)
+        'body': json.dumps(items)
     }
 
