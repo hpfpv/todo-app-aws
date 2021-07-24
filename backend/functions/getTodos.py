@@ -61,7 +61,7 @@ def lambda_handler(event, context):
         if str(item["completed"]) == "False":
             todo["todoID"] = item["todoID"]
             todo["dateCreated"] = item["dateCreated"]
-            todo["title"] = item["title"]["S"]
+            todo["title"] = item["title"]
             todo["description"] = item["description"]
             todo["dateDue"] = item["dateDue"]
             todo["completed"] = item["completed"]
