@@ -4,43 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Sign In - TodosHouessou</title>
+    <title>Home - TodosHouessou</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="favicon.png" >
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg">
+<body id="body" style="visibility:visible">
+    <!-- nav bar-->
+    <nav class="navbar navbar-expand-lg navbar-static-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
               <img src="img/logo.png" title="logo" id="logo"/>
                 <b id="brand-title"></b>
             </a>
         </div>
+        <div class="collapse navbar-collapse" id="Navbar">
+            <ul class="navbar-nav ml-auto nav">
+                <li class="nav-list"><button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">Add todo</button></li>
+            </ul>
+        </div>
+        <div class="collapse navbar-collapse" id="Navbar">
+            <ul class="navbar-nav ml-auto nav">
+                <li>&nbsp; &nbsp;</li>
+            </ul>
+        </div>
+        <div class="collapse navbar-collapse" id="Navbar">
+            <ul class="navbar-nav ml-auto nav">
+                <li class="nav-list"><button class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button></li>
+            </ul>
+        </div>
+        
     </nav>
-    
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 offset-md-4">
-                <h2 class="text-center signin-title">Sign In to access your todo-list</h2>
-                <form onsubmit="return false;">
-                    <div class="form-group input-field">
-                        <label for="username">Email</label>
-                        <input type="email" class="form-control rounded-0" name="username" id="username"aria-describedby="emailHelp" placeholder="Your email">
-                    </div>
-                    <div class="form-group input-field">
-                        <label for="password">Password</label>
-                        <input type="password" class="form-control rounded-0" name="password" id="password" placeholder="Your password">
-                    </div>
-                    <button class="btn btn-custom signin" onclick="login();">Sign In</button>
-                    <div class="login-help">
-                        <p>Don't have an account? </p>
-                        <a href="register.html">Register!</a>
-                      </div>
-                </form> 
-            </div>
+
+    <!-- Uploader -->
+    <div class="jumbotron">
+        <div class="container">
+            <div class="row">
+                    <h3>Welcome</h3>
+            </div>         
         </div>
     </div>
+
+    <!-- New Todo Modal -->
+    <div class="modal fade" id="newTodoModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                <span aria-hidden="true">&times;</span>
+                <span class="sr-only">Close</span>
+              </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <form id="newTodoForm">
+                <label for="newTodoModalDateDue">Due date</label>
+                <input type="text" id ="newTodoModalDateDue" name="newTodoModalDateDue" placeholder="2021-10-25" />
+                <br>
+                <br>
+                <label for="newTodoModalDescription">Description</label>
+                <textarea class="form-control" id="newTodoModalDescription" ></textarea>
+                <br>
+                <input type="submit" id="newTodo-modal-button" name="newTodoButton" class="btn btn-success" value="Add todo!" />
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    <!-- End New Todo Modal --> 
+
+    <div id="modal-message"></div>
 
 
     <!-- Importing scripts -->
@@ -49,6 +83,7 @@
     <script src="js/amazon-cognito-identity.min.js"></script>
     <script src="js/aws-sdk.min.js"></script>
     <script src="js/script.js"></script>
+    <!-- <script src="scripts/ajaxCallExample.js"></script> -->
 
 </body>
 <script>
@@ -63,12 +98,12 @@
     var config = JSON.parse(configString);
     if(config != null) {
         refreshAWSCredentials();
+        loggedInDisplay();
     }
 
     function loggedInDisplay() {
         $('#body').css({'visibility':'visible'});
     }
-
 
     function initializeStorage() {
       var identityPoolId = cognitoUserPoolId;//
@@ -186,5 +221,72 @@
         window.location = './index.html';
     }
 
+    function getTodos(callback) {
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID +'/todos';
+
+        $.ajax({
+        url : todoApi,
+        type : 'GET',
+        success : function(response) {
+            callback(response.todos);
+        },
+        error : function(response) {
+            console.log("could not retrieve todos list.");
+            if (response.status == "401") {
+            refreshAWSCredentials();
+            }
+        }
+        });
+    }
+
+    function getTodo(todoID, callback) {
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID +'/todos/' + todoID;
+
+        $.ajax({
+        url : todoApi,
+        type : 'GET',
+        success : function(response) {
+            callback(response.todos);
+        },
+        error : function(response) {
+            console.log("could not retrieve todo.");
+            if (response.status == "401") {
+            refreshAWSCredentials();
+            }
+        }
+        });
+    }
+
+    function addTodo(dateDue, description){
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID + "/todos/add";
+
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        todo = {
+        description: description,
+        dateDue: dateDue,
+        }
+
+        $.ajax({
+        url : todoApi,
+        type : 'POST',
+        headers : {'Content-Type': 'application/json'},
+        dataType: 'json',
+        data : JSON.stringify(todo),
+        success : function(response) {
+            console.log("todo added!")
+        },
+        error : function(response) {
+            console.log("could not add todo");
+            console.log(response);
+        }
+        });
+    }
 </script>
 </html>
