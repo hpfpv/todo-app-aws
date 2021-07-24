@@ -61,16 +61,16 @@
             </div>
           <!-- Modal Body -->
             <div class="modal-body">
-              <p id="profileDescription"><b>Description:</b> <br> {{todo.description}}</p>
+              <p id="descriptionDescription"><b>Description:</b> <br> {{descriptionTodo.description}}</p>
               <br>
               <br>
-              <p id="profileDateDue"><b>Due Date:</b> {{todo.dateDue}}</p>
+              <p id="descriptionDateDue"><b>Due Date:</b> {{descriptionTodo.dateDue}}</p>
               <br>
-              <p id="profileDateCreated"><b>Created Date:</b> {{todo.dateCreated}}</p>
+              <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
               <br>
               <p align="center">
                 <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
-                <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Todo Completed!</button>
+                <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Completed!</button>
               </p>
             </div>
             <div class="modal-footer">
@@ -193,7 +193,7 @@
 
         descriptionScope = $scope;
         
-        $scope.completeClicked = function(todoID) {
+        $scope.completedClicked = function(todoID) {
         console.log("marked as completed: " +  todoID);
         completeTodo(todoID, markCompleted);
         }
@@ -372,7 +372,7 @@
         type : 'GET',
         headers : {'Authorization' : idJwt },
         success : function(response) {
-            console.log('todo' + todoID)
+            console.log('todoID: ' + todoID)
             callback(response);
         },
         error : function(response) {
