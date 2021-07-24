@@ -1,4 +1,4 @@
-name: SAM Deploy 
+name: SAM Deploy todo-houessou-com
 
 on:
   push:
@@ -18,14 +18,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: 'us-east-1'
 
-# sam build 
-      - name: sam build
-        working-directory: ./backend
-        run: sam build --use-container 
+      # go to service directory
+      - run: pushd './backend/'
+      # sam build 
+      - run: sam build --use-container 
 
 # Run Unit tests- Specify unit tests here 
-     ## - name: Run tests
-      ##  run: |
+     ## - run: |
           ## pushd './backend/tests/'
           ## pip install awscli
           ## python -m pip install --upgrade pip
@@ -33,6 +32,4 @@ jobs:
           ## python -m nose2 test_getTodos.lambda_handler test_addTodo.lambda_handler test_completeTodo.lambda_handler
 
 # sam deploy
-      - name: sam deploy
-        working-directory: ./backend
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name todo-houessou-com --s3-bucket 'aws-sam-cli-managed-default-samclisourcebucket-1m8qnzobarz4q' --capabilities CAPABILITY_IAM --region 'us-east-1'
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name 'todo-houessou-com' --s3-bucket 'aws-sam-cli-managed-default-samclisourcebucket-1m8qnzobarz4q' --capabilities CAPABILITY_IAM --region 'us-east-1'
