@@ -97,7 +97,7 @@
             <div class="modal-body">
               <form id="newTodoForm">
                 <label for="newTodoModalTitle">Title: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                <input type="text" id ="newTodoModalDateDue" name="newTodoModalDateDue" placeholder="" />
+                <input type="text" id ="newTodoModalTitle" name="newTodoModalTitle" placeholder="" />
                 <br>
                 <label for="newTodoModalDateDue">Due date: &nbsp;&nbsp;</label>
                 <input type="text" id ="newTodoModalDateDue" name="newTodoModalDateDue" placeholder="yyyy-mm-dd" />
@@ -114,6 +114,10 @@
     <!-- End New Todo Modal --> 
 
     <div id="modal-message"></div>
+    
+    <div class="alert alert-success" style="display:none">
+        {{ Session::get('success') }}
+    </div>
 
     <!-- Importing scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -190,7 +194,7 @@
         descriptionScope = $scope;
 
         $scope.completeClicked = function(todoID) {
-        console.log("complete clicked: " +  todoID);
+        console.log("marked as completed: " +  todoID);
         completeTodo(todoID, markCompleted);
         }
     });
@@ -329,10 +333,17 @@
         var userID = localStorage.getItem('userID');
         var todoApi = todoApiEndpoint + userID +'/todos';
 
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
         $.ajax({
         url : todoApi,
         type : 'GET',
+        headers : {'Authorization' : idJwt },
         success : function(response) {
+            console.log("successfully loaded todos for " + userID);
             callback(response.todos);
         },
         error : function(response) {
@@ -348,10 +359,17 @@
         var userID = localStorage.getItem('userID');
         var todoApi = todoApiEndpoint + userID +'/todos/' + todoID;
 
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
         $.ajax({
         url : todoApi,
         type : 'GET',
+        headers : {'Authorization' : idJwt },
         success : function(response) {
+            console.log('todo' + todoID)
             callback(response.todos);
         },
         error : function(response) {
@@ -373,25 +391,61 @@
         var idJwt = IdToken.jwtToken;
 
         todo = {
-        title: title,
-        description: description,
-        dateDue: dateDue,
+            title: title,
+            description: description,
+            dateDue: dateDue,
         }
 
         $.ajax({
         url : todoApi,
         type : 'POST',
-        headers : {'Content-Type': 'application/json'},
+        headers : {'Content-Type': 'application/json', 'Authorization' : idJwt},
         dataType: 'json',
         data : JSON.stringify(todo),
         success : function(response) {
             console.log("todo added!")
+            $(".alert-success").css("display", "block");
+            $(".alert-success").append("<P>Todo added!");
+            window.location.reload();
         },
         error : function(response) {
             console.log("could not add todo");
             console.log(response);
         }
         });
+    }
+
+    function completeTodo(todoID, callback) {
+        try {
+            var userID = localStorage.getItem('userID');
+            var todoApi = todoApiEndpoint + userID + "/todos/" + todoID + "/complete";
+
+            var sessionTokensString = localStorage.getItem('sessionTokens');
+            var sessionTokens = JSON.parse(sessionTokensString);
+            var IdToken = sessionTokens.IdToken;
+            var idJwt = IdToken.jwtToken;
+
+            $.ajax({
+                url : todoApi,
+                async : false,
+                type : 'POST',
+                headers : {'Authorization' : idJwt },
+                success : function(response) {
+                    console.log("marked as completed:" + todoID)
+                    window.location.reload();
+                    callback();
+                },
+                error : function(response) {
+                console.log("could not completed todo");
+                if (response.status == "401") {
+                    refreshAWSCredentials();
+                }
+                }
+            });
+            } catch(err) {
+            alert("You must be logged in to adopt a mysfit");
+            console.log(err.message);
+            }
     }
 </script>
 </html>
