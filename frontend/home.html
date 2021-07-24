@@ -53,7 +53,7 @@
           <div class="modal-content">
             <!-- Modal Header -->
             <div class="modal-header">
-              <h6>{{todo.title}}</h6>
+              <h6>{{descriptionTodo.title}}</h6>
               <button type="button" class="close" data-dismiss="modal">
                 <span aria-hidden="true">&times;</span>
                 <span class="sr-only">Close</span>
@@ -438,7 +438,6 @@
                 headers : {'Authorization' : idJwt },
                 success : function(response) {
                     console.log("marked as completed:" + todoID)
-                    window.location.reload();
                     callback();
                 },
                 error : function(response) {
