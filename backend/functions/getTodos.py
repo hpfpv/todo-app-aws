@@ -62,6 +62,6 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Methods': 'GET',
             'Content-Type': 'application/json'
         },
-        'body': json.dumps(items)
+        'body': items
     }
 
