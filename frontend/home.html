@@ -39,7 +39,7 @@
                     <br>
                     <b>Due Date:</b> {{todo.dateDue}}
                     <br>
-                    <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#descriptionModal" data-todoid="{{todo.todoID}}">Details</button>
+                    <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#descriptionModal" data-todoID="{{todo.todoID}}">Details</button>
                     <br>
                 </p>
               <br>
@@ -192,15 +192,20 @@
     app.controller('todoDescriptionController', function($scope) {
 
         descriptionScope = $scope;
-
+        
         $scope.completeClicked = function(todoID) {
         console.log("marked as completed: " +  todoID);
         completeTodo(todoID, markCompleted);
         }
     });
 
+    $('#descriptionModal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget);
+      var todoID = button.data('todoID');
+      getTodo(todoID, updateModalText);
+    });
 
-    function updateModalText(profileMysfit) {
+    function updateModalText(descriptionTodo) {
 
         applyDescriptionScope(descriptionTodo);
 
