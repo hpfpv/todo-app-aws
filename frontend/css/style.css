@@ -1,0 +1,109 @@
+#logo {
+    width: 40%;
+}
+
+@media screen and (max-width: 576px) { 
+    #logo {
+        display: none;
+    }
+ }
+
+.bg-light {
+    background-color: white;
+}
+
+#brand-title {
+    color: black;
+}
+
+.signin-title {
+    margin: 15px;
+}
+
+.input-field>label:first-of-type{
+    display:block;
+    margin-bottom:.5rem;
+    font-weight:400
+}
+.input-field>label:first-of-type.h5{
+    font-weight:600
+}
+
+.input-field{
+    position:relative;
+    margin-bottom:1.5rem;
+    margin-top:1.5rem;  
+    border-radius:0px;
+}
+
+.signin{
+    width: 100%;
+    border-radius:0px;
+    margin-top:1rem; 
+    padding: 0.6rem; 
+}
+
+.btn-custom{
+    background-color:#009933;
+    border-color: #00802b;
+    color: white;
+}
+
+.btn-custom:active,.btn-custom:target,
+.btn.btn-custom:active,.btn.btn-custom:focus,.btn.btn-custom:hover 
+{
+    -webkit-box-shadow:0 5px 11px 0 rgba(0,0,0,.18),0 4px 15px 0 rgba(0,0,0,.15);
+    box-shadow:0 5px 11px 0 rgba(0,0,0,.18),0 4px 15px 0 rgba(0,0,0,.15);
+
+    background-color: white;
+    color: #009933;
+    border-color: #009933;
+}
+
+
+.btn.btn-dark:active,.btn.btn-dark:focus,.btn.btn-dark:hover {
+    -webkit-box-shadow:0 5px 11px 0 rgba(0,0,0,.18),0 4px 15px 0 rgba(0,0,0,.15);
+    box-shadow:0 5px 11px 0 rgba(0,0,0,.18),0 4px 15px 0 rgba(0,0,0,.15);
+    background-color: white;
+    color: black;
+}
+
+.upload-title {
+    display: inline;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    margin-bottom: 20px;
+    
+}
+
+.lead {
+    font-size: 1.25rem;
+    font-weight: 300;
+}
+
+p {
+    display: inline;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+}
+
+#s3-img {
+    display: inline;
+    margin-left: 15px;
+    width: 8%;
+}
+
+@media screen and (max-width: 1024px) { 
+    #s3-img {
+        width: 10%;
+    }
+ }
+
+
+@media screen and (max-width:  992px) {
+    .upload-form {
+        margin-top: 15px;
+    }
+}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Sign In - TodosHouessou</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+              <img src="img/logo.png" title="logo" id="logo"/>
+                <b id="brand-title"></b>
+            </a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 offset-md-4">
+                <h2 class="text-center signin-title">Sign In to access your todo-list</h2>
+                <form onsubmit="return false;">
+                    <div class="form-group input-field">
+                        <label for="username">Email</label>
+                        <input type="email" class="form-control rounded-0" name="username" id="username"aria-describedby="emailHelp" placeholder="Your email">
+                    </div>
+                    <div class="form-group input-field">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control rounded-0" name="password" id="password" placeholder="Your password">
+                    </div>
+                    <button class="btn btn-custom signin" onclick="login();">Sign In</button>
+                    <div class="login-help">
+                        <p>Don't have an account? </p>
+                        <a href="register.html">Register!</a>
+                      </div>
+                </form> 
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Importing scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="js/amazon-cognito-identity.min.js"></script>
+    <script src="js/aws-sdk.min.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+            $(function(){
+                checkLogin(true, false);
+            })
+    </script>
+</body>
+<script>
+    var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
+    var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
+    var usernameForLambda = ''
+
+    var poolData = { UserPoolId : cognitoUserPoolId,
+    ClientId : cognitoUserPoolClientId
+    };
+
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+    function login(){
+        var username = $('#username').val();
+        var authenticationData = {
+            Username: username,
+            Password: $('#password').val()
+        };
+
+        var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+
+        var userData = {
+            Username : username,
+            Pool : userPool
+        };
+        var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+        console.log(cognitoUser);
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: function (result) {
+            var accessToken = result.getAccessToken().getJwtToken();
+            console.log('Authentication successful', accessToken);
+            window.location = './index.html';
+            var usernameForLambda = username
+            console.log('Username for Lambda', usernameForLambda)
+            },
+
+            onFailure: function(err) {
+            console.log('failed to authenticate');
+            console.log(JSON.stringify(err));
+            alert('Failed to Log in.\nPlease check your credentials.');
+            },
+        });
+    }
+
+    function checkLogin(redirectOnRec, redirectOnUnrec){
+        var cognitoUser = userPool.getCurrentUser();
+        if (cognitoUser != null) {
+            console.log('user exists', usernameForLambda);
+            if (redirectOnRec) {
+            window.location = './index.html';
+            } else {
+            $('#body').css({'visibility':'visible'});
+            }
+        } else {
+            if (redirectOnUnrec) {
+            window.location = './signin.html';
+            }
+        }
+    }
+
+    function logOut() {
+        var cognitoUser = userPool.getCurrentUser();
+        console.log(cognitoUser, 'signing out...');
+        cognitoUser.signOut();
+        window.location = './signin.html';
+    }
+</script>
+</html>

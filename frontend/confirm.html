@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Register - TodosHouessou</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+              <img src="img/logo.png" title="logo" id="logo"/>
+                <b id="brand-title"></b>
+            </a>
+        </div>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 offset-md-4">
+          <h5>Enter the code sent to the email you provided. Then, login again on the home page.</h5>
+          <br>
+          <form id="userDetails">
+            <div class="form-group">
+              <label for="confirmCode">Confirmation Code:</label>
+              <input type="number" class="form-control" id="confirmCode" placeholder="Enter Confirmation Code" name="confirmCode">
+            </div>
+            <button class="btn btn-custom signin" onclick="confirm();">Confirm</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </body>
+
+  <!-- Importing scripts -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="js/amazon-cognito-identity.min.js"></script>
+  <script src="js/aws-sdk.min.js"></script>
+  <script src="js/script.js"></script>
+
+  <script>
+
+    var cognitoUserPoolId = 'us-east-1_fM3BzKm1u'; 
+    var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p'; 
+      
+
+    function confirm() {
+      event.preventDefault();
+
+      var confirmCode = document.getElementById('confirmCode').value;
+
+      var poolData = {
+        UserPoolId : cognitoUserPoolId,
+        ClientId : cognitoUserPoolClientId
+      };
+
+      var userName = localStorage.getItem('email');
+
+      var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+      var userData = {
+          Username : userName,
+          Pool : userPool
+      };
+
+      var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+      cognitoUser.confirmRegistration(confirmCode, true, function(err, result) {
+          if (err) {
+              alert(err.message);
+              return;
+          }
+          window.location.replace("index.html");
+      });
+    }
+  </script>
+</html>

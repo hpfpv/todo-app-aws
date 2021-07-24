@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Home - TodosHouessou</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body id="body" style="visibility:hidden">
+    <!-- nav bar-->
+    <nav class="navbar navbar-expand-lg navbar-static-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+              <img src="img/logo.png" title="logo" id="logo"/>
+                <b id="brand-title"></b>
+            </a>
+        </div>
+        <div class="collapse navbar-collapse" id="Navbar">
+            <ul class="navbar-nav ml-auto nav">
+                <li class="nav-list"><button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">Add todo</button></li>
+            </ul>
+        </div>
+        <div class="collapse navbar-collapse" id="Navbar">
+            <ul class="navbar-nav ml-auto nav">
+                <li>&nbsp; &nbsp;</li>
+            </ul>
+        </div>
+        <div class="collapse navbar-collapse" id="Navbar">
+            <ul class="navbar-nav ml-auto nav">
+                <li class="nav-list"><button class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button></li>
+            </ul>
+        </div>
+        
+    </nav>
+
+    <!-- Uploader -->
+    <div class="jumbotron">
+        <div class="container">
+            <div class="row">
+                    <h1 class="upload-title">File Uploader</h1>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="img/s3.svg" title="s3 bucket" id="s3-img"/>
+                    <p class="lead">Upload an excel file to S3 bucket.</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group upload-form">
+                        <div class="input-group-prepend">
+                            <span type="button" class="btn btn-custom" id="uploadButton" onclick="uploadS3();">Upload</span>
+                        </div>
+                        <div class="custom-file">
+                            <input type="file" class="form-control-file" id="fileinput" aria-describedby="fileinput" onChange="addFileName();">
+                            <label class="custom-file-label" for="fileinput" id="fileName">Choose file</label>
+                        </div>
+                    </div>
+                </div>
+            </div>         
+        </div>
+    </div>
+
+    <!-- New Todo Modal -->
+    <div class="modal fade" id="newTodoModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                <span aria-hidden="true">&times;</span>
+                <span class="sr-only">Close</span>
+              </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <form id="newTodoForm">
+                <label for="newTodoModalDateDue">Due date</label>
+                <input type="text" id ="newTodoModalDateDue" name="newTodoModalDateDue" placeholder="2021-10-25" />
+                <br>
+                <br>
+                <label for="newTodoModalDescription">Description</label>
+                <textarea class="form-control" id="newTodoModalDescription" ></textarea>
+                <br>
+                <input type="submit" id="newTodo-modal-button" name="newTodoButton" class="btn btn-success" value="Add todo!" />
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    <!-- End New Todo Modal --> 
+
+    <div id="modal-message"></div>
+
+
+    <!-- Importing scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="js/amazon-cognito-identity.min.js"></script>
+    <script src="js/aws-sdk.min.js"></script>
+    <script src="js/script.js"></script>
+    <!-- <script src="scripts/ajaxCallExample.js"></script> -->
+    <script type="text/javascript">
+        $(function(){
+            checkLogin(false, true);
+            setCredential();
+            // ajaxCall(false);
+        })           
+    </script>
+</body>
+<script>
+    var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/dev';
+    var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
+    var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
+    var usernameForLambda = ''
+
+    initializeStorage();
+
+    var configString = localStorage.getItem("awsConfig");
+    var config = JSON.parse(configString);
+    if(config != null) {
+    refreshAWSCredentials();
+    loggedInDisplay();
+    }
+
+    function initializeStorage() {
+      var identityPoolId = cognitoUserPoolId;//
+      var userPoolId = cognitoUserPoolId; //
+      var clientId = cognitoUserPoolClientId;//
+      var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + identityPoolId;
+
+      localStorage.setItem('identityPoolId', identityPoolId);
+      localStorage.setItem('userPoolId', userPoolId);
+      localStorage.setItem('clientId', clientId);
+      localStorage.setItem('loginPrefix', loginPrefix);
+    }
+
+    $("#newTodoForm").submit(function(event) {
+      event.preventDefault();
+      $('#newTodoModal').modal('toggle')
+      var dateDue = document.getElementById('newTodoModalDateDue').value;
+      var description = document.getElementById('newTodoModalDescription').value;
+      addTodo(dateDue, description );
+    });
+
+    function login(){
+        var userPoolId = localStorage.getItem('userPoolId');
+        var clientId = localStorage.getItem('clientId');
+        var identityPoolId = localStorage.getItem('identityPoolId');
+        var loginPrefix = localStorage.getItem('loginPrefix');
+
+        var poolData = {
+            UserPoolId : userPoolId, // Your user pool id here
+            ClientId : clientId // Your client id here
+        };
+        var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+        var username = $('#username').val();
+        var authenticationData = {
+            Username: username,
+            Password: $('#password').val()
+        };
+
+        var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+
+        var userData = {
+            Username : username,
+            Pool : userPool
+        };
+        var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+        console.log(cognitoUser);
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: function (result) {
+            var accessToken = result.getAccessToken().getJwtToken();
+            console.log('Authentication successful', accessToken);
+            var sessionTokens =
+            {
+                IdToken: result.getIdToken(),
+                AccessToken: result.getAccessToken(),
+                RefreshToken: result.getRefreshToken()
+            };
+            localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
+            localStorage.setItem('userID', username);
+            window.location = './index.html';
+            },
+
+            onFailure: function(err) {
+            console.log('failed to authenticate');
+            console.log(JSON.stringify(err));
+            alert('Failed to Log in.\nPlease check your credentials.');
+            },
+        });
+    }
+
+    function refreshAWSCredentials() {
+        var userPoolId = localStorage.getItem('userPoolId');
+        var clientId = localStorage.getItem('clientId');
+        var identityPoolId = localStorage.getItem('identityPoolId');
+        var loginPrefix = localStorage.getItem('loginPrefix');
+
+        var poolData = {
+        UserPoolId : userPoolId, // Your user pool id here
+        ClientId : clientId // Your client id here
+        };
+        var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+        var cognitoUser = userPool.getCurrentUser();
+
+        if (cognitoUser != null) {
+            cognitoUser.getSession(function(err, result) {
+                if (result) {
+                    console.log('You are now logged in.');
+                    cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
+
+                        if (err) {//throw err;
+                            console.log('In the err: '+err);
+                        }
+                        else{
+                            localStorage.setItem('awsConfig', JSON.stringify(AWS.config));
+                            var sessionTokens =
+                            {
+                                IdToken: result.getIdToken(),
+                                AccessToken: result.getAccessToken(),
+                                RefreshToken: result.getRefreshToken()
+                            };
+                            localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
+
+                        }
+                    });
+
+                }
+            });
+        }
+    }
+
+    function checkLogin(redirectOnRec, redirectOnUnrec){
+        var cognitoUser = userPool.getCurrentUser();
+        if (cognitoUser != null) {
+            console.log('user exists', usernameForLambda);
+            if (redirectOnRec) {
+            window.location = './index.html';
+            } else {
+            $('#body').css({'visibility':'visible'});
+            }
+        } else {
+            if (redirectOnUnrec) {
+            window.location = './signin.html';
+            }
+        }
+    }
+
+    function logOut() {
+        var cognitoUser = userPool.getCurrentUser();
+        console.log(cognitoUser, 'signing out...');
+        cognitoUser.signOut();
+        localStorage.clear();
+        document.location.reload();
+        window.location = './signin.html';
+    }
+
+    function getTodos(callback) {
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID +'/todos';
+
+        $.ajax({
+        url : todoApi,
+        type : 'GET',
+        success : function(response) {
+            callback(response.todos);
+        },
+        error : function(response) {
+            console.log("could not retrieve todos list.");
+            if (response.status == "401") {
+            refreshAWSCredentials();
+            }
+        }
+        });
+    }
+
+    function getTodo(todoID, callback) {
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID +'/todos/' + todoID;
+
+        $.ajax({
+        url : todoApi,
+        type : 'GET',
+        success : function(response) {
+            callback(response.todos);
+        },
+        error : function(response) {
+            console.log("could not retrieve todo.");
+            if (response.status == "401") {
+            refreshAWSCredentials();
+            }
+        }
+        });
+    }
+
+    function addTodo(dateDue, description){
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID + "/todos/add";
+
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        todo = {
+        description: description,
+        dateDue: dateDue,
+        }
+
+        $.ajax({
+        url : todoApi,
+        type : 'POST',
+        headers : {'Content-Type': 'application/json'},
+        dataType: 'json',
+        data : JSON.stringify(todo),
+        success : function(response) {
+            console.log("todo added!")
+        },
+        error : function(response) {
+            console.log("could not add todo");
+            console.log(response);
+        }
+        });
+    }
+</script>
+</html>

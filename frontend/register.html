@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Register - TodosHouessou</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+              <img src="img/logo.png" title="logo" id="logo"/>
+                <b id="brand-title"></b>
+            </a>
+        </div>
+    </nav>
+    
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 offset-md-4">
+            <h2 class="text-center signin-title">Register</h2>
+            <form id="userDetails" >
+                <div class="form-group input-field">
+                  <label for="email">Email</label>
+                  <input type="email" class="form-control rounded-0" name="email" id="email"aria-describedby="emailHelp" placeholder="Your email">
+                </div>
+                <div class="form-group input-field">
+                  <label for="pwd">Password</label>
+                  <input type="password" class="form-control rounded-0" name="pwd" id="pwd" placeholder="Your password">
+                </div>
+                <div class="form-group input-field">
+                  <label for="confirmPwd">Confirm Password</label>
+                  <input type="password" class="form-control rounded-0" name="confirmPwd" id="confirmPwd" placeholder="Confirm password">
+              </div>
+              <button class="btn btn-custom signin" onclick="register();">Register</button>
+            </form> 
+          </div>
+        </div>
+    </div>  
+  </body>
+
+  <!-- Importing scripts -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="js/amazon-cognito-identity.min.js"></script>
+  <script src="js/aws-sdk.min.js"></script>
+  <script src="js/script.js"></script>
+
+  <script>
+
+    var cognitoUserPoolId = 'us-east-1_fM3BzKm1u'; 
+    var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p'; 
+
+    function register() {
+      event.preventDefault();
+
+      var poolData = {
+        UserPoolId : cognitoUserPoolId,
+        ClientId : cognitoUserPoolClientId
+      };
+      var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+      var attributeList = [];
+
+
+      var email = document.getElementById('email').value;
+      var pw = document.getElementById('pwd').value;
+      var confirmPw = document.getElementById('confirmPwd').value;
+      var dataEmail = {
+          Name : 'email',
+          Value : email
+      };
+
+      var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
+
+      attributeList.push(attributeEmail);
+
+      if (pw === confirmPw) {
+        userPool.signUp(email, pw, attributeList, null, function(err, result){
+            if (err) {
+                alert(err.message);
+                return;
+            }
+            cognitoUser = result.user;
+            console.log(cognitoUser);
+            localStorage.setItem('email', email);
+            window.location.replace('confirm.html');
+        });
+      } else {
+        alert('Passwords do not match.')
+      };
+    };
+  </script>
+</html>
