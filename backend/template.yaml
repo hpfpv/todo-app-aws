@@ -63,8 +63,6 @@ Resources:
             ApiId: !Ref MainHttpApi
             Path: /{userID}/todos
             Method: GET
-            Auth:  
-              Authorizer: NONE
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -89,8 +87,6 @@ Resources:
             ApiId: !Ref MainHttpApi
             Path: /{userID}/todos/{todoID}
             Method: GET
-            Auth:  
-              Authorizer: NONE
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -114,8 +110,6 @@ Resources:
             ApiId: !Ref MainHttpApi
             Path: /{userID}/todos/add
             Method: POST
-            Auth:  
-              Authorizer: NONE
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -139,8 +133,6 @@ Resources:
             ApiId: !Ref MainHttpApi
             Path: /{userID}/todos/{todoID}/complete
             Method: POST
-            Auth:  
-              Authorizer: NONE
       Policies:
         - Version: "2012-10-17"
           Statement:

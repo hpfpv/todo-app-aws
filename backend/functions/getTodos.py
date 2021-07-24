@@ -19,6 +19,7 @@ def getTodosJson(items):
         todo["todoID"] = item["todoID"]["S"]
         todo["userID"] = item["userID"]["S"]
         todo["dateCreated"] = item["dateCreated"]["S"]
+        todo["title"] = item["title"]["S"]
         todo["description"] = item["description"]["S"]
         todo["dateDue"] = item["dateDue"]["S"]
         todo["completed"] = item["completed"]["BOOL"]
@@ -60,6 +61,7 @@ def lambda_handler(event, context):
         if str(item["completed"]) == "False":
             todo["todoID"] = item["todoID"]
             todo["dateCreated"] = item["dateCreated"]
+            todo["title"] = item["title"]["S"]
             todo["description"] = item["description"]
             todo["dateDue"] = item["dateDue"]
             todo["completed"] = item["completed"]

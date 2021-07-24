@@ -4,46 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Home - TodosHouessou</title>
+    <title>Home - TodoHouessou</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="favicon.png" >
 </head>
-<body id="body" style="visibility:visible">
-    <!-- nav bar-->
-    <nav class="navbar navbar-expand-lg navbar-static-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-              <img src="img/logo.png" title="logo" id="logo"/>
-                <b id="brand-title"></b>
-            </a>
-        </div>
-        <div class="collapse navbar-collapse" id="Navbar">
-            <ul class="navbar-nav ml-auto nav">
-                <li class="nav-list"><button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">Add todo</button></li>
-            </ul>
-        </div>
-        <div class="collapse navbar-collapse" id="Navbar">
-            <ul class="navbar-nav ml-auto nav">
-                <li>&nbsp; &nbsp;</li>
-            </ul>
-        </div>
-        <div class="collapse navbar-collapse" id="Navbar">
-            <ul class="navbar-nav ml-auto nav">
-                <li class="nav-list"><button class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button></li>
-            </ul>
-        </div>
-        
-    </nav>
+<body id="body" style="visibility:visible" ng-app="todosApp">
 
-    <!-- Uploader -->
-    <div class="jumbotron">
-        <div class="container">
-            <div class="row">
-                    <h3>Your todo-list</h3>
-            </div>         
+    <!-- logo -->
+    <div class="container-fluid" style="text-align: center">
+        <a class="navbar-brand" href="#">
+            <img src="img/logo.png" id="logo" align="center"/>
+            <b id="brand-title"></b>
+        </a>
+    </div>
+   
+    <!-- New todo and Sign out buttons -->
+    <div class="container">
+        <div class='btn-toolbar float-right'>
+            <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
+          &nbsp;
+            <button class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button>
         </div>
     </div>
+    <br> 
+    <br>
+    <!-- todos list container -->
+    <div class="container">
+        <div id="todosGrid" class="row" ng-controller="todosListController">
+          <div class="col-md-4 border border-info" ng-repeat="todo in todos">
+              <br>
+                <p align="center">
+                    <strong> {{todo.title}}</strong>
+                    <br>
+                    <b>Due Date:</b> {{todo.dateDue}}
+                    <br>
+                    <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#descriptionModal" data-todoid="{{todo.todoID}}">Details</button>
+                    <br>
+                </p>
+              <br>
+          </div>
+        </div>
+    </div>
+   
+    <!-- Description Modal -->
+    <div class="modal fade bd-example-modal-lg" id="descriptionModal" tabindex="-1" aria-hidden="true" ng-controller="todoDescriptionController">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h6>{{todo.title}}</h6>
+              <button type="button" class="close" data-dismiss="modal">
+                <span aria-hidden="true">&times;</span>
+                <span class="sr-only">Close</span>
+              </button>
+            </div>
+          <!-- Modal Body -->
+            <div class="modal-body">
+              <p id="profileDescription"><b>Description:</b> <br> {{todo.description}}</p>
+              <br>
+              <br>
+              <p id="profileDateDue"><b>Due Date:</b> {{todo.dateDue}}</p>
+              <br>
+              <p id="profileDateCreated"><b>Created Date:</b> {{todo.dateCreated}}</p>
+              <br>
+              <p align="center">
+                <button id="completedButton" align="center" type="button" ng-click="completdClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
+                <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Todo Completed!</button>
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+           </div>
+          </div>
+        </div>
+    </div>
+    <!-- End Description Modal -->
 
     <!-- New Todo Modal -->
     <div class="modal fade" id="newTodoModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -51,6 +87,7 @@
           <div class="modal-content">
             <!-- Modal Header -->
             <div class="modal-header">
+              <h5>Add a new todo</h5>
               <button type="button" class="close" data-dismiss="modal">
                 <span aria-hidden="true">&times;</span>
                 <span class="sr-only">Close</span>
@@ -59,14 +96,16 @@
             <!-- Modal Body -->
             <div class="modal-body">
               <form id="newTodoForm">
-                <label for="newTodoModalDateDue">Due date</label>
-                <input type="text" id ="newTodoModalDateDue" name="newTodoModalDateDue" placeholder="2021-10-25" />
+                <label for="newTodoModalTitle">Title: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input type="text" id ="newTodoModalDateDue" name="newTodoModalDateDue" placeholder="" />
                 <br>
+                <label for="newTodoModalDateDue">Due date: &nbsp;&nbsp;</label>
+                <input type="text" id ="newTodoModalDateDue" name="newTodoModalDateDue" placeholder="yyyy-mm-dd" />
                 <br>
-                <label for="newTodoModalDescription">Description</label>
+                <label for="newTodoModalDescription">Description:</label>
                 <textarea class="form-control" id="newTodoModalDescription" ></textarea>
                 <br>
-                <input type="submit" id="newTodo-modal-button" name="newTodoButton" class="btn btn-success" value="Add todo!" />
+                <input type="submit" id="newTodo-modal-button" name="newTodoButton" class="btn btn-outline-success" value="Add todo!" />
               </form>
             </div>
           </div>
@@ -76,21 +115,32 @@
 
     <div id="modal-message"></div>
 
-
     <!-- Importing scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script
     <script src="js/amazon-cognito-identity.min.js"></script>
     <script src="js/aws-sdk.min.js"></script>
     <script src="js/script.js"></script>
     <!-- <script src="scripts/ajaxCallExample.js"></script> -->
 
+    <p>
+        <br>
+        <br>
+        &nbsp;&nbsp;This site is a sample todo-list app created for training purposes <a href="https://hpfpv.houessou.com/aws-modern-application">GitHub repository here.</a>
+    </p>
 </body>
 <script>
     var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/dev/';
     var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
     var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
     var awsRegion = 'us-east-1';
+
+    var app = angular.module('todosApp', []);
+
+    var gridScope;
+
+    var descriptionScope;
 
     initializeStorage();
 
@@ -120,10 +170,62 @@
     $("#newTodoForm").submit(function(event) {
       event.preventDefault();
       $('#newTodoModal').modal('toggle')
+      var title = document.getElementById('newTodoModalTitle').value;
       var dateDue = document.getElementById('newTodoModalDateDue').value;
       var description = document.getElementById('newTodoModalDescription').value;
-      addTodo(dateDue, description );
+      addTodo(dateDue, title, description);
     });
+
+    app.controller('todosListController', function($scope) {
+
+        gridScope = $scope;
+        getTodos(applyGridScope);
+
+    });
+
+    app.controller('todoDesriptionController', function($scope) {
+
+        descriptionScope = $scope;
+
+        $scope.completeClicked = function(todoID) {
+        console.log("complete clicked: " +  todoID);
+        completeTodo(todoID, markCompleted);
+        }
+    });
+
+
+    function updateModalText(profileMysfit) {
+
+        applyDescriptionScope(descriptionTodo);
+
+        if (descriptionTodo.completed == true) {
+            markCompleted();
+        } else {
+            markNotCompleted();
+        }
+
+    }
+
+    function markCompleted() {
+        $("#completedButton").addClass("d-none");
+        $("#alreadyCompletedButton").removeClass("d-none");
+    }
+
+    function markNotCompleted() {
+        $("#completedButton").removeClass("d-none");
+        $("#alreadyCompletedButton").addClass("d-none");
+    }
+
+
+    function applyGridScope(todosList) {
+    gridScope.todos = todosList;
+    gridScope.$apply();
+    }
+
+    function applyDescriptionScope(todo) {
+    descriptionScope.descriptionTodo = todo;
+    descriptionScope.$apply();
+    }
 
     function login(){
         var userPoolId = localStorage.getItem('userPoolId');
@@ -259,7 +361,7 @@
         });
     }
 
-    function addTodo(dateDue, description){
+    function addTodo(dateDue, title, description){
         var userID = localStorage.getItem('userID');
         var todoApi = todoApiEndpoint + userID + "/todos/add";
 
@@ -269,6 +371,7 @@
         var idJwt = IdToken.jwtToken;
 
         todo = {
+        title: title,
         description: description,
         dateDue: dateDue,
         }

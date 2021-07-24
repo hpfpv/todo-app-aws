@@ -24,6 +24,9 @@ def lambda_handler(event, context):
     todo["dateCreated"] = {
         "S": str(dateTimeObj)
         }
+    todo["title"] = {
+        "S": eventBody["title"]
+        }    
     todo["description"] = {
         "S": eventBody["description"]
         }
