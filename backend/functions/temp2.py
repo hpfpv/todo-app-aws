@@ -92,5 +92,48 @@ for item in dict3:
 
 input = json.loads("{\"notes\":\"-new chapter: dictionaries | done\"}")
 notes = input["notes"]
-print (notes)
+
+sortedData2 = {
+   "todos":[
+      {
+         "todoID":"0feeaed0-5718-4235-a849-fdc69f6d95ba",
+         "userID":"hpf@houessou.com",
+         "dateCreated":"2021-07-20 23:12:42.704467",
+         "title":"Test Todo 222",
+         "description":"Test Todo 222 for hpf",
+         "dateDue":"2021-08-20",
+         "completed":"true"
+      },
+      {
+         "todoID":"34fa3856-6811-4fca-bb2f-d372a21bf04e",
+         "userID":"hpf@houessou.com",
+         "dateCreated":"2021-07-24 15:59:40.156578",
+         "title":"Todo title6",
+         "description":"okokok",
+         "dateDue":"2021-10-08",
+         "completed":"true"
+      },
+      {
+         "todoID":"879300c0-73e0-45a5-994f-9f712b08a97f",
+         "userID":"hpf@houessou.com",
+         "dateCreated":"2021-07-25 18:35:14.040809",
+         "title":"Learn Ansible",
+         "description":"For cloud computing",
+         "dateDue":"2021-12-31",
+         "completed":"false"
+      },
+      {
+         "todoID":"396f518b-02da-4db9-a0a1-f1423fb2d60b",
+         "userID":"hpf@houessou.com",
+         "dateCreated":"2021-07-25 17:36:28.756252",
+         "title":"Learn Python",
+         "description":"Learn Python for coding and cloud administrative tasks",
+         "dateDue":"2021-12-31",
+         "completed":"false"
+      }
+   ]
+}
+
+sortedData3 = sorted(sortedData2["todos"], key = lambda i: i["completed"])
+print (sortedData3)
 

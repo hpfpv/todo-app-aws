@@ -57,9 +57,10 @@ def lambda_handler(event, context):
     data = json.loads(items)
     response = defaultdict(list)
     sortedData1 = sorted(data["todos"], key = lambda i: i["dateCreated"], reverse=True)
-    sortedDate2 = sorted(sortedData1, key = lambda i: i["dateDue"])
+    sortedData2 = sorted(sortedData1, key = lambda i: i["dateDue"])
+    sortedData3 = sorted(sortedData2, key = lambda i: i["completed"])
     response = defaultdict(list)
-    for item in sortedDate2:
+    for item in sortedData3:
         todo = {}
 
         todo["todoID"] = item["todoID"]
