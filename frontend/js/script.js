@@ -309,7 +309,7 @@ function completeTodo(todoID, callback) {
 function addTodoNotes(todoID, notes, callback) {
     try {
         var userID = localStorage.getItem('userID');
-        var todoApi = todoApiEndpoint + userID + "/todos/" + todoID + "/addnote";
+        var todoApi = todoApiEndpoint + userID + "/todos/" + todoID + "/addnotes";
 
         var sessionTokensString = localStorage.getItem('sessionTokens');
         var sessionTokens = JSON.parse(sessionTokensString);
@@ -325,6 +325,7 @@ function addTodoNotes(todoID, notes, callback) {
             async : false,
             type : 'POST',
             headers : {'Content-Type': 'application/json','Authorization' : idJwt },
+            dataType:'json',
             data: JSON.stringify(notes),
             success : function(response) {
                 console.log("added notes for: " + todoID)

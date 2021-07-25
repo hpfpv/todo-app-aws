@@ -66,13 +66,12 @@
             <div class="modal-body">
               <p id="descriptionDescription"><b>Description:</b> <br> {{descriptionTodo.description}}</p>
               <br>
-              <br>
               <p id="descriptionDateDue"><b>Due Date:</b> {{descriptionTodo.dateDue}}</p>
               <br>
               <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
               <br>
               <textarea class="form-control" id="descriptionNotes">{{descriptionTodo.notes}}</textarea>
-              &nbsp;&nbsp;&nbsp;&nbsp;
+              <br>
               <button id="saveNotesButton" align="center" type="button" ng-click="saveNoteClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
               <p align="center">
                 <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID, descriptionTodo.notes)" class="btn btn-outline-success">Mark Completed!</button>
@@ -186,7 +185,6 @@
         $scope.saveNoteClicked = function(todoID, notes) {
             console.log("note for: " +  todoID);
             addTodoNotes(todoID, notes);
-            $state.reload();
         }
     });
 
