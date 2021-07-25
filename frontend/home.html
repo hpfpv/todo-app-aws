@@ -70,9 +70,7 @@
               <br>
               <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
               <br>
-              <p>
-                  <textarea class="form-control" id="descriptionNotes">{{descriptionTodo.notes}}</textarea>
-              </p>
+              <textarea class="form-control" id="descriptionNotes"><p>{{descriptionTodo.notes}}</p></textarea>
               <br>
               <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
               <p align="center">
@@ -173,11 +171,11 @@
         getTodo(todoID, updateModalText);
     });
 
-    $('#descriptionModal').on('hidden.bs.modal', function() {
+    $('#descriptionModal').on('hidden.bs.modal', function(event) {
         $(this).data('bs.modal', null);
     });
 
-    $('#newTodoModal').on('hidden.bs.modal', function() {
+    $('#newTodoModal').on('hidden.bs.modal', function(event) {
         $(this).data('bs.modal', null);
     });
 
