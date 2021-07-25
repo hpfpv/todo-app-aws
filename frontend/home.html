@@ -167,10 +167,18 @@
     });
 
     $('#descriptionModal').on('show.bs.modal', function (event) {
-        event.preventDefault();
+        
         var button = $(event.relatedTarget);
         var todoID = button.data('todoid');
         getTodo(todoID, updateModalText);
+    });
+
+    $('#descriptionModal').on('hidden', function() {
+        $(this).removeData('modal').find('.modal-body').html('');
+    });
+
+    $('#newTodoModal').on('hidden', function() {
+        $(this).removeData('modal').find('.modal-body').html('');
     });
 
     app.controller('todosListController', function($scope) {
