@@ -56,7 +56,7 @@
           <div class="modal-content">
             <!-- Modal Header -->
             <div class="modal-header">
-              <h6>{{descriptionTodo.title}}</h6>
+              <h4>{{descriptionTodo.title}}</h4>
               <button type="button" class="close" data-dismiss="modal">
                 <span aria-hidden="true">&times;</span>
                 <span class="sr-only">Close</span>
@@ -166,6 +166,13 @@
         addTodo(dateDue, title, description);
     });
 
+    $('#descriptionModal').on('show.bs.modal', function (event) {
+        event.preventDefault();
+        var button = $(event.relatedTarget);
+        var todoID = button.data('todoid');
+        getTodo(todoID, updateModalText);
+    });
+
     app.controller('todosListController', function($scope) {
 
         gridScope = $scope;
@@ -188,11 +195,6 @@
         }
     });
 
-    $('#descriptionModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget);
-        var todoID = button.data('todoid');
-        getTodo(todoID, updateModalText);
-    });
 
 </script>
 </html>

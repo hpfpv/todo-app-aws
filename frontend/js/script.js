@@ -319,10 +319,9 @@ function addTodoNotes(todoID, notes, callback) {
         inputNotes = {
             notes: notes
         }
-        console.log("note to be added: " + inputNotes)
+        console.log("note to be added: " + notes)
         $.ajax({
             url : todoApi,
-            async : false,
             type : 'POST',
             headers : {'Content-Type': 'application/json','Authorization' : idJwt },
             dataType: 'json',
