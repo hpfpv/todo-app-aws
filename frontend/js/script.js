@@ -27,7 +27,7 @@ function initializeStorage() {
 
 function updateModalText(descriptionTodo) {
     applyDescriptionScope(descriptionTodo);
-
+    $("#descriptionNotes").val(descriptionTodo.notes);
     if (descriptionTodo.completed == true) {
         markCompleted();
     } else {
