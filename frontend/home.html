@@ -24,7 +24,8 @@
         <div class='btn-toolbar float-right'>
             <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
           &nbsp;
-            <button class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button>
+            <button type="button" id="signOutButton" class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button>
+            <button type="button" id="signInButton" class="btn btn-sm btn-nav d-none" onclick="logOut();">Sign in</button>
         </div>
     </div>
     <br> 
@@ -36,6 +37,8 @@
               <br>
                 <p align="center">
                     <strong> {{todo.title}}</strong>
+                    <br>
+                    <b>Description:</b> {{todo.description}}
                     <br>
                     <b>Due Date:</b> {{todo.dateDue}}
                     <br>
@@ -68,8 +71,11 @@
               <br>
               <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
               <br>
+              <textarea class="form-control" id="descriptionNotes">{{descriptionTodo.notes}}</textarea>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <button id="saveNotesButton" align="center" type="button" ng-click="saveNoteClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
               <p align="center">
-                <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
+                <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID, descriptionTodo.notes)" class="btn btn-outline-success">Mark Completed!</button>
                 <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Completed!</button>
               </p>
             </div>
@@ -128,49 +134,28 @@
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.135.0.min.js"></script>
     <script src="js/aws-cognito-sdk.min.js"></script>
     <script src="js/amazon-cognito-identity.min.js"></script>
-    <!-- <script src="scripts/ajaxCallExample.js"></script> -->
+    <script src="js/script.js"></script>
 
     <p>
         <br>
         <br>
-        &nbsp;&nbsp;This site is a sample todo-list app created for training purposes <a href="https://hpfpv.houessou.com/aws-modern-application">GitHub repository here.</a>
+        &nbsp;&nbsp;This site is a sample todo-list app created for training purposes <a href="https://blogs.houessou.com/todo-app-aws">More details here.</a>
     </p>
 </body>
 <script>
-    var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/dev/';
-    var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
-    var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
-    var awsRegion = 'us-east-1';
-
-    var app = angular.module('todosApp', []);
-
-    var gridScope;
-
-    var descriptionScope;
-
+ 
+    checkLogin(false, true);
     initializeStorage();
 
+    var app = angular.module('todosApp', []);
+    var gridScope;
+    var descriptionScope;
+    
     var configString = localStorage.getItem("awsConfig");
     var config = JSON.parse(configString);
     if(config != null) {
         refreshAWSCredentials();
         loggedInDisplay();
-    }
-
-    function loggedInDisplay() {
-        $('#body').css({'visibility':'visible'});
-    }
-
-    function initializeStorage() {
-      var identityPoolId = cognitoUserPoolId;//
-      var userPoolId = cognitoUserPoolId; //
-      var clientId = cognitoUserPoolClientId;//
-      var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + identityPoolId;
-
-      localStorage.setItem('identityPoolId', identityPoolId);
-      localStorage.setItem('userPoolId', userPoolId);
-      localStorage.setItem('clientId', clientId);
-      localStorage.setItem('loginPrefix', loginPrefix);
     }
 
     $("#newTodoForm").submit(function(event) {
@@ -192,10 +177,16 @@
     app.controller('todoDescriptionController', function($scope) {
 
         descriptionScope = $scope;
-        
+
         $scope.completedClicked = function(todoID) {
-        console.log("marked as completed: " +  todoID);
-        completeTodo(todoID, markCompleted);
+            console.log("marked as completed: " +  todoID);
+            completeTodo(todoID, markCompleted);
+        }
+        
+        $scope.saveNoteClicked = function(todoID, notes) {
+            console.log("note for: " +  todoID);
+            addTodoNotes(todoID, notes);
+            $state.reload();
         }
     });
 
@@ -205,252 +196,5 @@
         getTodo(todoID, updateModalText);
     });
 
-    function updateModalText(descriptionTodo) {
-        applyDescriptionScope(descriptionTodo);
-
-        if (descriptionTodo.completed == true) {
-            markCompleted();
-        } else {
-            markNotCompleted();
-        }
-    }
-
-    function markCompleted() {
-        $("#completedButton").addClass("d-none");
-        $("#alreadyCompletedButton").removeClass("d-none");
-    }
-
-    function markNotCompleted() {
-        $("#completedButton").removeClass("d-none");
-        $("#alreadyCompletedButton").addClass("d-none");
-    }
-
-
-    function applyGridScope(todosList) {
-        gridScope.todos = todosList;
-        gridScope.$apply();
-    }
-
-    function applyDescriptionScope(todo) {
-        descriptionScope.descriptionTodo = todo;
-        descriptionScope.$apply();
-    }
-
-    function login(){
-        var userPoolId = localStorage.getItem('userPoolId');
-        var clientId = localStorage.getItem('clientId');
-        var identityPoolId = localStorage.getItem('identityPoolId');
-        var loginPrefix = localStorage.getItem('loginPrefix');
-
-        var poolData = {
-            UserPoolId : userPoolId, // Your user pool id here
-            ClientId : clientId // Your client id here
-        };
-        var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-
-        var username = $('#username').val();
-        var authenticationData = {
-            Username: username,
-            Password: $('#password').val()
-        };
-
-        var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
-
-        var userData = {
-            Username : username,
-            Pool : userPool
-        };
-        var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-
-        console.log(cognitoUser);
-        cognitoUser.authenticateUser(authenticationDetails, {
-            onSuccess: function (result) {
-            var accessToken = result.getAccessToken().getJwtToken();
-            console.log('Authentication successful', accessToken);
-            var sessionTokens =
-            {
-                IdToken: result.getIdToken(),
-                AccessToken: result.getAccessToken(),
-                RefreshToken: result.getRefreshToken()
-            };
-            localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
-            localStorage.setItem('userID', username);
-            window.location = './home.html';
-            },
-
-            onFailure: function(err) {
-            console.log('failed to authenticate');
-            console.log(JSON.stringify(err));
-            alert('Failed to Log in.\nPlease check your credentials.');
-            },
-        });
-    }
-
-    function refreshAWSCredentials() {
-        var userPoolId = localStorage.getItem('userPoolId');
-        var clientId = localStorage.getItem('clientId');
-        var identityPoolId = localStorage.getItem('identityPoolId');
-        var loginPrefix = localStorage.getItem('loginPrefix');
-
-        var poolData = {
-        UserPoolId : userPoolId, // Your user pool id here
-        ClientId : clientId // Your client id here
-        };
-        var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-        var cognitoUser = userPool.getCurrentUser();
-
-        if (cognitoUser != null) {
-            cognitoUser.getSession(function(err, result) {
-                if (result) {
-                    console.log('You are now logged in.');
-                    cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
-
-                        if (err) {//throw err;
-                            console.log('In the err: '+err);
-                        }
-                        else{
-                            localStorage.setItem('awsConfig', JSON.stringify(AWS.config));
-                            var sessionTokens =
-                            {
-                                IdToken: result.getIdToken(),
-                                AccessToken: result.getAccessToken(),
-                                RefreshToken: result.getRefreshToken()
-                            };
-                            localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
-
-                        }
-                    });
-
-                }
-            });
-        }
-    }
-
-    function logOut() {
-        localStorage.clear();
-        document.location.reload();
-        window.location = './index.html';
-    }
-
-    function getTodos(callback) {
-        var userID = localStorage.getItem('userID');
-        var todoApi = todoApiEndpoint + userID +'/todos';
-
-        var sessionTokensString = localStorage.getItem('sessionTokens');
-        var sessionTokens = JSON.parse(sessionTokensString);
-        var IdToken = sessionTokens.IdToken;
-        var idJwt = IdToken.jwtToken;
-
-        $.ajax({
-        url : todoApi,
-        type : 'GET',
-        headers : {'Authorization' : idJwt },
-        success : function(response) {
-            console.log("successfully loaded todos for " + userID);
-            callback(response.todos);
-        },
-        error : function(response) {
-            console.log("could not retrieve todos list.");
-            if (response.status == "401") {
-            refreshAWSCredentials();
-            }
-        }
-        });
-    }
-
-    function getTodo(todoID, callback) {
-        var userID = localStorage.getItem('userID');
-        var todoApi = todoApiEndpoint + userID +'/todos/' + todoID;
-
-        var sessionTokensString = localStorage.getItem('sessionTokens');
-        var sessionTokens = JSON.parse(sessionTokensString);
-        var IdToken = sessionTokens.IdToken;
-        var idJwt = IdToken.jwtToken;
-
-        $.ajax({
-        url : todoApi,
-        type : 'GET',
-        headers : {'Authorization' : idJwt },
-        success : function(response) {
-            console.log('todoID: ' + todoID)
-            callback(response);
-        },
-        error : function(response) {
-            console.log("could not retrieve todo.");
-            if (response.status == "401") {
-            refreshAWSCredentials();
-            }
-        }
-        });
-    }
-
-    function addTodo(dateDue, title, description){
-        var userID = localStorage.getItem('userID');
-        var todoApi = todoApiEndpoint + userID + "/todos/add";
-
-        var sessionTokensString = localStorage.getItem('sessionTokens');
-        var sessionTokens = JSON.parse(sessionTokensString);
-        var IdToken = sessionTokens.IdToken;
-        var idJwt = IdToken.jwtToken;
-
-        todo = {
-            title: title,
-            description: description,
-            dateDue: dateDue,
-        }
-
-        $.ajax({
-        url : todoApi,
-        type : 'POST',
-        headers : {'Content-Type': 'application/json', 'Authorization' : idJwt},
-        dataType: 'json',
-        data : JSON.stringify(todo),
-        success : function(response) {
-            console.log("todo added!")
-            window.location.reload();
-            $("#success-addTodo").show();
-            $("#success-addTodo").html("Todo successfully added (^_^)");
-        },
-        error : function(response) {
-            console.log("could not add todo");
-            $("#error-addTodo").show();
-            $("#error-addTodo").html("Could not add todo (x_x) ");
-            console.log(response);
-
-        }
-        });
-    }
-
-    function completeTodo(todoID, callback) {
-        try {
-            var userID = localStorage.getItem('userID');
-            var todoApi = todoApiEndpoint + userID + "/todos/" + todoID + "/complete";
-
-            var sessionTokensString = localStorage.getItem('sessionTokens');
-            var sessionTokens = JSON.parse(sessionTokensString);
-            var IdToken = sessionTokens.IdToken;
-            var idJwt = IdToken.jwtToken;
-
-            $.ajax({
-                url : todoApi,
-                async : false,
-                type : 'POST',
-                headers : {'Authorization' : idJwt },
-                success : function(response) {
-                    console.log("marked as completed:" + todoID)
-                    callback();
-                },
-                error : function(response) {
-                console.log("could not completed todo");
-                if (response.status == "401") {
-                    refreshAWSCredentials();
-                }
-                }
-            });
-            } catch(err) {
-            alert("You must be logged in to adopt a mysfit");
-            console.log(err.message);
-            }
-    }
 </script>
 </html>

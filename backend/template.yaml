@@ -141,6 +141,29 @@ Resources:
               Resource:
                 - !GetAtt 'TodoTable.Arn'
 
+  addTodoNotes:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODO_TABLE: !Ref TodoTable 
+      CodeUri: ./functions
+      Handler: addTodoNotes.lambda_handler
+      Events:
+        getmysfitApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MainHttpApi
+            Path: /{userID}/todos/{todoID}/addnotes
+            Method: POST
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 'dynamodb:*'
+              Resource:
+                - !GetAtt 'TodoTable.Arn'
+
 
   TodoUserPool:
     Type: AWS::Cognito::UserPool

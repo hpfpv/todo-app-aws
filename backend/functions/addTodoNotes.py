@@ -2,13 +2,14 @@ import boto3
 import json
 import os
 import logging
-
+import uuid
+from datetime import datetime
 
 client = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def completeTodo(todoID):
+def addTodoNotes(todoID, notes):
     response = client.update_item(
         TableName=os.environ['TODO_TABLE'],
         Key={
@@ -16,19 +17,25 @@ def completeTodo(todoID):
                 'S': todoID
             }
         },
-        UpdateExpression="SET completed = :b",
-        ExpressionAttributeValues={':b': {'BOOL': True}}
+        UpdateExpression="SET notes = :b",
+        ExpressionAttributeValues={':b': {'S': notes}}
     )
     response = {}
     response["Update"] = "Success";
 
     return json.dumps(response)
-
 def lambda_handler(event, context):
     logger.info(event)
+    eventBody = json.loads(event["body"])
+
     todoID = event['pathParameters']['todoID']
-    logger.info(f'Completed todo: {todoID}')
-    response = completeTodo(todoID)
+    notes = {
+    "S": eventBody["notes"]
+    }
+
+    logger.info(f'adding notes for : {todoID}')
+    response = addTodoNotes(todoID, notes)
+    
     return {
         'statusCode': 200,
         'headers': {

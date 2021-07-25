@@ -1,22 +1,77 @@
-/* (1) For AWS Cognito Authentication */
-var userPoolId = 'ap-southeast-2_kfpdvWELQ'
-var clientId = '7vpi4nnd9d6kiicc3puhunujtv'
+var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/dev/';
+var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
+var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
+var awsRegion = 'us-east-1';
 
-var poolData = { UserPoolId : userPoolId,
-ClientId : clientId
-};
+function loggedInDisplay() {
+    $("#signInButton").addClass("d-none");
+    $("#signOutButton").removeClass("d-none");
+}
 
-var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+function loggedOutDisplay() {
+    $("#signInButton").removeClass("d-none");
+    $("#signOutButton").addClass("d-none");
+}
+
+function initializeStorage() {
+  var identityPoolId = cognitoUserPoolId;//
+  var userPoolId = cognitoUserPoolId; //
+  var clientId = cognitoUserPoolClientId;//
+  var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + identityPoolId;
+
+  localStorage.setItem('identityPoolId', identityPoolId);
+  localStorage.setItem('userPoolId', userPoolId);
+  localStorage.setItem('clientId', clientId);
+  localStorage.setItem('loginPrefix', loginPrefix);
+}
+
+function updateModalText(descriptionTodo) {
+    applyDescriptionScope(descriptionTodo);
+
+    if (descriptionTodo.completed == true) {
+        markCompleted();
+    } else {
+        markNotCompleted();
+    }
+}
+
+function markCompleted() {
+    $("#completedButton").addClass("d-none");
+    $("#alreadyCompletedButton").removeClass("d-none");
+}
+
+function markNotCompleted() {
+    $("#completedButton").removeClass("d-none");
+    $("#alreadyCompletedButton").addClass("d-none");
+}
+
+function applyGridScope(todosList) {
+    gridScope.todos = todosList;
+    gridScope.$apply();
+}
+
+function applyDescriptionScope(todo) {
+    descriptionScope.descriptionTodo = todo;
+    descriptionScope.$apply();
+}
 
 function login(){
+    var userPoolId = localStorage.getItem('userPoolId');
+    var clientId = localStorage.getItem('clientId');
+    var identityPoolId = localStorage.getItem('identityPoolId');
+    var loginPrefix = localStorage.getItem('loginPrefix');
+
+    var poolData = {
+        UserPoolId : userPoolId, // Your user pool id here
+        ClientId : clientId // Your client id here
+    };
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
     var username = $('#username').val();
     var authenticationData = {
         Username: username,
         Password: $('#password').val()
     };
-
-    // checking code
-    console.log("Username:",username, "Password:",$('#password').val())
 
     var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
 
@@ -26,167 +81,264 @@ function login(){
     };
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
 
-    console.log(cognitoUser)
+    console.log(cognitoUser);
     cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: function (result) {
-            var accessToken = result.getAccessToken().getJwtToken();
-            // Use the idToken for Logins Map when Federating User Pools with identity pools or when passing through an Authorization Header to an API Gateway Authorizer
-            // var idToken = result.idToken.jwtToken;
-
-            console.log("Authentication successful", accessToken)
-            window.location = './index.html'
+        var accessToken = result.getAccessToken().getJwtToken();
+        console.log('Authentication successful', accessToken);
+        var sessionTokens =
+        {
+            IdToken: result.getIdToken(),
+            AccessToken: result.getAccessToken(),
+            RefreshToken: result.getRefreshToken()
+        };
+        localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
+        localStorage.setItem('userID', username);
+        window.location = './home.html';
         },
 
         onFailure: function(err) {
-            console.log("failed to authenticate");
-            console.log(JSON.stringify(err))
-            alert("Failed to Log in.\nPlease check your credentials.")
+        console.log('failed to authenticate');
+        console.log(JSON.stringify(err));
+        alert('Failed to Log in.\nPlease check your credentials.');
         },
     });
 }
 
 function checkLogin(redirectOnRec, redirectOnUnrec){
+    var userPoolId = localStorage.getItem('userPoolId');
+    var clientId = localStorage.getItem('clientId');
+    var identityPoolId = localStorage.getItem('identityPoolId');
+    var loginPrefix = localStorage.getItem('loginPrefix');
 
+    var poolData = {
+    UserPoolId : userPoolId, // Your user pool id here
+    ClientId : clientId // Your client id here
+    };
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     var cognitoUser = userPool.getCurrentUser();
+
     if (cognitoUser != null) {
         console.log("user exists")
         if (redirectOnRec) {
-            window.location = './index.html';
+            window.location = './home.html';
+            loggedInDisplay();
         } else {
             $("#body").css({'visibility':'visible'});           
         }
     } else {
         if (redirectOnUnrec) {
-            window.location = './signin.html'
+            window.location = './index.html'
         } 
     }
 }
 
-function logOut() {
-    
+function refreshAWSCredentials() {
+    var userPoolId = localStorage.getItem('userPoolId');
+    var clientId = localStorage.getItem('clientId');
+    var identityPoolId = localStorage.getItem('identityPoolId');
+    var loginPrefix = localStorage.getItem('loginPrefix');
+
+    var poolData = {
+    UserPoolId : userPoolId, // Your user pool id here
+    ClientId : clientId // Your client id here
+    };
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     var cognitoUser = userPool.getCurrentUser();
-    console.log(cognitoUser, "signing out...")
-    cognitoUser.signOut();
-    window.location = './signin.html';
-}
-
-/* (2) File Input Utility */
-
-function addFileName () {
-    var fileName = document.getElementById('fileinput').files[0].name;
-    document.getElementById('fileName').innerHTML = fileName;
-}
-
-/* (3) File Upload */
-
-// Setting credentials for IAM role to upload files to S3
-var bucketName = 'lambda.test.source';
-var bucketRegion = 'ap-southeast-2'; 
-// IdentityPoolId: Go to Cognito Console -> Manage Identity Pool 
-// -> Click the name of the pool above the title(e.g. S3Uploader)
-// -> Sample Code on the left column -> It will be in Get Credential section.
-var IdentityPoolId = bucketRegion + ':cc5fc0eb-9dc7-48b7-823d-f6988445ede5'
-var idKey = 'cognito-idp.ap-southeast-2.amazonaws.com/' + userPoolId
-var cognitoUser = userPool.getCurrentUser();
-
-// Validation parameters
-var sourceFileName = "data.csv";
-var sizeLimit = 300;
-
-function setCredential() {
 
     if (cognitoUser != null) {
-        cognitoUser.getSession(function (err, result) {
-            if (err) {
-                console.log("Error in getSession()")
-                console.error(err)
+        cognitoUser.getSession(function(err, result) {
+            if (result) {
+                console.log('You are now logged in.');
+                cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
+
+                    if (err) {//throw err;
+                        console.log('In the err: '+err);
+                    }
+                    else{
+                        localStorage.setItem('awsConfig', JSON.stringify(AWS.config));
+                        var sessionTokens =
+                        {
+                            IdToken: result.getIdToken(),
+                            AccessToken: result.getAccessToken(),
+                            RefreshToken: result.getRefreshToken()
+                        };
+                        localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
+
+                    }
+                });
+
             }
-            if(result) {
-                console.log('User currently logged in.')
-                AWS.config.update({
-                        region: bucketRegion,
-                        credentials: new AWS.CognitoIdentityCredentials({
-                            IdentityPoolId: IdentityPoolId,
-                            Logins: {[idKey]: result.getIdToken().getJwtToken()}
-                        })
-                })
-            }
-        }) // end of getSession()
-    } // end of first if
-} // end of function
-
-function uploadS3() {
-
-    // create S3 bucket object
-    var s3 = new AWS.S3({params: {Bucket: bucketName}});
-
-    var files = document.getElementById('fileinput').files;
-    // var files = $('#fileinput').files;
-
-    if (!files.length) {
-        showModal("Warning", "You need to choose a file to upload.");   
-        return false
+        });
     }
-
-    var file = files[0];
-
-    // File Validation
-    var sizeInKB = file.size/1024;
-    console.log(sizeInKB)
-    if (sizeInKB > sizeLimit) {
-        showModal("Failed to upload", "File size exceeds the limit.");
-        return false
-    }
-
-    // console.log(file.name)
-    // if (file.name != sourceFileName){
-    //     //return alert("You are uploading an incorrect file.\nPlease check!")
-    //     $('#alertIncorrectFile').css({'display':'block'})
-    //     return false
-    // }
-
-    var params = {
-        Bucket: bucketName,
-        Key: file.name,
-        Body: file
-    };
-
-    s3.upload(params, function(err, data) {
-        if (err) {
-            console.log(err, err.stack);
-            showModal("Failed to upload", "Network Error. Please contact admin.");
-        } else {
-            console.log(data.key + ' successfully uploaded to' + data.Location);
-            showModal("Upload Success!", data.key + ' successfully uploaded!');
-            $("#fileinput").replaceWith($("#fileinput").val('').clone(true));
-        }
-    })
-
 }
 
-// Creating Bootstrap Modal
+function logOut() {
+    localStorage.clear();
+    document.location.reload();
+    window.location = './index.html';
+}
 
-function showModal(title, message){
+function getTodos(callback) {
+    try{
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID +'/todos';
 
-    var modal = `<div class="modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-            <h5 class="modal-title">${title}</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-            </div>
-            <div class="modal-body">
-            <p>${message}</p>
-            </div>
-            <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-        </div>
-    </div>`
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
 
-    $("#modal-message").html(modal)
-    $('.modal').modal('show');
+        $.ajax({
+        url : todoApi,
+        type : 'GET',
+        headers : {'Authorization' : idJwt },
+        success : function(response) {
+            console.log("successfully loaded todos for " + userID);
+            callback(response.todos);
+        },
+        error : function(response) {
+            console.log("could not retrieve todos list.");
+            if (response.status == "401") {
+            refreshAWSCredentials();
+            }
+        }
+        });
+    }catch(err) {
+        alert("Please log back in to retrieve your todo list");
+        loggedOutDisplay()
+        console.log(err.message);
+    }
+}
+
+function getTodo(todoID, callback) {
+    var userID = localStorage.getItem('userID');
+    var todoApi = todoApiEndpoint + userID +'/todos/' + todoID;
+
+    var sessionTokensString = localStorage.getItem('sessionTokens');
+    var sessionTokens = JSON.parse(sessionTokensString);
+    var IdToken = sessionTokens.IdToken;
+    var idJwt = IdToken.jwtToken;
+
+    $.ajax({
+    url : todoApi,
+    type : 'GET',
+    headers : {'Authorization' : idJwt },
+    success : function(response) {
+        console.log('todoID: ' + todoID)
+        callback(response);
+    },
+    error : function(response) {
+        console.log("could not retrieve todo.");
+        if (response.status == "401") {
+        refreshAWSCredentials();
+        }
+    }
+    });
+}
+
+function addTodo(dateDue, title, description){
+    var userID = localStorage.getItem('userID');
+    var todoApi = todoApiEndpoint + userID + "/todos/add";
+
+    var sessionTokensString = localStorage.getItem('sessionTokens');
+    var sessionTokens = JSON.parse(sessionTokensString);
+    var IdToken = sessionTokens.IdToken;
+    var idJwt = IdToken.jwtToken;
+
+    todo = {
+        title: title,
+        description: description,
+        dateDue: dateDue,
+    }
+
+    $.ajax({
+    url : todoApi,
+    type : 'POST',
+    headers : {'Content-Type': 'application/json', 'Authorization' : idJwt},
+    dataType: 'json',
+    data : JSON.stringify(todo),
+    success : function(response) {
+        console.log("todo added!")
+        window.location.reload();
+        $("#success-addTodo").show();
+        $("#success-addTodo").html("Todo successfully added (^_^)");
+    },
+    error : function(response) {
+        console.log("could not add todo");
+        $("#error-addTodo").show();
+        $("#error-addTodo").html("Could not add todo (x_x) ");
+        console.log(response);
+
+    }
+    });
+}
+
+function completeTodo(todoID, callback) {
+    try {
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID + "/todos/" + todoID + "/complete";
+
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        $.ajax({
+            url : todoApi,
+            async : false,
+            type : 'POST',
+            headers : {'Authorization' : idJwt },
+            success : function(response) {
+                console.log("marked as completed: " + todoID)
+                callback();
+            },
+            error : function(response) {
+            console.log("could not completed todo");
+            if (response.status == "401") {
+                refreshAWSCredentials();
+            }
+            }
+        });
+        } catch(err) {
+        alert("You must be logged in");
+        console.log(err.message);
+        }
+}
+
+function addTodoNotes(todoID, notes, callback) {
+    try {
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID + "/todos/" + todoID + "/addnote";
+
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        notes = {
+            notes: notes
+        }
+
+        $.ajax({
+            url : todoApi,
+            async : false,
+            type : 'POST',
+            headers : {'Content-Type': 'application/json','Authorization' : idJwt },
+            data: JSON.stringify(notes),
+            success : function(response) {
+                console.log("added notes for: " + todoID)
+                callback();
+            },
+            error : function(response) {
+            console.log("could not add notes");
+            if (response.status == "401") {
+                refreshAWSCredentials();
+            }
+            }
+        });
+        } catch(err) {
+        alert("You must be logged in to save notes");
+        console.log(err.message);
+        }
 }

@@ -30,6 +30,9 @@ def lambda_handler(event, context):
     todo["description"] = {
         "S": eventBody["description"]
         }
+    todo["notes"] = {
+        "S": ""
+        }
     todo["dateDue"] = {
         "S": eventBody["dateDue"]
         }
