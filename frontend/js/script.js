@@ -27,9 +27,8 @@ function initializeStorage() {
 
 function updateModalText(descriptionTodo) {
     applyDescriptionScope(descriptionTodo);
-    var descriptionNotes = document.getElementById("descriptionNotes");
-    console.log(descriptionTodo.notes)
-    descriptionNotes.appendChild(descriptionTodo.notes);
+    console.log(descriptionTodo.notes);
+    document.getElementById("descriptionNotes").innerHTML = descriptionTodo.notes;
     if (descriptionTodo.completed == true) {
         markCompleted();
     } else {
