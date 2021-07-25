@@ -317,7 +317,7 @@ function addTodoNotes(todoID, notes, callback) {
         var idJwt = IdToken.jwtToken;
 
         inputNotes = {
-            notes: notes
+            notes: notes,
         }
         console.log("note to be added: " + notes)
         $.ajax({

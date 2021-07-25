@@ -72,9 +72,9 @@
               <br>
               <textarea class="form-control" id="descriptionNotes">{{descriptionTodo.notes}}</textarea>
               <br>
-              <button id="saveNotesButton" align="center" type="button" ng-click="saveNoteClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
+              <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID, descriptionTodo.notes)" class="btn btn-dark">Save</button>
               <p align="center">
-                <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID, descriptionTodo.notes)" class="btn btn-outline-success">Mark Completed!</button>
+                <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
                 <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Completed!</button>
               </p>
             </div>
@@ -173,12 +173,12 @@
         getTodo(todoID, updateModalText);
     });
 
-    $('#descriptionModal').on('hidden', function() {
-        $(this).removeData('modal').find('.modal-body').html('');
+    $('#descriptionModal').on('hidden.bs.modal', function() {
+        $(this).data('bs.modal', null);
     });
 
-    $('#newTodoModal').on('hidden', function() {
-        $(this).removeData('modal').find('.modal-body').html('');
+    $('#newTodoModal').on('hidden.bs.modal', function() {
+        $(this).data('bs.modal', null);
     });
 
     app.controller('todosListController', function($scope) {
@@ -197,7 +197,7 @@
             completeTodo(todoID, markCompleted);
         }
         
-        $scope.saveNoteClicked = function(todoID, notes) {
+        $scope.saveNotesClicked = function(todoID, notes) {
             console.log("note for: " +  todoID);
             addTodoNotes(todoID, notes);
         }
