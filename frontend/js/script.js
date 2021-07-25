@@ -316,17 +316,17 @@ function addTodoNotes(todoID, notes, callback) {
         var IdToken = sessionTokens.IdToken;
         var idJwt = IdToken.jwtToken;
 
-        notes = {
+        inputNotes = {
             notes: notes
         }
-
+        console.log("note to be added: " + inputNotes)
         $.ajax({
             url : todoApi,
             async : false,
             type : 'POST',
             headers : {'Content-Type': 'application/json','Authorization' : idJwt },
-            dataType:'json',
-            data: JSON.stringify(notes),
+            dataType: 'json',
+            data: JSON.stringify(inputNotes),
             success : function(response) {
                 console.log("added notes for: " + todoID)
                 callback();
