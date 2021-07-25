@@ -29,10 +29,8 @@ def lambda_handler(event, context):
     eventBody = json.loads(event["body"])
 
     todoID = event['pathParameters']['todoID']
-    notes = {
-    "S": eventBody["notes"]
-    }
-
+    notes = eventBody["notes"]
+    
     logger.info(f'adding notes for : {todoID}')
     response = addTodoNotes(todoID, notes)
     

@@ -90,4 +90,7 @@ for item in dict3:
 
     response["todos"].append(todo)
 
-print (response)
+input = json.loads("{\"notes\":\"-new chapter: dictionaries | done\"}")
+notes = input["notes"]
+print (notes)
+
