@@ -306,7 +306,7 @@ function completeTodo(todoID, callback) {
         }
 }
 
-function addTodoNotes(todoID, notes, callback) {
+function addTodoNotes(todoID, notes) {
     try {
         var userID = localStorage.getItem('userID');
         var todoApi = todoApiEndpoint + userID + "/todos/" + todoID + "/addnotes";
@@ -328,7 +328,6 @@ function addTodoNotes(todoID, notes, callback) {
             data: JSON.stringify(inputNotes),
             success : function(response) {
                 console.log("added notes for: " + todoID)
-                callback();
             },
             error : function(response) {
             console.log("could not add notes");

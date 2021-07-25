@@ -72,7 +72,7 @@
               <br>
               <textarea class="form-control" id="descriptionNotes">{{descriptionTodo.notes}}</textarea>
               <br>
-              <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID, descriptionTodo.notes)" class="btn btn-dark">Save</button>
+              <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
               <p align="center">
                 <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
                 <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Completed!</button>
@@ -117,8 +117,6 @@
         </div>
       </div>
     <!-- End New Todo Modal --> 
-
-    <div id="modal-message"></div>
 
     <div class="alert alert-danger" id="error-addTodo" style="display:none" ></div>
 
@@ -197,8 +195,9 @@
             completeTodo(todoID, markCompleted);
         }
         
-        $scope.saveNotesClicked = function(todoID, notes) {
-            console.log("note for: " +  todoID);
+        $scope.saveNotesClicked = function(todoID) {
+            var notes = document.getElementById('descriptionNotes').value
+            console.log("notes " + notes + "for: " +  todoID);
             addTodoNotes(todoID, notes);
         }
     });
