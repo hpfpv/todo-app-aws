@@ -3,6 +3,9 @@ var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
 var awsRegion = 'us-east-1';
 
+var gridScope;
+var descriptionScope;
+
 function loggedInDisplay() {
     $("#signInButton").addClass("d-none");
     $("#signOutButton").removeClass("d-none");
