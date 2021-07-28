@@ -70,7 +70,7 @@
               <br>
               <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
               <br>
-              <textarea class="form-control" id="descriptionNotes" >{{descriptionTodo.notes}}</textarea>
+              <textarea class="form-control" id="descriptionNotes" >{{todo.notes}}</textarea>
               <br>
               <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
               <p align="center">
@@ -196,7 +196,7 @@
         }
         
         $scope.saveNotesClicked = function(todoID) {
-            var notes = document.getElementById('descriptionNotes').value + "\n"
+            var notes = document.getElementById('descriptionNotes').value + "\n";
             console.log("notes | " + notes + " | for: " +  todoID);
             addTodoNotes(todoID, notes);
         }
