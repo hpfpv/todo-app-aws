@@ -14,6 +14,7 @@ def getTodoJson(item):
     todo["dateCreated"] = item["dateCreated"]["S"]
     todo["title"] = item["title"]["S"]
     todo["description"] = item["description"]["S"]
+    todo["notes"] = item["notes"]["S"]
     todo["dateDue"] = item["dateDue"]["S"]
     todo["completed"] = item["completed"]["BOOL"]
 

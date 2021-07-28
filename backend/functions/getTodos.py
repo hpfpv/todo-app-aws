@@ -21,6 +21,7 @@ def getTodosJson(items):
         todo["dateCreated"] = item["dateCreated"]["S"]
         todo["title"] = item["title"]["S"]
         todo["description"] = item["description"]["S"]
+        todo["notes"] = item["notes"]["S"]
         todo["dateDue"] = item["dateDue"]["S"]
         todo["completed"] = item["completed"]["BOOL"]
         todoList["todos"].append(todo)
@@ -68,6 +69,7 @@ def lambda_handler(event, context):
         todo["dateCreated"] = item["dateCreated"]
         todo["title"] = item ["title"]
         todo["description"] = item["description"]
+        todo["notes"] = item["notes"]
         todo["dateDue"] = item["dateDue"]
         todo["completed"] = item["completed"]
 
