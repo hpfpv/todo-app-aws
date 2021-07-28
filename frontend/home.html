@@ -171,7 +171,8 @@
     });
 
     $('#descriptionModal').on('hidden.bs.modal', function(event) {
-        document.getElementById('descriptionNotes').innerText = ""
+        $('#descriptionModal').empty();
+        $('#descriptionModal').show;
     });
 
     app.controller('todosListController', function($scope) {
