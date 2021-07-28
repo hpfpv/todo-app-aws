@@ -165,7 +165,7 @@
     });
 
     $('#descriptionModal').on('show.bs.modal', function (event) {
-        $('#descriptionModal').moddal('toggle');
+        event.preventDefault();
         var button = $(event.relatedTarget);
         var todoID = button.data('todoid');
         getTodo(todoID, updateModalText);
