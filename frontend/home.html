@@ -165,10 +165,13 @@
     });
 
     $('#descriptionModal').on('show.bs.modal', function (event) {
-        location.reload();
         var button = $(event.relatedTarget);
         var todoID = button.data('todoid');
         getTodo(todoID, updateModalText);
+    });
+
+    $('#descriptionModal').on('hidden.bs.modal', function(event) {
+
     });
 
     app.controller('todosListController', function($scope) {
