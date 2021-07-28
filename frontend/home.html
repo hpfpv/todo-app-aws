@@ -172,11 +172,7 @@
     });
 
     $('#descriptionModal').on('hidden.bs.modal', function(event) {
-        $('#descriptionModal').empty();
-    });
-
-    $('#newTodoModal').on('hidden.bs.modal', function(event) {
-        $('#newTodoModal').empty();
+        location.reload();
     });
 
     app.controller('todosListController', function($scope) {
