@@ -30,8 +30,6 @@ function initializeStorage() {
 
 function updateModalText(descriptionTodo) {
     applyDescriptionScope(descriptionTodo);
-    console.log(descriptionTodo.notes);
-    document.getElementById("descriptionNotes").innerHTML = descriptionTodo.notes;
     if (descriptionTodo.completed == true) {
         markCompleted();
     } else {
