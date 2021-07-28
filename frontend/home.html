@@ -172,7 +172,7 @@
     });
 
     $('#descriptionModal').on('hidden.bs.modal', function(event) {
-        document.getElementById('descriptionNotes').innerText = null;
+        document.getElementById('descriptionNotes').innerHTML = null;
         $(this).data('bs.modal', null);
     });
 
