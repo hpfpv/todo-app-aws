@@ -170,10 +170,7 @@
         getTodo(todoID, updateModalText);
     });
 
-    $('#descriptionModal').on('hide.bs.modal', function(event) {
-        document.getElementById('descriptionNotes').value = ""
-    });
-
+    
     app.controller('todosListController', function($scope) {
 
         gridScope = $scope;
@@ -194,6 +191,10 @@
             var notes = document.getElementById('descriptionNotes').value + "\n";
             console.log("notes | " + notes + " | for: " +  todoID);
             addTodoNotes(todoID, notes);
+            $('#descriptionModal').on('hidden.bs.modal', function(event) {
+                location.reload();
+            });
+
         }
     });
 
