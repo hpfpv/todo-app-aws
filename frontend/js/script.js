@@ -121,7 +121,7 @@ function checkLogin(redirectOnRec, redirectOnUnrec){
     var cognitoUser = userPool.getCurrentUser();
 
     if (cognitoUser != null) {
-        console.log("user exists")
+        console.log("user exists");
         if (redirectOnRec) {
             window.location = './home.html';
             loggedInDisplay();
@@ -208,7 +208,7 @@ function getTodos(callback) {
         });
     }catch(err) {
         alert("Please log back in to retrieve your todo list");
-        loggedOutDisplay()
+        loggedOutDisplay();
         console.log(err.message);
     }
 }
@@ -227,7 +227,7 @@ function getTodo(todoID, callback) {
     type : 'GET',
     headers : {'Authorization' : idJwt },
     success : function(response) {
-        console.log('todoID: ' + todoID)
+        console.log('todoID: ' + todoID);
         callback(response);
     },
     error : function(response) {

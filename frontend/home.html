@@ -70,9 +70,7 @@
               <br>
               <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
               <br>
-              <p id="descriptionNotes"><b>Notes:</b> {{descriptionTodo.description}}</p>
-              <br>
-              <textarea class="form-control" id="descriptionNotes" >{{descriptionTodo.description}}</textarea>
+              <textarea class="form-control" id="descriptionNotes" >{{descriptionTodo.notes}}</textarea>
               <br>
               <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
               <p align="center">
