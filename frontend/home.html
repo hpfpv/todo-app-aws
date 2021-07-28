@@ -166,6 +166,7 @@
 
     $('#descriptionModal').on('show.bs.modal', function (event) {
         $('#descriptionModal').removeData();
+        document.getElementById('descriptionNotes').value = "";
         var button = $(event.relatedTarget);
         var todoID = button.data('todoid');
         getTodo(todoID, updateModalText);
