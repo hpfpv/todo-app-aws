@@ -39,7 +39,7 @@ Resources:
       CodeUri: ./functions
       Handler: home.lambda_handler
       Events:
-        getmysfitsApi:
+        getTodosApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref MainHttpApi
@@ -57,7 +57,7 @@ Resources:
       CodeUri: ./functions
       Handler: getTodos.lambda_handler
       Events:
-        getmysfitsApi:
+        getTodosApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref MainHttpApi
@@ -81,7 +81,7 @@ Resources:
       CodeUri: ./functions
       Handler: getTodo.lambda_handler
       Events:
-        getmysfitApi:
+        getTodoApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref MainHttpApi
@@ -104,7 +104,7 @@ Resources:
       CodeUri: ./functions
       Handler: addTodo.lambda_handler
       Events:
-        getmysfitApi:
+        addTodoApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref MainHttpApi
@@ -127,7 +127,7 @@ Resources:
       CodeUri: ./functions
       Handler: completeTodo.lambda_handler
       Events:
-        getmysfitApi:
+        completeTodoApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref MainHttpApi
@@ -150,7 +150,7 @@ Resources:
       CodeUri: ./functions
       Handler: addTodoNotes.lambda_handler
       Events:
-        getmysfitApi:
+        addTodoNotesApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref MainHttpApi
@@ -204,7 +204,7 @@ Resources:
       UserPoolId: !Ref TodoUserPool
       Domain: auth-todo-houessou-com
   
- # dynamoDB table to store mysfits
+ # dynamoDB table to store todos
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
