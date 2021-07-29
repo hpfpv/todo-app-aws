@@ -5,10 +5,10 @@ The frontend is basic with no fancy visuals (I am no frontend dev :p). Here we w
 
 **Application Architecture**
 
-The steps to build this app are:
+The steps to build this application are:
 - Build and deploy backend main resources - **DynamoDB, Lambda and API Gateway**
 - Enable users authentication - **Cognito**
-- Build a static website to serve static content - **S3, CloudFront**
+- Build a frontend website to serve the app - **S3, CloudFront**
 
 **[Link to web app](https://todo.houessou.com)**
 
