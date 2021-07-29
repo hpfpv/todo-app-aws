@@ -207,7 +207,7 @@ function getTodos(callback) {
         }
         });
     }catch(err) {
-        alert("Please log back in to retrieve your todo list");
+        alert("You need to be signed in. Redirecting you to the sign in page!");
         loggedOutDisplay();
         console.log(err.message);
     }
