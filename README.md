@@ -271,3 +271,37 @@ TodoUserPool:
       UserPoolId: !Ref TodoUserPool
       Domain: auth-todo-houessou-com
 ```
+
+After building and deploying our backend using the aws sam cli, we can now test our API along with the lambda functions.
+Let's build a frontend website that will serve our todo app.
+
+
+### [Frontend website](https://github.com/hpfpv/todo-app-aws/tree/main/frontend)
+
+Our frontend is made of basic html and Javascript code. 
+
+1- We created 4 html files all referring to functions inside one [Javascript file](https://github.com/hpfpv/todo-app-aws/blob/main/frontend/js/script.js) which handles the frontend logic as follow:
+
+- *index.html* : login page, displays a container that retrieves username and password as input, calls the **login()** function from the Javascript file
+
+- *register.html* : registration page for new users, calls the **register()** function from the Javascript file
+
+- *confirm.html* : account confirmation page after registration, calls the **confirm()** function from the Javascript file
+
+- *home.html* : This is the main frontend logic page. 
+   Users get redirected to this page after a successful user sign in. 
+   
+   It displays a grid of all 
+   todos related to the signed in user in a container - calls the **getTodos()** function 
+   from the Javascript file. 
+
+   Users can add a new todo - calls the **addTodo()** function from the Javascript file. 
+
+   Users can click on one todo to show its details - calls the **getTodo()** function from 
+   the Javascript file. Users can add notes on the fly to the displayed todo - calls the 
+   **saveTodoNotes() ** function from the Javascript file. 
+
+   Users can mark todo as 
+   completed - calls the **completeTodo()** function from the Javascript file.
+
+2-  [Javascript file](https://github.com/hpfpv/todo-app-aws/blob/main/frontend/js/script.js)
