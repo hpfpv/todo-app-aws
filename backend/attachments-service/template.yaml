@@ -106,10 +106,6 @@ Resources:
           AttributeType: "S"
         - AttributeName: "todoID"
           AttributeType: "S"
-        - AttributeName: "fileName"
-          AttributeType: "S"
-        - AttributeName: "filePath"
-          AttributeType: "S"
       KeySchema: 
         - AttributeName: "fileID"
           KeyType: "HASH"
@@ -130,7 +126,7 @@ Resources:
   TodoFilesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${AWS::StackName}-TodoFilesBucket' 
+      BucketName: !Sub 'hpf-todo-app-files' 
 
 Outputs:
   FilesApi:
@@ -146,11 +142,11 @@ Outputs:
     Export:
       Name: !Sub "${AWS::StackName}-TodoFilesTableArn"
   TodoFilesBucket:
-    Value: !Ref 'TodoFilesbucket' 
+    Value: !Ref 'TodoFilesBucket' 
     Export:
       Name: !Sub "${AWS::StackName}-TodoFilesBucket"
   TodoFilesBucketArn:
-    Value: !GetAtt 'TodoFilesbucket.Arn' 
+    Value: !GetAtt 'TodoFilesBucket.Arn' 
     Export:
       Name: !Sub "${AWS::StackName}-TodoFilesBucketArn"
   StackName: 

@@ -2,13 +2,12 @@
     width: 55%;
 }
 #attachments-img {
-    width: 55%;
+    width: 10%;
 }
 
 #newattachments-img {
     width: 10%;
 }
-
 
 @media (max-width: 800px) { 
     #logo {

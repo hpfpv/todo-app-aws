@@ -52,6 +52,15 @@ function showAddFilesForm(){
     $("#addFilesForm").removeClass("d-none");
 } 
 
+function hideAddFilesForm(){
+    $("#addFilesForm").addClass("d-none");
+} 
+
+function addFileName () {
+    var fileName = document.getElementById('fileinput').files[0].name;
+    document.getElementById('fileName').innerHTML = fileName;
+}      
+
 function applyGridScope(todosList) {
     gridScope.todos = todosList;
     gridScope.$apply();
