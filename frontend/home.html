@@ -216,7 +216,6 @@
         $scope.uploadFileClicked = function(todoID) {
           var files = document.getElementById('fileinput').files;
           addTodoFiles(todoID, files);
-          hideAddFilesForm();
           $("#descriptionModal").show();
           $('#descriptionModal').on('hidden.bs.modal', function(event) {
                 location.reload();

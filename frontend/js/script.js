@@ -446,12 +446,12 @@ function addTodoFiles(todoID, files) {
         if (sizeInKB > 2048) {
             alert("File size exceeds the limit of 2MB.");
         };
-        fileObj.append(file.name, file)
-        //var fileObj = {
-          //  fileName: file.name,
-            //fileBody: file
-        //};
-
+        //fileObj.append(file.name, file);
+        var fileObj = {
+            fileName: file.name,
+            fileBody: file
+        };
+        console.log(fileObj);
         $.ajax({
             url : todoFilesApi,
             type : 'POST',
@@ -460,10 +460,11 @@ function addTodoFiles(todoID, files) {
             processData: false,
             data: fileObj,
             success : function(response) {
-                console.log("added file for: " + todoID)
+                console.log("added file for todo: " + todoID)
+                hideAddFilesForm();
             },
             error : function(response) {
-                console.log("could not add file for:" + todoID);
+                console.log("could not add file for todo: " + todoID);
                 if (response.status == "401") {
                     refreshAWSCredentials();
                 }
