@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "todo-houessou-com-attachments-service"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1m8qnzobarz4q"
+s3_prefix = "todo-houessou-com-attachments-service"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"

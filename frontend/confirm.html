@@ -42,38 +42,4 @@
   <script src="js/aws-sdk.min.js"></script>
   <script src="js/script.js"></script>
 
-  <script>
-
-    var cognitoUserPoolId = 'us-east-1_fM3BzKm1u'; 
-    var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p'; 
-      
-
-    function confirm() {
-      event.preventDefault();
-
-      var confirmCode = document.getElementById('confirmCode').value;
-
-      var poolData = {
-        UserPoolId : cognitoUserPoolId,
-        ClientId : cognitoUserPoolClientId
-      };
-
-      var userName = localStorage.getItem('email');
-
-      var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-      var userData = {
-          Username : userName,
-          Pool : userPool
-      };
-
-      var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-      cognitoUser.confirmRegistration(confirmCode, true, function(err, result) {
-          if (err) {
-              alert(err.message);
-              return;
-          }
-          window.location.replace("index.html");
-      });
-    }
-  </script>
 </html>

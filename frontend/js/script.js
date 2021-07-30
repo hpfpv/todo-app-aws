@@ -1,4 +1,5 @@
 var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/dev/';
+var todoFilesApiEndpoint = '';
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
 var awsRegion = 'us-east-1';
@@ -47,6 +48,10 @@ function markNotCompleted() {
     $("#alreadyCompletedButton").addClass("d-none");
 }
 
+function showAddFilesForm(){
+    $("#addFilesForm").removeClass("d-none");
+} 
+
 function applyGridScope(todosList) {
     gridScope.todos = todosList;
     gridScope.$apply();
@@ -55,6 +60,74 @@ function applyGridScope(todosList) {
 function applyDescriptionScope(todo) {
     descriptionScope.descriptionTodo = todo;
     descriptionScope.$apply();
+}
+
+function register() {
+    event.preventDefault();
+
+    var poolData = {
+      UserPoolId : cognitoUserPoolId,
+      ClientId : cognitoUserPoolClientId
+    };
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+    var attributeList = [];
+
+
+    var email = document.getElementById('email').value;
+    var pw = document.getElementById('pwd').value;
+    var confirmPw = document.getElementById('confirmPwd').value;
+    var dataEmail = {
+        Name : 'email',
+        Value : email
+    };
+
+    var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
+
+    attributeList.push(attributeEmail);
+
+    if (pw === confirmPw) {
+        userPool.signUp(email, pw, attributeList, null, function(err, result){
+            if (err) {
+                alert(err.message);
+                return;
+            }
+            cognitoUser = result.user;
+            console.log(cognitoUser);
+            localStorage.setItem('email', email);
+            window.location.replace('confirm.html');
+      });
+    } else {
+        alert('Passwords do not match.')
+    };
+}
+
+function confirm() {
+    event.preventDefault();
+
+    var confirmCode = document.getElementById('confirmCode').value;
+
+    var poolData = {
+      UserPoolId : cognitoUserPoolId,
+      ClientId : cognitoUserPoolClientId
+    };
+
+    var userName = localStorage.getItem('email');
+
+    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    var userData = {
+        Username : userName,
+        Pool : userPool
+    };
+
+    var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+    cognitoUser.confirmRegistration(confirmCode, true, function(err, result) {
+        if (err) {
+            alert(err.message);
+            return;
+        }
+        window.location.replace("index.html");
+    });
 }
 
 function login(){
@@ -341,4 +414,54 @@ function addTodoNotes(todoID, notes) {
         alert("You must be logged in to save notes");
         console.log(err.message);
         }
+}
+
+function addTodoFiles(todoID, files) {
+    try{
+        var userID = localStorage.getItem('userID');
+        var todoFilesApi = todoFilesApiEndpoint + todoID + "/files/upload";
+
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        if (!files.length) {
+            alert("You need to choose a file to upload.");   
+        };
+
+        var fileObj = new FormData();
+        var file = files[0];
+        var sizeInKB = file.size/1024;
+        console.log('uploading a file of ' +  sizeInKB)
+        if (sizeInKB > 2048) {
+            alert("File size exceeds the limit of 2MB.");
+        };
+        fileObj.append(file.name, file)
+        //var fileObj = {
+          //  fileName: file.name,
+            //fileBody: file
+        //};
+
+        $.ajax({
+            url : todoFilesApi,
+            type : 'POST',
+            headers : {'Content-Type': 'application/json','Authorization' : idJwt },
+            dataType: 'json',
+            data: fileObj,
+            success : function(response) {
+                console.log("added file for: " + todoID)
+            },
+            error : function(response) {
+            console.log("could not add file for:" +todoID);
+            if (response.status == "401") {
+                refreshAWSCredentials();
+            }
+            }
+        });
+        } catch(err) {
+        alert("You must be logged in to add todo attachment");
+        console.log(err.message);
+    }
+
 }

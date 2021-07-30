@@ -72,6 +72,7 @@
               <br>
               <textarea class="form-control" id="descriptionNotes" >{{descriptionTodo.notes}}</textarea>
               <br>
+              <p id="descriptionAttachements"><b>Attachements:</b> {{descriptionTodo.dateCreated}}</p>
               <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
               <p align="center">
                 <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
@@ -147,6 +148,7 @@
     var app = angular.module('todosApp', []);
     var gridScope;
     var descriptionScope;
+    var attachementScope;
     
     var configString = localStorage.getItem("awsConfig");
     var config = JSON.parse(configString);
@@ -194,10 +196,17 @@
             $('#descriptionModal').on('hidden.bs.modal', function(event) {
                 location.reload();
             });
+        }
 
+        $scope.uploadFileClicked = function(todoID) {
+          var files = document.getElementById('fileinput').files;
+          addTodoFiles(todoID, files);
+          $("#descriptionModal").show();
+          $('#descriptionModal').on('hidden.bs.modal', function(event) {
+                location.reload();
+          });
         }
     });
-
 
 </script>
 </html>

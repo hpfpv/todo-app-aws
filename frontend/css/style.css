@@ -1,6 +1,14 @@
 #logo {
     width: 55%;
 }
+#attachments-img {
+    width: 55%;
+}
+
+#newattachments-img {
+    width: 10%;
+}
+
 
 @media (max-width: 800px) { 
     #logo {
