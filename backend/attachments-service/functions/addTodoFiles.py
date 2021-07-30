@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     logger.info(event)
     eventBody = json.loads(event["body"])
     todoID = event["pathParameters"]["todoID"]
-    file = eventBody["fileBody"]
+    #file = eventBody["fileBody"]
     fileName = eventBody["fineName"]
     fileID = str(uuid.uuid4())
     filePath = 'https://' + bucket + '/' + fileName
@@ -25,14 +25,13 @@ def lambda_handler(event, context):
         'fileName' : fileName,
         'filePath' : filePath
     }
-
     try:
-        responseS3 = s3.upload_fileobj(file, bucket, fileName)
+        #responseS3 = s3.upload_fileobj(file, bucket, fileName)
         responseDB = dynamo.put_item(
         TableName=os.environ['TODOFILES_TABLE'],
         Item=fileForDynamo
         ) 
-        logger.info('reposne for S3' + responseS3)
+        #logger.info('reposne for S3' + responseS3)
         logger.info('reposne for DynamoDB' + responseDB)
     except ClientError as err:
         logger.info(err)
@@ -43,7 +42,8 @@ def lambda_handler(event, context):
         'headers': {
             'Access-Control-Allow-Origin': 'https://todo.houessou.com',
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-            'Access-Control-Allow-Methods': 'GET, POST'
+            'Access-Control-Allow-Methods': 'GET, POST',
+            'Content-Type': 'application/json'
         },
         'body': json.dumps(responseBody) 
     }

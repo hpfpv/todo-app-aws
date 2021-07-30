@@ -2,6 +2,7 @@ var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/de
 var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/';
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
+var bucketName = 'lambda.test.source';
 var awsRegion = 'us-east-1';
 
 var gridScope;
@@ -54,6 +55,7 @@ function showAddFilesForm(){
 
 function hideAddFilesForm(){
     $("#addFilesForm").addClass("d-none");
+    $("#fileinput").replaceWith($("#fileinput").val('').clone(true));
 } 
 
 function addFileName () {
@@ -429,6 +431,7 @@ function addTodoFiles(todoID, files) {
     try{
         var userID = localStorage.getItem('userID');
         var todoFilesApi = todoFilesApiEndpoint + todoID + "/files/upload";
+        var s3 = new AWS.S3({params: {Bucket: bucketName}});
 
         var sessionTokensString = localStorage.getItem('sessionTokens');
         var sessionTokens = JSON.parse(sessionTokensString);
@@ -439,7 +442,7 @@ function addTodoFiles(todoID, files) {
             alert("You need to choose a file to upload.");   
         };
 
-        var fileObj = new FormData();
+        //var fileObj = new FormData();
         var file = files[0];
         var sizeInKB = file.size/1024;
         console.log('uploading a file of ' +  sizeInKB)
@@ -447,29 +450,46 @@ function addTodoFiles(todoID, files) {
             alert("File size exceeds the limit of 2MB.");
         };
         //fileObj.append(file.name, file);
-        var fileObj = {
+        /*var fileObj = {
             fileName: file.name,
             fileBody: file
+        };*/
+        var params = {
+            Bucket: bucketName,
+            Key: file.name,
+            Body: file
         };
-        console.log(fileObj);
-        $.ajax({
-            url : todoFilesApi,
-            type : 'POST',
-            headers : {'Authorization' : idJwt },
-            contentType: false,
-            processData: false,
-            data: fileObj,
-            success : function(response) {
-                console.log("added file for todo: " + todoID)
-                hideAddFilesForm();
-            },
-            error : function(response) {
-                console.log("could not add file for todo: " + todoID);
-                if (response.status == "401") {
-                    refreshAWSCredentials();
+        s3.upload(params, function(err, data) {
+            if (err) {
+                console.log(err, err.stack);
+                alert("Failed to upload");
+            } else {
+                console.log(data.key + ' successfully uploaded to' + data.Location);
+                var fileObj = {
+                    'fileName': data.key,
+                    'filePath': data.Location + '/' + data.key
                 }
+                $.ajax({
+                    url : todoFilesApi,
+                    type : 'POST',
+                    headers : {'Content-Type': 'application/json', 'Authorization' : idJwt },
+                    contentType: 'json',
+                    data: fileObj,
+                    success : function(response) {
+                        console.log("added file for todo: " + todoID)
+                        
+                    },
+                    error : function(response) {
+                        console.log("could not add file for todo: " + todoID);
+                        if (response.status == "401") {
+                            refreshAWSCredentials();
+                        }
+                    }
+                });
+                hideAddFilesForm();
             }
-        });
+        })
+        
         } catch(err) {
         alert("You must be logged in to add todo attachment");
         console.log(err.message);
