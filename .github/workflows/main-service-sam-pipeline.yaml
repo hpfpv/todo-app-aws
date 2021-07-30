@@ -1,10 +1,10 @@
-name: SAM Deploy todo-houessou-com
+name: SAM Deploy todo-houessou-com main service
 
 on:
   push:
       branches: [ main ]
       paths:
-      - 'backend/**'
+        - 'backend/main-service/**'
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
