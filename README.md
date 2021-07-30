@@ -1,20 +1,30 @@
 # Sample todo app on AWS
 
-Hi guys! In this blog, we'll be building a sample todo app on AWS with Python. We will build a website called  [todo.houessou.com](https://todo.houessou.com) that enables logged in visitors to create their todo list. We will use the AWS Serverless Application Model SAM Framework to deploy the backend services - API, Lambda, DynamoDB and Cognito) and will host the frontend on S3 behind a CloudFront distribution.
+Hi guys! In this post, we'll be building a sample todo app on AWS with Python. We will build a website called  [todo.houessou.com](https://todo.houessou.com) that enables logged in visitors to create their todo list. We will use the AWS Serverless Application Model SAM Framework to deploy the backend services - API, Lambda, DynamoDB and Cognito) and will host the frontend on S3 behind a CloudFront distribution.
 The frontend is basic with no fancy visuals (I am no frontend dev :p). Here we will focus on how the resources are created and deployed on AWS.
 
-**Application Architecture**
+###Overview
+
+In this post I will be going through the overall setup of the app and how I deployed it. Mostly this will be a theoretical post but I will be posting needed scripts wherever appropriate. All the code can be found in the **[GitHub repo](https://github.com/hpfpv/todo-app-aws)**.
+
+**[Application web UI](https://todo.houessou.com)**
+
+**About the App**
+
+Before I go into the architecture, let me describe what the app is about and what it does. The app is a todo list manager which helps a user manage and track his/her todo list along with their files or attachments. The user can also find specific todos through the search. 
+
+**Basic Functionality**
+
+![appflow.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1627647453541/A17idrTi1.png)
 
 The steps to build this application are:
 - Build and deploy backend main resources - **DynamoDB, Lambda and API Gateway**
 - Enable users authentication - **Cognito**
 - Build a frontend website to serve the app - **S3, CloudFront**
-
-**[Link to web app](https://todo.houessou.com)**
-
 Alright, let's break this down.
 
-### Build and deploy backend
+### [Build and deploy backend](https://github.com/hpfpv/todo-app-aws/tree/main/backend)
+
 Our backend is based on the Serverless Application Module. We will need a DynamoDb table to store users todo-list, lambda functions to query and write to the table and REST APIs to serve the lambda functions.
 
 1- To keep things simple, each document in DynamoDb will represent one todo with attributes as follow:
