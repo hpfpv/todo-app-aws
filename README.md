@@ -3,7 +3,7 @@
 Hi guys! In this post, we'll be building a sample todo app on AWS with Python. We will build a website called  [todo.houessou.com](https://todo.houessou.com) that enables logged in visitors to create their todo list. We will use the AWS Serverless Application Model SAM Framework to deploy the backend services - API, Lambda, DynamoDB and Cognito) and will host the frontend on S3 behind a CloudFront distribution.
 The frontend is basic with no fancy visuals (I am no frontend dev :p). Here we will focus on how the resources are created and deployed on AWS.
 
-###Overview
+### Overview
 
 In this post I will be going through the overall setup of the app and how I deployed it. Mostly this will be a theoretical post but I will be posting needed scripts wherever appropriate. All the code can be found in the **[GitHub repo](https://github.com/hpfpv/todo-app-aws)**.
 
