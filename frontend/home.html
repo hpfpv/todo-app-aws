@@ -52,40 +52,59 @@
    
     <!-- Description Modal -->
     <div class="modal fade bd-example-modal-lg" id="descriptionModal" tabindex="-1" aria-hidden="true" ng-controller="todoDescriptionController">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <!-- Modal Header -->
-            <div class="modal-header">
-              <h4>{{descriptionTodo.title}}</h4>
-              <button type="button" class="close" data-dismiss="modal">
-                <span aria-hidden="true">&times;</span>
-                <span class="sr-only">Close</span>
-              </button>
-            </div>
-          <!-- Modal Body -->
-            <div class="modal-body">
-              <p id="descriptionDescription"><b>Description:</b> <br> {{descriptionTodo.description}}</p>
-              <br>
-              <p id="descriptionDateDue"><b>Due Date:</b> {{descriptionTodo.dateDue}}</p>
-              <br>
-              <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
-              <br>
-              <textarea class="form-control" id="descriptionNotes" >{{descriptionTodo.notes}}</textarea>
-              <br>
-              <p id="descriptionAttachements"><b>Attachements:</b> {{descriptionTodo.dateCreated}}</p>
-              <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
-              <p align="center">
-                <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
-                <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Completed!</button>
-              </p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-           </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h4>{{descriptionTodo.title}}</h4>
+            <button type="button" class="close" data-dismiss="modal">
+              <span aria-hidden="true">&times;</span>
+              <span class="sr-only">Close</span>
+            </button>
           </div>
+        <!-- Modal Body -->
+          <div class="modal-body">
+            <p id="descriptionDescription"><b>Description</b> <br> {{descriptionTodo.description}}</p>
+            <br>
+            <p id="descriptionDateDue"><b>Due Date:</b> {{descriptionTodo.dateDue}}</p>
+            <br>
+            <p id="descriptionDateCreated"><b>Created Date:</b> {{descriptionTodo.dateCreated}}</p>
+            <br>
+            <textarea class="form-control" id="descriptionNotes" >{{descriptionTodo.notes}}</textarea>
+            <div class="row">
+              <div class="col-md-12">
+                  <img src="img/paperclip.png" title="attachments" id="attachments-img"/>
+                  <p id="descriptionAttachements"><b>Attachements</b></p>
+              </div>
+            <br>
+            <br>
+            <div class="col-md-12 d-none" id="addFilesForm">
+              <div class="input-group upload-form">
+                  <div class="input-group-prepend">
+                      <span type="button" class="btn btn-custom" id="uploadButton" ng-click="UploadFileClicked(descriptionTodo.todoID)">Upload</span>
+                  </div>
+                  <div class="custom-file">
+                      <input type="file" class="form-control-file input-group-sm" id="fileinput" aria-describedby="fileinput" onChange="addFileName();">
+                      <label class="custom-file-label" for="fileinput" id="fileName">Choose File</label>
+                  </div>
+              </div>
+            </div>
+            </div>  
+            <br>   
+            <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark">Save</button>
+            <button id="showAddFilesButton" align="center" type="button" onclick="showAddFilesForm();" class="btn btn-secondary">Add Attachements</button>
+            <p align="center">
+              <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success">Mark Completed!</button>
+              <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success d-none" disabled>Completed!</button>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+         </div>
         </div>
-    </div>
-    <!-- End Description Modal -->
+      </div>
+  </div>
+  <!-- End Description Modal -->
 
     <!-- New Todo Modal -->
     <div class="modal fade" id="newTodoModal" tabindex="-1" role="dialog" aria-hidden="true">

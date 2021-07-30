@@ -446,17 +446,18 @@ function addTodoFiles(todoID, files) {
         $.ajax({
             url : todoFilesApi,
             type : 'POST',
-            headers : {'Content-Type': 'application/json','Authorization' : idJwt },
-            dataType: 'json',
+            headers : {'Authorization' : idJwt },
+            contentType: false,
+            processData: false,
             data: fileObj,
             success : function(response) {
                 console.log("added file for: " + todoID)
             },
             error : function(response) {
-            console.log("could not add file for:" +todoID);
-            if (response.status == "401") {
-                refreshAWSCredentials();
-            }
+                console.log("could not add file for:" + todoID);
+                if (response.status == "401") {
+                    refreshAWSCredentials();
+                }
             }
         });
         } catch(err) {
