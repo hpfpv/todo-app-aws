@@ -60,7 +60,7 @@ Resources:
                 - 's3:ListBucket'
               Resource:
                 - !GetAtt 'TodoFilesTable.Arn'
-                - !Ref 'TodoFilesBucket'
+                - !GetAtt 'TodoFilesBucket.Arn'
                 - !Join ['', [!GetAtt 'TodoFilesBucket.Arn', '/*']]
         
   addTodoFiles:

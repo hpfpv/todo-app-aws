@@ -191,16 +191,12 @@
         getTodo(todoID, updateModalText);
     });
 
-    
     app.controller('todosListController', function($scope) {
-
         gridScope = $scope;
         getTodos(applyGridScope);
-
     });
 
     app.controller('todoDescriptionController', function($scope) {
-
         descriptionScope = $scope;
 
         $scope.completedClicked = function(todoID) {
@@ -220,6 +216,7 @@
         $scope.uploadFileClicked = function(todoID) {
           var files = document.getElementById('fileinput').files;
           addTodoFiles(todoID, files);
+          hideAddFilesForm();
           $("#descriptionModal").show();
           $('#descriptionModal').on('hidden.bs.modal', function(event) {
                 location.reload();
