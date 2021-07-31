@@ -168,10 +168,11 @@ function login(){
     var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
     var username = $('#username').val();
+    var password = $('#password').val();
 
     var authenticationData = {
         Username: username,
-        Password: $('#password').val()
+        Password: password
     };
 
     var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
@@ -195,6 +196,7 @@ function login(){
             };
             localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
             localStorage.setItem('userID', username);
+            localStorage.setItem('password', password);
             AWS.config.update({
                 credentials: new AWS.CognitoIdentityCredentials({
                     IdentityPoolId: identityPoolId
@@ -550,7 +552,7 @@ function addTodoFiles(todoID, files) {
 
         var username = localStorage.getItem('userID');
         var password = localStorage.getItem('password');
-        console.log(username + " " + password);
+        
         var authenticationData = {
             Username: username,
             Password: password
