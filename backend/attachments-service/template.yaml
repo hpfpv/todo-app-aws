@@ -161,6 +161,7 @@ Resources:
               - ForAnyValue:StringLike:
                   cognito-identity.amazonaws.com:amr: "authenticated"
 
+
 Outputs:
   FilesApi:
     Value: !Join [ '', ['https://', !Ref FilesApi, '.execute-api.us-east-1.amazonaws.com/dev'] ]
