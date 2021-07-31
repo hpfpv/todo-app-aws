@@ -2,7 +2,7 @@ var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/de
 var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/';
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
-var bucketName = 'lambda.test.source';
+var bucketName = 'hpf-todo-app-files';
 var awsRegion = 'us-east-1';
 
 var gridScope;
