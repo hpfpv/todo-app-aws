@@ -35,4 +35,4 @@ jobs:
 # sam deploy
       - name: sam deploy
         working-directory: ./backend/attachments-service
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name todo-houessou-com-attachments-service --s3-bucket 'aws-sam-cli-managed-default-samclisourcebucket-1m8qnzobarz4q' --capabilities CAPABILITY_IAM --region 'us-east-1'
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name todo-houessou-com-attachments-service --s3-bucket 'aws-sam-cli-managed-default-samclisourcebucket-1m8qnzobarz4q' --capabilities CAPABILITY_NAMED_IAM --region 'us-east-1'
