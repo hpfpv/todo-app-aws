@@ -2,7 +2,7 @@ var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/de
 var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/';
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
-var cognitoIdentityPoolId = 'us-east-1:1d4efcf7-f995-4331-bd94-c3ed6111f246';
+var cognitoIdentityPoolId = 'us-east-1:bbb155cb-c623-42bd-898e-57fcb4f76357';
 var bucketName = 'hpf-todo-app-files';
 var awsRegion = 'us-east-1';
 
@@ -20,10 +20,10 @@ function loggedOutDisplay() {
 }
 
 function initializeStorage() {
-  var identityPoolId = cognitoIdentityPoolId;//
+  var identityPoolId = cognitoUserPoolId;//
   var userPoolId = cognitoUserPoolId; //
   var clientId = cognitoUserPoolClientId;//
-  var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + userPoolId;
+  var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + identityPoolId;
 
   localStorage.setItem('identityPoolId', identityPoolId);
   localStorage.setItem('userPoolId', userPoolId);
@@ -95,7 +95,9 @@ function register() {
     };
 
     var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
+
     attributeList.push(attributeEmail);
+
     if (pw === confirmPw) {
         userPool.signUp(email, pw, attributeList, null, function(err, result){
             if (err) {
@@ -238,8 +240,8 @@ function refreshAWSCredentials() {
     var loginPrefix = localStorage.getItem('loginPrefix');
 
     var poolData = {
-        UserPoolId : userPoolId, // Your user pool id here
-        ClientId : clientId // Your client id here
+    UserPoolId : userPoolId, // Your user pool id here
+    ClientId : clientId // Your client id here
     };
     var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     var cognitoUser = userPool.getCurrentUser();
@@ -247,10 +249,11 @@ function refreshAWSCredentials() {
     if (cognitoUser != null) {
         cognitoUser.getSession(function(err, result) {
             if (result) {
-                console.log('Logged in user');
+                console.log('You are now logged in.');
                 cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
+
                     if (err) {//throw err;
-                        console.log('Refresh AWS cred failed '+err);
+                        console.log('In the err: '+err);
                     }
                     else{
                         localStorage.setItem('awsConfig', JSON.stringify(AWS.config));
@@ -261,9 +264,10 @@ function refreshAWSCredentials() {
                             RefreshToken: result.getRefreshToken()
                         };
                         localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
-                        
+
                     }
                 });
+
             }
         });
     }
@@ -437,6 +441,58 @@ function addTodoNotes(todoID, notes) {
         }
 }
 
+function addTodoFiles(todoID, files) {
+    try{
+        var userID = localStorage.getItem('userID');
+        var todoFilesApi = todoFilesApiEndpoint + todoID + "/files/upload";
+
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        if (!files.length) {
+            alert("You need to choose a file to upload.");   
+        };
+
+        var fileObj = new FormData();
+        var file = files[0];
+        var sizeInKB = file.size/1024;
+        console.log('uploading a file of ' +  sizeInKB)
+        if (sizeInKB > 2048) {
+            alert("File size exceeds the limit of 2MB.");
+        };
+        //fileObj.append(file.name, file);
+        var fileObj = {
+            fileName: file.name,
+            fileBody: file
+        };
+        console.log(fileObj);
+        $.ajax({
+            url : todoFilesApi,
+            type : 'POST',
+            headers : {'Authorization' : idJwt },
+            contentType: false,
+            processData: false,
+            data: fileObj,
+            success : function(response) {
+                console.log("added file for todo: " + todoID)
+                hideAddFilesForm();
+            },
+            error : function(response) {
+                console.log("could not add file for todo: " + todoID);
+                if (response.status == "401") {
+                    refreshAWSCredentials();
+                }
+            }
+        });
+        } catch(err) {
+        alert("You must be logged in to add todo attachment");
+        console.log(err.message);
+    }
+
+}
+
 function uploadTodoFileS3(todoID, bucket, filesToUp){
     var userID = localStorage.getItem('userID');
     var todoFilesApi = todoFilesApiEndpoint + todoID + "/files/upload";
@@ -444,7 +500,6 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
     var sessionTokens = JSON.parse(sessionTokensString);
     var IdToken = sessionTokens.IdToken;
     var idJwt = IdToken.jwtToken;
-    
     if (!filesToUp.length) {
         alert("You need to choose a file to upload.");   
     }
@@ -470,7 +525,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
                     console.log(err, err.stack);
                     alert("Failed to upload file " + fileName);
                 } else {
-                    console.log(fileName + ' successfully uploaded for' + todoID);
+                    console.log(fileName + ' successfully uploaded file for ' + todoID);
                     var fileObj = {
                         'fileName': fileName,
                         'filePath': fileUrl
