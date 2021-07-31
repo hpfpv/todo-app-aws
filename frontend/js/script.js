@@ -507,7 +507,7 @@ function addTodoFiles(todoID, files) {
 
     try{
         AWS.config.update({
-            region: bucketRegion,
+            region: awsRegion,
             credentials: new AWS.CognitoIdentityCredentials({
                 IdentityPoolId: identityPoolId
             })
