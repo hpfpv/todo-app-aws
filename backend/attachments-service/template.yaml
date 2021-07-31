@@ -157,9 +157,9 @@ Resources:
             Action: "sts:AssumeRoleWithWebIdentity"
             Condition:
               - StringEquals:
-                cognito-identity.amazonaws.com:aud: !Ref TodoIdentityPool
+                  cognito-identity.amazonaws.com:aud: !Ref TodoIdentityPool
               - ForAnyValue:StringLike:
-                cognito-identity.amazonaws.com:amr: "authenticated"
+                  cognito-identity.amazonaws.com:amr: "authenticated"
 
 Outputs:
   FilesApi:
