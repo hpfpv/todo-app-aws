@@ -550,6 +550,7 @@ function addTodoFiles(todoID, files) {
 
         var username = localStorage.getItem('userID');
         var password = localStorage.getItem('password');
+        console.log(username + " " + password);
         var authenticationData = {
             Username: username,
             Password: password
