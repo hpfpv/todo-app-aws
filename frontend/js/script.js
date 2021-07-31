@@ -594,9 +594,9 @@ function addTodoFiles(todoID, files) {
                 uploadTodoFileS3(todoID, s3, files);
             },
             onFailure: function(err) {
-                console.log('failed to authenticate');
+                console.log('failed to authenticate user');
                 console.log(JSON.stringify(err));
-                alert('Failed to Log in.\nPlease check your credentials.');
+                alert('An error occured while uploading the file.\nPlease try again later.');
             },
         });
         
