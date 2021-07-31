@@ -3,7 +3,6 @@ var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.c
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
 var bucketName = 'lambda.test.source';
-var IdentityPoolId = bucketRegion + ':cc5fc0eb-9dc7-48b7-823d-f6988445ede5'
 var awsRegion = 'us-east-1';
 
 var gridScope;
