@@ -2,7 +2,7 @@ var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/de
 var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/';
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
-var cognitoIdentityPoolId = 'us-east-1:1d4efcf7-f995-4331-bd94-c3ed6111f246';
+var cognitoIdentityPoolId = 'us-east-1:bbb155cb-c623-42bd-898e-57fcb4f76357';
 var bucketName = 'hpf-todo-app-files';
 var awsRegion = 'us-east-1';
 
