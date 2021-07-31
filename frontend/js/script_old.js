@@ -444,6 +444,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
     var sessionTokens = JSON.parse(sessionTokensString);
     var IdToken = sessionTokens.IdToken;
     var idJwt = IdToken.jwtToken;
+    
     if (!filesToUp.length) {
         alert("You need to choose a file to upload.");   
     }
