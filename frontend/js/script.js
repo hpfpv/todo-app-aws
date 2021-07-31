@@ -237,8 +237,13 @@ function refreshAWSCredentials() {
         cognitoUser.getSession(function(err, result) {
             if (result) {
                 console.log('You are now logged in.');
+                // Initialize the Amazon Cognito credentials provider
+                AWS.config.region = awsRegion; // Region
+                AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                    IdentityPoolId: identityPoolId,
+                    Logins: {[loginPrefix]: result.getIdToken().getJwtToken()}
+                }); 
                 cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
-
                     if (err) {//throw err;
                         console.log('In the err: '+err);
                     }
@@ -251,16 +256,9 @@ function refreshAWSCredentials() {
                             RefreshToken: result.getRefreshToken()
                         };
                         localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
-                        // Initialize the Amazon Cognito credentials provider
-                        AWS.config.region = awsRegion; // Region
-                        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-                            IdentityPoolId: identityPoolId,
-                            Logins: {[loginPrefix]: result.getIdToken().getJwtToken()}
-                        }); 
-
+                        
                     }
                 });
-
             }
         });
     }
