@@ -29,7 +29,6 @@ function initializeStorage() {
   localStorage.setItem('userPoolId', userPoolId);
   localStorage.setItem('clientId', clientId);
   localStorage.setItem('loginPrefix', loginPrefix);
-  
 }
 
 function updateModalText(descriptionTodo) {

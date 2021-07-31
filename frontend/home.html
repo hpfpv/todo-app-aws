@@ -209,7 +209,7 @@
             console.log("notes | " + notes + " | for: " +  todoID);
             addTodoNotes(todoID, notes);
             $('#descriptionModal').on('hidden.bs.modal', function(event) {
-                location.reload();
+                $("#descriptionNotes").replaceWith($("#descriptionNotes").val('').clone(true));
             });
         }
 
@@ -217,9 +217,9 @@
           var files = document.getElementById('fileinput').files;
           addTodoFiles(todoID, files);
           $("#descriptionModal").show();
-          $('#descriptionModal').on('hidden.bs.modal', function(event) {
-                location.reload();
-          });
+          //$('#descriptionModal').on('hidden.bs.modal', function(event) {
+                //location.reload();
+          //});
         }
     });
 

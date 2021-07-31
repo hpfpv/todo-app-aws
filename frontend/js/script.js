@@ -2,6 +2,8 @@ var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/de
 var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/';
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
+var cognitoIdentityPoolId = 'us-east-1:1d4efcf7-f995-4331-bd94-c3ed6111f246';
+var bucketName = 'hpf-todo-app-files';
 var awsRegion = 'us-east-1';
 
 var gridScope;
@@ -54,6 +56,7 @@ function showAddFilesForm(){
 
 function hideAddFilesForm(){
     $("#addFilesForm").addClass("d-none");
+    $("#fileinput").replaceWith($("#fileinput").val('').clone(true));
 } 
 
 function addFileName () {
@@ -145,6 +148,17 @@ function login(){
     var identityPoolId = localStorage.getItem('identityPoolId');
     var loginPrefix = localStorage.getItem('loginPrefix');
 
+    AWSCognito.config.region = awsRegion;
+    AWSCognito.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: identityPoolId // your identity pool id here
+    }); 
+    AWSCognito.config.update({accessKeyId: 'anything', secretAccessKey: 'anything'})
+
+    AWS.config.region = awsRegion; // Region
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: identityPoolId
+    });
+
     var poolData = {
         UserPoolId : userPoolId, // Your user pool id here
         ClientId : clientId // Your client id here
@@ -168,23 +182,23 @@ function login(){
     console.log(cognitoUser);
     cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: function (result) {
-        var accessToken = result.getAccessToken().getJwtToken();
-        console.log('Authentication successful', accessToken);
-        var sessionTokens =
-        {
-            IdToken: result.getIdToken(),
-            AccessToken: result.getAccessToken(),
-            RefreshToken: result.getRefreshToken()
-        };
-        localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
-        localStorage.setItem('userID', username);
-        window.location = './home.html';
+            var accessToken = result.getAccessToken().getJwtToken();
+            console.log('Authentication successful', accessToken);
+            var sessionTokens =
+            {
+                IdToken: result.getIdToken(),
+                AccessToken: result.getAccessToken(),
+                RefreshToken: result.getRefreshToken()
+            };
+            localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
+            localStorage.setItem('userID', username);
+            window.location = './home.html';
         },
 
         onFailure: function(err) {
-        console.log('failed to authenticate');
-        console.log(JSON.stringify(err));
-        alert('Failed to Log in.\nPlease check your credentials.');
+            console.log('failed to authenticate');
+            console.log(JSON.stringify(err));
+            alert('Failed to Log in.\nPlease check your credentials.');
         },
     });
 }
@@ -475,4 +489,91 @@ function addTodoFiles(todoID, files) {
         console.log(err.message);
     }
 
+}
+
+function uploadTodoFileS3(todoID, bucket, filesToUp){
+    var userID = localStorage.getItem('userID');
+    var todoFilesApi = todoFilesApiEndpoint + todoID + "/files/upload";
+    var sessionTokensString = localStorage.getItem('sessionTokens');
+    var sessionTokens = JSON.parse(sessionTokensString);
+    var IdToken = sessionTokens.IdToken;
+    var idJwt = IdToken.jwtToken;
+    if (!filesToUp.length) {
+        alert("You need to choose a file to upload.");   
+    }
+    else{
+        //var fileObj = new FormData();
+        var file = filesToUp[0];
+        var fileName = file.name;
+        var filePath = userID + '/' + todoID + '/' + fileName;
+        var fileUrl = 'https://' + awsRegion + '.amazonaws.com/' + bucketName + '/' +  filePath;
+        var sizeInKB = file.size/1024;
+        console.log('uploading a file of ' +  sizeInKB)
+        if (sizeInKB > 2048) {
+            alert("File size exceeds the limit of 2MB.");
+        }
+        else{
+            var params = {
+                Key: filePath,
+                Body: file,
+                ACL: 'public-read'
+            };
+            bucket.upload(params, function(err, data) {
+                if (err) {
+                    console.log(err, err.stack);
+                    alert("Failed to upload file " + fileName);
+                } else {
+                    console.log(fileName + ' successfully uploaded file for ' + todoID);
+                    var fileObj = {
+                        'fileName': fileName,
+                        'filePath': fileUrl
+                    }
+                    $.ajax({
+                        url : todoFilesApi,
+                        type : 'POST',
+                        headers : {'Content-Type': 'application/json', 'Authorization' : idJwt },
+                        contentType: 'json',
+                        data: JSON.stringify(fileObj),
+                        success : function(response) {
+                            console.log("dynamodb table updated with filePath " + fileName)
+                            
+                        },
+                        error : function(response) {
+                            console.log("could not update dynamodb table: " + fileName);
+                            if (response.status == "401") {
+                                refreshAWSCredentials();
+                            }
+                        }
+                    });
+                    hideAddFilesForm();
+                }
+            })
+        } 
+    }    
+}
+
+function addTodoFiles(todoID, files) {
+    var userPoolId = localStorage.getItem('userPoolId');
+    var clientId = localStorage.getItem('clientId');
+    var identityPoolId = localStorage.getItem('identityPoolId');
+    var loginPrefix = localStorage.getItem('loginPrefix');
+
+    try{
+        AWS.config.update({
+            region: awsRegion,
+            credentials: new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: identityPoolId
+            })
+        });
+        var s3 = new AWS.S3({
+            apiVersion: '2006-03-01',
+            params: {Bucket: bucketName}
+        });
+        uploadTodoFileS3(todoID, s3, files);
+
+    }
+    catch(err) {
+        //alert("You must be logged in to add todo attachment");
+        console.log(err.message);
+    }
 }
