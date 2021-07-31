@@ -33,7 +33,7 @@ def lambda_handler(event, context):
     fileForDynamo["filePath"] =  {
         "S": filePath
     }
-        
+
     logger.info(fileForDynamo)
     try:
         #responseS3 = s3.upload_fileobj(file, bucket, fileName)
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
         Item=fileForDynamo
         ) 
         #logger.info('reposne for S3' + responseS3)
-        logger.info('reposne for DynamoDB' + responseDB)
+        logger.info(responseDB)
     except ClientError as err:
         logger.info(err)
     responseBody = {}
