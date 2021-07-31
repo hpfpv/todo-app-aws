@@ -95,9 +95,7 @@ function register() {
     };
 
     var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
-
     attributeList.push(attributeEmail);
-
     if (pw === confirmPw) {
         userPool.signUp(email, pw, attributeList, null, function(err, result){
             if (err) {
@@ -239,7 +237,7 @@ function refreshAWSCredentials() {
                 console.log('You are now logged in.');
                 cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
                     if (err) {//throw err;
-                        console.log('In the err: '+err);
+                        console.log('Refresh AWS cred failed '+err);
                     }
                     else{
                         localStorage.setItem('awsConfig', JSON.stringify(AWS.config));

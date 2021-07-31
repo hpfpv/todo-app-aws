@@ -216,7 +216,6 @@
         }
 
         $scope.uploadFileClicked = function(todoID) {
-          refreshAWSCredentials()
           var files = document.getElementById('fileinput').files;
           addTodoFiles(todoID, files);
           $("#descriptionModal").show();
