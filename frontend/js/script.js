@@ -24,15 +24,12 @@ function initializeStorage() {
   var userPoolId = cognitoUserPoolId; //
   var clientId = cognitoUserPoolClientId;//
   var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + userPoolId;
-  var username = $('#username').val();
-  var password = $('#password').val();
 
   localStorage.setItem('identityPoolId', identityPoolId);
   localStorage.setItem('userPoolId', userPoolId);
   localStorage.setItem('clientId', clientId);
   localStorage.setItem('loginPrefix', loginPrefix);
-  localStorage.setItem('username', username);
-  localStorage.setItem('password', password);
+  
 }
 
 function updateModalText(descriptionTodo) {
@@ -552,7 +549,7 @@ function addTodoFiles(todoID, files) {
 
         var username = localStorage.getItem('userID');
         var password = localStorage.getItem('password');
-        
+        console.log(username + ' ' + password);
         var authenticationData = {
             Username: username,
             Password: password
@@ -578,7 +575,6 @@ function addTodoFiles(todoID, files) {
                     RefreshToken: result.getRefreshToken()
                 };
                 localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
-                localStorage.setItem('userID', username);
                 AWS.config.update({
                     credentials: new AWS.CognitoIdentityCredentials({
                         IdentityPoolId: identityPoolId
