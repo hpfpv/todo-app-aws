@@ -205,7 +205,11 @@ function login(){
                 if (err) console.log(err);
                 else console.log(AWS.config.credentials);
             });
-
+            var s3 = new AWS.S3({
+                apiVersion: '2006-03-01',
+                params: {Bucket: bucketName}
+            });
+            localStorage.setItem('s3', s3);
             window.location = './home.html';
         },
         onFailure: function(err) {
@@ -260,7 +264,7 @@ function refreshAWSCredentials() {
     if (cognitoUser != null) {
         cognitoUser.getSession(function(err, result) {
             if (result) {
-                console.log('You are now logged in.');
+                console.log('Logged in user');
                 cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
                     if (err) {//throw err;
                         console.log('Refresh AWS cred failed '+err);
@@ -523,13 +527,10 @@ function addTodoFiles(todoID, files) {
         var sessionTokens = JSON.parse(sessionTokensString);
         var IdToken = sessionTokens.IdToken;
         var idJwt = IdToken.jwtToken;
-        
-        refreshAWSCredentials();
 
-        var s3 = new AWS.S3({
-            apiVersion: '2006-03-01',
-            params: {Bucket: bucketName}
-        });
+        var s3 = localStorage.getItem('s3');
+
+        refreshAWSCredentials();
 
         if (!files.length) {
             alert("You need to choose a file to upload.");   
