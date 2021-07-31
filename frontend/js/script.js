@@ -251,13 +251,11 @@ function refreshAWSCredentials() {
                             RefreshToken: result.getRefreshToken()
                         };
                         localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
-                        AWS.config.update({
-                            region: awsRegion,
-                            credentials: new AWS.CognitoIdentityCredentials({
-                                IdentityPoolId: identityPoolId,
-                                Logins: {[loginPrefix]: result.getIdToken().getJwtToken()}
-                            })
-                    })
+                        // Initialize the Amazon Cognito credentials provider
+                        AWS.config.region = 'us-east-1'; // Region
+                        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                            IdentityPoolId: identityPoolId,
+                        }); 
 
                     }
                 });
