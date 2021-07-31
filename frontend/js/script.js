@@ -480,7 +480,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
                         type : 'POST',
                         headers : {'Content-Type': 'application/json', 'Authorization' : idJwt },
                         contentType: 'json',
-                        data: fileObj,
+                        data: JSON.stringify(fileObj),
                         success : function(response) {
                             console.log("dynamodb table updated with filePath " + fileName)
                             

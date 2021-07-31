@@ -16,9 +16,9 @@ def lambda_handler(event, context):
     eventBody = json.loads(event["body"])
     todoID = event["pathParameters"]["todoID"]
     #file = eventBody["fileBody"]
-    fileName = eventBody["fineName"]
+    fileName = eventBody["fileName"]
     fileID = str(uuid.uuid4())
-    filePath = 'https://' + bucket + '/' + fileName
+    filePath = fileName = eventBody["filePath"]
     
     fileForDynamo = {
         'fileID': fileID,
