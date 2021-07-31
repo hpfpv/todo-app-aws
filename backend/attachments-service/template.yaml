@@ -145,12 +145,7 @@ Resources:
     Type: AWS::Cognito::IdentityPool
     Properties:
       IdentityPoolName: !Sub 'IdentityPool_todo_houessou_com'
-      AllowUnauthenticatedIdentities: false
-      CognitoIdentityProviders:
-        - ClientId: '4ajb6clml9vft00cof689o6c0p'
-          ProviderName: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_fM3BzKm1u'
-          ServerSideTokenCheck: false
-
+      AllowUnauthenticatedIdentities: true
               
   TodoIdentityPoolRole:
     Type: AWS::IAM::Role
@@ -164,7 +159,7 @@ Resources:
               Federated: 
                 - "cognito-identity.amazonaws.com"
             Action: "sts:AssumeRoleWithWebIdentity"
-            Condition: { "ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": "authenticated" },  "StringEquals": {"cognito-identity.amazonaws.com:aud": !Ref TodoIdentityPool}}
+            Condition: { "ForAnyValue:StringLike": {"cognito-identity.amazonaws.com:amr": "unauthenticated" },  "StringEquals": {"cognito-identity.amazonaws.com:aud": !Ref TodoIdentityPool}}
       Path: "/"
       Policies:
         - PolicyName: !Sub 'identity-pool-role-policy-${AWS::StackName}'
@@ -184,7 +179,7 @@ Resources:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
     Properties: 
       IdentityPoolId: !Ref TodoIdentityPool
-      Roles: {"authenticated": !GetAtt TodoIdentityPoolRole.Arn}
+      Roles: {"unauthenticated": !GetAtt TodoIdentityPoolRole.Arn }
   
 
 Outputs:

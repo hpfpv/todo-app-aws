@@ -192,8 +192,22 @@ function login(){
                 RefreshToken: result.getRefreshToken()
             };
             localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
-            //localStorage.setItem('userID', username);
-            //localStorage.setItem('password', password);
+            localStorage.setItem('userID', username);
+            localStorage.setItem('password', password);
+            AWS.config.update({
+                credentials: new AWS.CognitoIdentityCredentials({
+                    IdentityPoolId: identityPoolId
+                }),
+                region: awsRegion
+            });
+            AWS.config.credentials.get(function(err) {
+                if (err) console.log(err);
+                else console.log(AWS.config.credentials);
+            });
+            var s3 = new AWS.S3({
+                apiVersion: '2006-03-01',
+                params: {Bucket: bucketName}
+            });
             window.location = './home.html';
         },
         onFailure: function(err) {
@@ -254,6 +268,16 @@ function refreshAWSCredentials() {
                         console.log('Refresh AWS cred failed '+err);
                     }
                     else{
+                        AWS.config.update({
+                            credentials: new AWS.CognitoIdentityCredentials({
+                                IdentityPoolId: identityPoolId
+                            }),
+                            region: awsRegion
+                        });
+                        AWS.config.credentials.get(function(err) {
+                            if (err) console.log(err);
+                            else console.log(AWS.config.credentials);
+                        });
                         localStorage.setItem('awsConfig', JSON.stringify(AWS.config));
                         var sessionTokens =
                         {
@@ -506,18 +530,74 @@ function addTodoFiles(todoID, files) {
     var loginPrefix = localStorage.getItem('loginPrefix');
 
     try{
-        AWS.config.update({
-            region: bucketRegion,
-            credentials: new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: identityPoolId
-            })
+        AWSCognito.config.region = awsRegion;
+        AWSCognito.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: identityPoolId // your identity pool id here
+        }); 
+        AWSCognito.config.update({accessKeyId: 'anything', secretAccessKey: 'anything'})
+    
+        AWS.config.region = awsRegion; // Region
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: identityPoolId
         });
-        var s3 = new AWS.S3({
-            apiVersion: '2006-03-01',
-            params: {Bucket: bucketName}
-        });
-        uploadTodoFileS3(todoID, s3, files);
+    
+        var poolData = {
+            UserPoolId : userPoolId, // Your user pool id here
+            ClientId : clientId // Your client id here
+        };
+        var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
+        var username = localStorage.getItem('userID');
+        var password = localStorage.getItem('password');
+        console.log(username + ' ' + password);
+        var authenticationData = {
+            Username: username,
+            Password: password
+        };
+    
+        var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+    
+        var userData = {
+            Username : username,
+            Pool : userPool
+        };
+        var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+        console.log(cognitoUser);
+    
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: function (result) {
+                var accessToken = result.getAccessToken().getJwtToken();
+                console.log('Authentication successful', accessToken);
+                var sessionTokens =
+                {
+                    IdToken: result.getIdToken(),
+                    AccessToken: result.getAccessToken(),
+                    RefreshToken: result.getRefreshToken()
+                };
+                localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
+                AWS.config.update({
+                    credentials: new AWS.CognitoIdentityCredentials({
+                        IdentityPoolId: identityPoolId
+                    }),
+                    region: awsRegion
+                });
+                AWS.config.credentials.get(function(err) {
+                    if (err) console.log(err);
+                    else console.log(AWS.config.credentials);
+                });
+                var s3 = new AWS.S3({
+                    apiVersion: '2006-03-01',
+                    params: {Bucket: bucketName}
+                });
+                uploadTodoFileS3(todoID, s3, files);
+            },
+            onFailure: function(err) {
+                console.log('failed to authenticate user');
+                console.log(JSON.stringify(err));
+                alert('An error occured while uploading the file.\nPlease try again later.');
+            },
+        });
+        
     }
     catch(err) {
         //alert("You must be logged in to add todo attachment");
