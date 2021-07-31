@@ -192,7 +192,7 @@ function login(){
                 RefreshToken: result.getRefreshToken()
             };
             localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
-            //localStorage.setItem('userID', username);
+            localStorage.setItem('userID', username);
             //localStorage.setItem('password', password);
             window.location = './home.html';
         },
