@@ -131,7 +131,7 @@ Resources:
   TodoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: !Sub 'IdentityPool-${AWS::StackName}'
+      IdentityPoolName: !Sub 'IdentityPool_todo_houessou_com'
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
         - ClientId: '4ajb6clml9vft00cof689o6c0p'
