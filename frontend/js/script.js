@@ -166,9 +166,11 @@ function login(){
     var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
     var username = $('#username').val();
+    var password = $('#password').val();
+
     var authenticationData = {
         Username: username,
-        Password: $('#password').val()
+        Password: password
     };
 
     var authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
@@ -178,8 +180,8 @@ function login(){
         Pool : userPool
     };
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-
     console.log(cognitoUser);
+
     cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: function (result) {
             var accessToken = result.getAccessToken().getJwtToken();
@@ -192,9 +194,9 @@ function login(){
             };
             localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
             localStorage.setItem('userID', username);
+            //localStorage.setItem('password', password);
             window.location = './home.html';
         },
-
         onFailure: function(err) {
             console.log('failed to authenticate');
             console.log(JSON.stringify(err));
