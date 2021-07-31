@@ -24,11 +24,15 @@ function initializeStorage() {
   var userPoolId = cognitoUserPoolId; //
   var clientId = cognitoUserPoolClientId;//
   var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + userPoolId;
+  var username = $('#username').val();
+  var password = $('#password').val();
 
   localStorage.setItem('identityPoolId', identityPoolId);
   localStorage.setItem('userPoolId', userPoolId);
   localStorage.setItem('clientId', clientId);
   localStorage.setItem('loginPrefix', loginPrefix);
+  localStorage.setItem('username', username);
+  localStorage.setItem('password', password);
 }
 
 function updateModalText(descriptionTodo) {
@@ -425,22 +429,59 @@ function addTodoNotes(todoID, notes) {
 }
 
 function addTodoFiles(todoID, files) {
+    var userPoolId = localStorage.getItem('userPoolId');
+    var clientId = localStorage.getItem('clientId');
+    var identityPoolId = localStorage.getItem('identityPoolId');
+    var loginPrefix = localStorage.getItem('loginPrefix');
+    var username = localStorage.getItem('username');
+    var password = localStorage.getItem('password');
+
     try{
-        AWS.config.update({
-            region: awsRegion,
-            credentials: new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: cognitoIdentityPoolId
-            })
+        AWSCognito.config.region = 'us-east-1';
+        AWSCognito.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: identityPoolId // your identity pool id here
+        }); 
+        AWSCognito.config.update({accessKeyId: 'anything', secretAccessKey: 'anything'})
+
+        AWS.config.region = awsRegion; // Region
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: identityPoolId
         });
-        AWSCognito.config.update({
-            region: awsRegion,
-            credentials: new AWS.CognitoIdentityCredentials({
-                IdentityPoolId: cognitoIdentityPoolId
-            })
-        });
-        var s3 = new AWS.S3({
-            apiVersion: '2006-03-01',
-            params: {Bucket: bucketName}
+
+        var authenticationData = {
+        Username : username,
+        Password : password,
+        };
+        var authenticationDetails = new AWSCognito.CognitoIdentityServiceProvider.AuthenticationDetails(authenticationData);
+
+        var poolData = {
+            UserPoolId : userPoolId, // Your user pool id here
+            ClientId : clientId // Your client id here
+        };
+        var userPool = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserPool(poolData);
+
+        var userData = {
+            Username : signin.userName,
+            Pool : userPool
+        };
+        var cognitoUser = new AWSCognito.CognitoIdentityServiceProvider.CognitoUser(userData);
+
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: function (result) {
+                AWS.config.update({
+                    credentials: new AWS.CognitoIdentityCredentials({
+                        IdentityPoolId: identityPoolId
+                    }),
+                    region: awsRegion
+                });
+                AWS.config.credentials.get(function(err) {
+                  if (err) console.log(err);
+                  else console.log(AWS.config.credentials);
+                });
+            },
+            onFailure: function(err) {
+                alert(err);
+            },
         });
 
         var userID = localStorage.getItem('userID');
@@ -451,6 +492,11 @@ function addTodoFiles(todoID, files) {
         var IdToken = sessionTokens.IdToken;
         var idJwt = IdToken.jwtToken;
 
+        var s3 = new AWS.S3({
+            apiVersion: '2006-03-01',
+            params: {Bucket: bucketName}
+        });
+        
         if (!files.length) {
             alert("You need to choose a file to upload.");   
         }
