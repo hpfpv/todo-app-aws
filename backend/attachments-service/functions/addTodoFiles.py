@@ -18,14 +18,22 @@ def lambda_handler(event, context):
     #file = eventBody["fileBody"]
     fileName = eventBody["fileName"]
     fileID = str(uuid.uuid4())
-    filePath = fileName = eventBody["filePath"]
+    filePath = eventBody["filePath"]
     
-    fileForDynamo = {
-        'fileID': fileID,
-        'todoID': todoID,
-        'fileName' : fileName,
-        'filePath' : filePath
+    fileForDynamo = {}
+    fileForDynamo["fileID"] =  {
+        "S": fileID
     }
+    fileForDynamo["todoID"] =  {
+        "S": todoID
+    }
+    fileForDynamo["fileName"] =  {
+        "S": fileName
+    }
+    fileForDynamo["filePath"] =  {
+        "S": filePath
+    }
+        
     logger.info(fileForDynamo)
     try:
         #responseS3 = s3.upload_fileobj(file, bucket, fileName)
