@@ -150,6 +150,17 @@ function login(){
     var identityPoolId = localStorage.getItem('identityPoolId');
     var loginPrefix = localStorage.getItem('loginPrefix');
 
+    AWSCognito.config.region = awsRegion;
+    AWSCognito.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: identityPoolId // your identity pool id here
+    }); 
+    AWSCognito.config.update({accessKeyId: 'anything', secretAccessKey: 'anything'})
+
+    AWS.config.region = awsRegion; // Region
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: identityPoolId
+    });
+
     var poolData = {
         UserPoolId : userPoolId, // Your user pool id here
         ClientId : clientId // Your client id here
@@ -157,6 +168,7 @@ function login(){
     var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
     var username = $('#username').val();
+
     var authenticationData = {
         Username: username,
         Password: $('#password').val()
@@ -169,27 +181,37 @@ function login(){
         Pool : userPool
     };
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-
     console.log(cognitoUser);
+
     cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: function (result) {
-        var accessToken = result.getAccessToken().getJwtToken();
-        console.log('Authentication successful', accessToken);
-        var sessionTokens =
-        {
-            IdToken: result.getIdToken(),
-            AccessToken: result.getAccessToken(),
-            RefreshToken: result.getRefreshToken()
-        };
-        localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
-        localStorage.setItem('userID', username);
-        window.location = './home.html';
-        },
+            var accessToken = result.getAccessToken().getJwtToken();
+            console.log('Authentication successful', accessToken);
+            var sessionTokens =
+            {
+                IdToken: result.getIdToken(),
+                AccessToken: result.getAccessToken(),
+                RefreshToken: result.getRefreshToken()
+            };
+            localStorage.setItem('sessionTokens', JSON.stringify(sessionTokens))
+            localStorage.setItem('userID', username);
+            AWS.config.update({
+                credentials: new AWS.CognitoIdentityCredentials({
+                    IdentityPoolId: identityPoolId
+                }),
+                region: awsRegion
+            });
+            AWS.config.credentials.get(function(err) {
+                if (err) console.log(err);
+                else console.log(AWS.config.credentials);
+            });
 
+            window.location = './home.html';
+        },
         onFailure: function(err) {
-        console.log('failed to authenticate');
-        console.log(JSON.stringify(err));
-        alert('Failed to Log in.\nPlease check your credentials.');
+            console.log('failed to authenticate');
+            console.log(JSON.stringify(err));
+            alert('Failed to Log in.\nPlease check your credentials.');
         },
     });
 }
@@ -229,8 +251,8 @@ function refreshAWSCredentials() {
     var loginPrefix = localStorage.getItem('loginPrefix');
 
     var poolData = {
-    UserPoolId : userPoolId, // Your user pool id here
-    ClientId : clientId // Your client id here
+        UserPoolId : userPoolId, // Your user pool id here
+        ClientId : clientId // Your client id here
     };
     var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     var cognitoUser = userPool.getCurrentUser();
@@ -244,6 +266,16 @@ function refreshAWSCredentials() {
                         console.log('Refresh AWS cred failed '+err);
                     }
                     else{
+                        AWS.config.update({
+                            credentials: new AWS.CognitoIdentityCredentials({
+                                IdentityPoolId: identityPoolId
+                            }),
+                            region: awsRegion
+                        });
+                        AWS.config.credentials.get(function(err) {
+                            if (err) console.log(err);
+                            else console.log(AWS.config.credentials);
+                        });
                         localStorage.setItem('awsConfig', JSON.stringify(AWS.config));
                         var sessionTokens =
                         {
@@ -433,11 +465,11 @@ function addTodoFiles(todoID, files) {
     var clientId = localStorage.getItem('clientId');
     var identityPoolId = localStorage.getItem('identityPoolId');
     var loginPrefix = localStorage.getItem('loginPrefix');
-    var username = localStorage.getItem('username');
+    var username = localStorage.getItem('userID');
     var password = localStorage.getItem('password');
 
     try{
-        AWSCognito.config.region = 'us-east-1';
+        /*AWSCognito.config.region = 'us-east-1';
         AWSCognito.config.credentials = new AWS.CognitoIdentityCredentials({
             IdentityPoolId: identityPoolId // your identity pool id here
         }); 
@@ -475,14 +507,14 @@ function addTodoFiles(todoID, files) {
                     region: awsRegion
                 });
                 AWS.config.credentials.get(function(err) {
-                  if (err) console.log(err);
-                  else console.log(AWS.config.credentials);
+                    if (err) console.log(err);
+                    else console.log(AWS.config.credentials);
                 });
             },
             onFailure: function(err) {
                 alert(err);
             },
-        });
+        });*/
 
         var userID = localStorage.getItem('userID');
         var todoFilesApi = todoFilesApiEndpoint + todoID + "/files/upload";
@@ -491,12 +523,14 @@ function addTodoFiles(todoID, files) {
         var sessionTokens = JSON.parse(sessionTokensString);
         var IdToken = sessionTokens.IdToken;
         var idJwt = IdToken.jwtToken;
+        
+        refreshAWSCredentials();
 
         var s3 = new AWS.S3({
             apiVersion: '2006-03-01',
             params: {Bucket: bucketName}
         });
-        
+
         if (!files.length) {
             alert("You need to choose a file to upload.");   
         }

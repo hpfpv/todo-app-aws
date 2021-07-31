@@ -140,7 +140,7 @@ Resources:
             AllowedOrigins:
               - 'https://todo.houessou.com'
             
-              
+  
   TodoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
