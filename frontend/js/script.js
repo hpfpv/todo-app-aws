@@ -252,9 +252,10 @@ function refreshAWSCredentials() {
                         };
                         localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
                         // Initialize the Amazon Cognito credentials provider
-                        AWS.config.region = 'us-east-1'; // Region
+                        AWS.config.region = awsRegion; // Region
                         AWS.config.credentials = new AWS.CognitoIdentityCredentials({
                             IdentityPoolId: identityPoolId,
+                            Logins: {[loginPrefix]: result.getIdToken().getJwtToken()}
                         }); 
 
                     }
@@ -446,59 +447,60 @@ function addTodoFiles(todoID, files) {
 
         if (!files.length) {
             alert("You need to choose a file to upload.");   
-        };
-
-        //var fileObj = new FormData();
-        var file = files[0];
-        var sizeInKB = file.size/1024;
-        console.log('uploading a file of ' +  sizeInKB)
-        if (sizeInKB > 2048) {
-            alert("File size exceeds the limit of 2MB.");
-        };
-        //fileObj.append(file.name, file);
-        /*var fileObj = {
-            fileName: file.name,
-            fileBody: file
-        };*/
-        var params = {
-            Bucket: bucketName,
-            Key: file.name,
-            Body: file
-        };
-        s3.upload(params, function(err, data) {
-            if (err) {
-                console.log(err, err.stack);
-                alert("Failed to upload");
-            } else {
-                console.log(data.key + ' successfully uploaded to' + data.Location);
-                var fileObj = {
-                    'fileName': data.key,
-                    'filePath': data.Location + '/' + data.key
-                }
-                $.ajax({
-                    url : todoFilesApi,
-                    type : 'POST',
-                    headers : {'Content-Type': 'application/json', 'Authorization' : idJwt },
-                    contentType: 'json',
-                    data: fileObj,
-                    success : function(response) {
-                        console.log("added file for todo: " + todoID)
-                        
-                    },
-                    error : function(response) {
-                        console.log("could not add file for todo: " + todoID);
-                        if (response.status == "401") {
-                            refreshAWSCredentials();
-                        }
+        }
+        else{
+            //var fileObj = new FormData();
+            var file = files[0];
+            var sizeInKB = file.size/1024;
+            console.log('uploading a file of ' +  sizeInKB)
+            if (sizeInKB > 2048) {
+                alert("File size exceeds the limit of 2MB.");
+            };
+            //fileObj.append(file.name, file);
+            /*var fileObj = {
+                fileName: file.name,
+                fileBody: file
+            };*/
+            var params = {
+                Bucket: bucketName,
+                Key: file.name,
+                Body: file
+            };
+            s3.upload(params, function(err, data) {
+                if (err) {
+                    console.log(err, err.stack);
+                    alert("Failed to upload");
+                } else {
+                    console.log(data.key + ' successfully uploaded to' + data.Location);
+                    var fileObj = {
+                        'fileName': data.key,
+                        'filePath': data.Location + '/' + data.key
                     }
-                });
-                hideAddFilesForm();
-            }
-        })
+                    $.ajax({
+                        url : todoFilesApi,
+                        type : 'POST',
+                        headers : {'Content-Type': 'application/json', 'Authorization' : idJwt },
+                        contentType: 'json',
+                        data: fileObj,
+                        success : function(response) {
+                            console.log("added file for todo: " + todoID)
+                            
+                        },
+                        error : function(response) {
+                            console.log("could not add file for todo: " + todoID);
+                            if (response.status == "401") {
+                                refreshAWSCredentials();
+                            }
+                        }
+                    });
+                    hideAddFilesForm();
+                }
+            })
         
-        } catch(err) {
-        alert("You must be logged in to add todo attachment");
+        } 
+    }
+    catch(err) {
+        //alert("You must be logged in to add todo attachment");
         console.log(err.message);
     }
-
 }
