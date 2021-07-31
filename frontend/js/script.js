@@ -20,10 +20,10 @@ function loggedOutDisplay() {
 }
 
 function initializeStorage() {
-  var identityPoolId = cognitoUserPoolId;//
+  var identityPoolId = cognitoIdentityPoolId;//
   var userPoolId = cognitoUserPoolId; //
   var clientId = cognitoUserPoolClientId;//
-  var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + identityPoolId;
+  var loginPrefix = 'cognito-idp.' + awsRegion + '.amazonaws.com/' + userPoolId;
 
   localStorage.setItem('identityPoolId', identityPoolId);
   localStorage.setItem('userPoolId', userPoolId);
