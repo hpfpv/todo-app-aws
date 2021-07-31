@@ -127,7 +127,20 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub 'hpf-todo-app-files' 
-  
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - HEAD
+            AllowedOrigins:
+              - 'https://todo.houessou.com'
+            
+              
   TodoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
@@ -159,7 +172,10 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
-                Action: "s3:*"
+                Action: 
+                  - "s3:ListBucket"
+                  - "s3:PutObject*"
+                  - "s3:GetObject*"
                 Resource :
                   - !GetAtt 'TodoFilesBucket.Arn'
                   - !Join ['', [!GetAtt 'TodoFilesBucket.Arn', '/*']]
