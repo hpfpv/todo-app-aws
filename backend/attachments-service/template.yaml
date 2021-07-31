@@ -134,7 +134,7 @@ Resources:
       IdentityPoolName: !Sub 'IdentityPool-${AWS::StackName}'
       AllowUnauthenticatedIdentities: false
       CognitoIdentityProviders:
-        - ProviderName: !Join [ '', [ 'https://cognito-idp.', '${AWS::Region}', '.amazonaws.com/', !ImportValue todo-houessou-com-TodoUserPool ] ]  
+        - ProviderName: !Join [ '', [ 'https://cognito-idp.', !Sub '${AWS::Region}', '.amazonaws.com/', !ImportValue todo-houessou-com-TodoUserPool ] ]  
           ClientId: !ImportValue todo-houessou-com-TodoUserPoolClient
           ServerSideTokenCheck: true
 
