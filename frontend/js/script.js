@@ -449,7 +449,7 @@ function addTodoNotes(todoID, notes) {
         }
 }
 
-function uploadTodoFileS3(todoID, bucket, filesToUp){
+function uploadTodoFileS3(todoID, bucket, filesToUp, callback){
     var userID = localStorage.getItem('userID');
     var todoFilesApi = todoFilesApiEndpoint + todoID + "/files/upload";
     var sessionTokensString = localStorage.getItem('sessionTokens');
@@ -494,7 +494,8 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
                         contentType: 'json',
                         data: JSON.stringify(fileObj),
                         success : function(response) {
-                            console.log("dynamodb table updated with filePath " + fileName)
+                            console.log("dynamodb table updated with filePath " + fileName);
+                            callback(todoID);
                             
                         },
                         error : function(response) {
@@ -511,7 +512,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
     }    
 }
 
-function addTodoFiles(todoID, files) {
+function addTodoFiles(todoID, files, callback) {
     var userPoolId = localStorage.getItem('userPoolId');
     var clientId = localStorage.getItem('clientId');
     var identityPoolId = localStorage.getItem('identityPoolId');
@@ -528,7 +529,7 @@ function addTodoFiles(todoID, files) {
             apiVersion: '2006-03-01',
             params: {Bucket: bucketName}
         });
-        uploadTodoFileS3(todoID, s3, files);
+        uploadTodoFileS3(todoID, s3, files, callback);
 
     }
     catch(err) {
