@@ -82,7 +82,7 @@
                   <div class="col-auto" id={{file.fileID}} ng-repeat="file in files">
                         <p align="center">
                           <a href={{file.filePath}}>{{file.fileName}}</a>
-                          <button id="deleteFileButton" align="center" type="button" ng-click="deleteFileClicked(file.todoID, file.fileID, file.filePath)" class="btn btn-outline-warning small"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
+                          <button id="deleteFileButton" align="center" type="button" ng-click="deleteFileClicked(file.todoID, file.fileID, file.filePath)" class="btn btn-outline-info btn-xs"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
                         </p>
                   </div>
                 </div>
@@ -109,7 +109,7 @@
             </p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
          </div>
         </div>
       </div>
@@ -122,7 +122,7 @@
           <div class="modal-content">
             <!-- Modal Header -->
             <div class="modal-header">
-              <h5><img src="img/to-do-list.png" title="todo" id="todo-img"/>Add a new todo</h5>
+              <h5><img src="img/new.png" title="todo" id="todo-img"/> Add a new todo</h5>
               <button type="button" class="close" data-dismiss="modal">
                 <span aria-hidden="true">&times;</span>
                 <span class="sr-only">Close</span>
@@ -148,10 +148,6 @@
       </div>
     <!-- End New Todo Modal --> 
 
-    <div class="alert alert-danger" id="error-addTodo" style="display:none" ></div>
-
-    <div class="alert alert-success" id="success-addTodo" style="display:none" ></div>
-
     <!-- Importing scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
@@ -163,6 +159,10 @@
     <script src="js/aws-cognito-sdk.min.js"></script>
     <script src="js/amazon-cognito-identity.min.js"></script>
     <script src="js/script.js"></script>
+    <!--New scripts for extra small button-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
     <p>
         <br>

@@ -367,14 +367,12 @@ function addTodo(dateDue, title, description){
     data : JSON.stringify(todo),
     success : function(response) {
         console.log("todo added!")
+        alert("Todo successfully added (^_^)");
         window.location.reload();
-        $("#success-addTodo").show();
-        $("#success-addTodo").html("Todo successfully added (^_^)");
     },
     error : function(response) {
         console.log("could not add todo");
-        $("#error-addTodo").show();
-        $("#error-addTodo").html("Could not add todo (x_x) ");
+        alert("Could not add todo (x_x)");
         console.log(response);
 
     }

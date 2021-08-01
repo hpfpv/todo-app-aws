@@ -9,7 +9,7 @@ dynamo = boto3.client('dynamodb', region_name='us-east-1')
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-bucket = os.environ['TODOFILES_TABLE']
+bucket = os.environ['TODOFILES_BUCKET']
 
 def deleteTodosFileS3(key):
     response = s3.delete_object(
