@@ -57,6 +57,7 @@ function markNotCompleted() {
 
 function showAddFilesForm(){
     $("#addFilesForm").removeClass("d-none");
+    $("#fileinput").replaceWith($("#fileinput").val('').clone(true));
 } 
 
 function hideAddFilesForm(){
