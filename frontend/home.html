@@ -210,7 +210,7 @@
 
     app.controller('todoFilesListController', function($scope) {
         filesScope = $scope;
-        scope.deleteFileClicked = function (todoID, fileID, filePath){
+        $scope.deleteFileClicked = function (todoID, fileID, filePath){
             console.log("deleting file " + fileID)
             deleteTodoFile(todoID, fileID, filePath, markFileDeleted)
         }
