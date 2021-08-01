@@ -237,8 +237,7 @@
 
         $scope.uploadFileClicked = function(todoID) {
           var files = document.getElementById('fileinput').files;
-          addTodoFiles(todoID, files);
-          $("#descriptionModal").show();
+          addTodoFiles(todoID, files, getTodoFiles);
           //$('#descriptionModal').on('hidden.bs.modal', function(event) {
             //locatio.reload();
           //});
