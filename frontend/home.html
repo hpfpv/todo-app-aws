@@ -82,7 +82,7 @@
                   <div class="col-auto" id={{file.fileID}} ng-repeat="file in files">
                         <p align="center">
                           <a href={{file.filePath}}>{{file.fileName}}</a>
-                          <button id="deleteFileButton" align="center" type="button" ng-click="deleteFileClicked(file.todoID, file.fileID, file.filePath)" class="btn btn-outline-info btn-xs"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
+                          <button id="deleteFileButton" align="center" type="button" ng-click="deleteFileClicked(file.todoID, file.fileID, file.filePath)" class="btn btn-outline-info btn-sm"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
                         </p>
                   </div>
                 </div>
@@ -160,7 +160,7 @@
     <script src="js/amazon-cognito-identity.min.js"></script>
     <script src="js/script.js"></script>
     <!--New scripts for extra small button-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
@@ -201,6 +201,9 @@
         localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModalText);
     });
+    $('#descriptionModal').on('hidden.bs.modal', function (event) {
+      hideAddFilesForm();
+    });
 
     app.controller('todosListController', function($scope) {
         gridScope = $scope;
@@ -237,7 +240,7 @@
           addTodoFiles(todoID, files);
           $("#descriptionModal").show();
           //$('#descriptionModal').on('hidden.bs.modal', function(event) {
-              //location.reload();
+            //locatio.reload();
           //});
         }
     });

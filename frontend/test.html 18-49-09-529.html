@@ -17,7 +17,7 @@
                 <div>
                     <p>
                         1 of 2
-                        <button id="deleteFileButton" align="center" type="button" class="btn btn-outline-info btn-xs"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
+                        <button id="deleteFileButton" align="center" type="button" class="btn btn-outline-light btn-sm"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
                     </p>
                 </div>
             </div>
@@ -27,6 +27,18 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-12" id="addFilesForm">
+            <div class="input-group upload-form">
+                <div class="input-group-prepend">
+                    <span type="button" class="btn btn-success" id="uploadButton" ng-click="uploadFileClicked(descriptionTodo.todoID)">Upload</span>
+                </div>
+                <div class="custom-file">
+                    <input type="file" class="form-control-file input-group-sm" id="fileinput" aria-describedby="fileinput" onChange="addFileName();">
+                    <label class="custom-file-label" for="fileinput" id="fileName">Choose File</label>
+                </div>
+            </div>
+          </div>
+          <br>
         <div class="row">
             <div class="col border border-primary">
                 1 of 3
@@ -40,17 +52,18 @@
         </div>
     </div>
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
-  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.135.0.min.js"></script>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.24.min.js"></script>
-  <script src="js/aws-cognito-sdk.min.js"></script>
-  <script src="js/amazon-cognito-identity.min.js"></script>
-  <script src="js/script.js"></script>
+    script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.135.0.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.24.min.js"></script>
+    <script src="js/aws-cognito-sdk.min.js"></script>
+    <script src="js/amazon-cognito-identity.min.js"></script>
+    <script src="js/script.js"></script>
+    <!--New scripts for extra small button-->
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </body>

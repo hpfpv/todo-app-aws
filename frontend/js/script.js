@@ -47,7 +47,7 @@ function markCompleted() {
 }
 
 function markFileDeleted(fileID) {
-    $("#{{fileID}}").addClass("d-none");
+    $("#" + fileID).addClass("d-none");
 }
 
 function markNotCompleted() {
@@ -227,7 +227,7 @@ function checkLogin(redirectOnRec, redirectOnUnrec){
     var cognitoUser = userPool.getCurrentUser();
 
     if (cognitoUser != null) {
-        console.log("user exists");
+        console.log("user exist");
         if (redirectOnRec) {
             window.location = './home.html';
             loggedInDisplay();
@@ -257,12 +257,15 @@ function refreshAWSCredentials() {
     if (cognitoUser != null) {
         cognitoUser.getSession(function(err, result) {
             if (result) {
-                console.log('Logged in user');
+                console.log('user exist');
                 cognitoUser.refreshSession(result.getRefreshToken(), function(err, result) {
                     if (err) {//throw err;
-                        console.log('Refresh AWS cred failed '+err);
+                        console.log('Refresh AWS credentials failed ');
+                        alert("You need to log back in");
+                        checkLogin(false, true);
                     }
                     else{
+                        console.log('Logged in user');
                         localStorage.setItem('awsConfig', JSON.stringify(AWS.config));
                         var sessionTokens =
                         {
