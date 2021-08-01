@@ -200,6 +200,7 @@
         var todoID = button.data('todoid');
         localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModalText);
+        getTodosFiles(todoID, applyFilesScope);
     });
 
     app.controller('todosListController', function($scope) {
@@ -208,9 +209,7 @@
     });
 
     app.controller('todosFilesListController', function($scope) {
-        var todoID = localStorage.getItem('todoID');
         filesScope = $scope;
-        getTodosFiles(todoID, applyFilesScope);
     });
 
     app.controller('todoDescriptionController', function($scope) {
