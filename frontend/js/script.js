@@ -459,7 +459,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
         var file = filesToUp[0];
         var fileName = file.name;
         var filePath = userID + '/' + todoID + '/' + fileName;
-        var fileUrl = 'https://' + bucketName + 's3.amazonaws.com/' +  filePath;
+        var fileUrl = 'https://' + bucketName + '.s3.amazonaws.com/' +  filePath;
         var sizeInKB = file.size/1024;
         console.log('uploading a file of ' +  sizeInKB)
         if (sizeInKB > 2048) {
