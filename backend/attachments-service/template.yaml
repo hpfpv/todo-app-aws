@@ -55,7 +55,7 @@ Resources:
           Statement:
             - Effect: Allow
               Action: 
-                - dynamodb:*'
+                - 'dynamodb:*'
                 - 's3:GetObject'
                 - 's3:ListBucket'
               Resource:
