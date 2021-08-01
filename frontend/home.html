@@ -79,9 +79,11 @@
               <br>
               <div class="container">
                 <div id="todoFilesGrid" class="row" ng-controller="todoFilesListController">
-                  <div class="col-auto" ng-repeat="file in files">
+                  <div class="col-auto" id={{file.fileID}} ng-repeat="file in files">
                         <p align="center">
                           <a href={{file.filePath}}>{{file.fileName}}</a>
+                          &nbsp;
+                          <button id="deleteFileButton" align="center" type="button" ng-click="deleteFileClicked(file.todoID, file.fileID, file.filePath)" class="btn btn-outline-warning"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
                         </p>
                   </div>
                 </div>
@@ -208,6 +210,10 @@
 
     app.controller('todoFilesListController', function($scope) {
         filesScope = $scope;
+        scope.deleteFileClicked = function (todoID, fileID, filePath){
+            console.log("deleting file " + fileID)
+            deleteTodoFile(todoID, fileID, filePath, markFileDeleted)
+        }
     });
 
     app.controller('todoDescriptionController', function($scope) {

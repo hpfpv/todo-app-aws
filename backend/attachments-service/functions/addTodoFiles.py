@@ -6,8 +6,6 @@ import uuid
 from botocore.exceptions import ClientError
 
 dynamo = boto3.client('dynamodb', region_name='us-east-1')
-s3 = boto3.client('s3')
-bucket = os.environ["TODOFILES_BUCKET"]
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -15,7 +13,6 @@ def lambda_handler(event, context):
     logger.info(event)
     eventBody = json.loads(event["body"])
     todoID = event["pathParameters"]["todoID"]
-    #file = eventBody["fileBody"]
     fileName = eventBody["fileName"]
     fileID = str(uuid.uuid4())
     filePath = eventBody["filePath"]
@@ -36,12 +33,11 @@ def lambda_handler(event, context):
 
     logger.info(fileForDynamo)
     try:
-        #responseS3 = s3.upload_fileobj(file, bucket, fileName)
         responseDB = dynamo.put_item(
         TableName=os.environ['TODOFILES_TABLE'],
         Item=fileForDynamo
         ) 
-        #logger.info('reposne for S3' + responseS3)
+
         logger.info(responseDB)
     except ClientError as err:
         logger.info(err)

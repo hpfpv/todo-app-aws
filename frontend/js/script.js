@@ -46,6 +46,10 @@ function markCompleted() {
     $("#alreadyCompletedButton").removeClass("d-none");
 }
 
+function markFileDeleted(fileID) {
+    $("#{{fileID}}").addClass("d-none");
+}
+
 function markNotCompleted() {
     $("#completedButton").removeClass("d-none");
     $("#alreadyCompletedButton").addClass("d-none");
@@ -550,6 +554,40 @@ function getTodoFiles(todoID, callback) {
         },
         error : function(response) {
             console.log("could not retrieve files list");
+            if (response.status == "401") {
+                refreshAWSCredentials();
+            }
+        }
+        });
+    }catch(err) {
+        console.log(err.message);
+    }
+}
+
+function deleteTodoFile(todoID, fileID, filePath, callback) {
+    try{
+        var todoFilesApi = todoFilesApiEndpoint  + todoID + '/files/' + fileID + '/delete' ;
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        body = {
+            'filePath': filePath
+        };
+
+        $.ajax({
+        url : todoFilesApi,
+        type : 'POST',
+        headers : {'Content-Type': 'application/json','Authorization' : idJwt },
+        dataType: 'json',
+        data: JSON.stringify(body),
+        success : function(response) {
+            console.log("successfully deleted file " + fileID);
+            callback(fileID);
+        },
+        error : function(response) {
+            console.log("could not delete file");
             if (response.status == "401") {
                 refreshAWSCredentials();
             }
