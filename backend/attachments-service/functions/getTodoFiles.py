@@ -54,7 +54,7 @@ def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'headers': {
-            'Access-Control-Allow-Origin': 'https://mythicalmysfits.houessou.com',
+            'Access-Control-Allow-Origin': 'https://todo.houessou.com',
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Methods': 'GET',
             'Content-Type': 'application/json'

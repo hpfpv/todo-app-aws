@@ -329,6 +329,7 @@ function getTodo(todoID, callback) {
     success : function(response) {
         console.log('todoID: ' + todoID);
         callback(response);
+        getTodoFiles(todoID, applyFilesScope);
     },
     error : function(response) {
         console.log("could not retrieve todo.");
@@ -545,6 +546,7 @@ function getTodoFiles(todoID, callback) {
         headers : {'Authorization' : idJwt },
         success : function(response) {
             console.log("successfully loaded files for " + todoID);
+            console.log(response.files);
             callback(response.files);
         },
         error : function(response) {
