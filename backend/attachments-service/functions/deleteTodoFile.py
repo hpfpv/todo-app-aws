@@ -35,7 +35,7 @@ def lambda_handler(event, context):
     eventBody = json.loads(event["body"])
     fileID = event["pathParameters"]["fileID"]
     filePath = eventBody["filePath"]
-    fileKey = str(filePath).replace(f'https://{str(bucket)}.s3.amazonaws.com/', '')
+    fileKey = str(filePath).replace(f'https://{str(bucket)}.s3.amazonaws.com/', '').replace('%40','@')
     todoID = event["pathParameters"]["fileID"]
 
     print(f"deleting file {fileID}")
