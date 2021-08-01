@@ -76,6 +76,7 @@ def lambda_handler(event, context):
         response["todos"].append(todo)
 
     logger.info(response)
+    
     return {
         'statusCode': 200,
         'headers': {
