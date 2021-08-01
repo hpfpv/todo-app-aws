@@ -89,7 +89,7 @@
               </div>
             <br>
             <div class="col-md-12 d-none" id="addFilesForm">
-              <div class="input-group upload-form">
+              <div class="input-group input-group-sm upload-form">
                   <div class="input-group-prepend">
                       <span type="button" class="btn btn-custom" id="uploadButton" ng-click="uploadFileClicked(descriptionTodo.todoID)">Upload</span>
                   </div>
@@ -201,7 +201,7 @@
         localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModalText);
     });
-    
+
     $('#descriptionModal').on('hidden.bs.modal', function (event) {
       hideAddFilesForm();
     });
