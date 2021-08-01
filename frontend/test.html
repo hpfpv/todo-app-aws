@@ -9,68 +9,38 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="shortcut icon" href="favicon.png" >
 </head>
-<body id="body" style="visibility:visible" ng-app="FilesApp"></body>
-<div class="container">
-    <div id="todoFilesGrid" class="row" ng-controller="todoFilesListController">
-      <div class="col-sm-5 border border-light" ng-repeat="file in files">
-            <p align="center">
-              <a href={{file.filePath}}>{{file.fileName}}</a>
-            </p>
-      </div>
+<body id="body" style="visibility:visible" ng-app="todosApp">
+
+    <div class="container">
+        <div class="row align-items-start">
+            <div class="col-auto ">
+                1 of 2
+            </div>
+            <div class="col-auto ">
+                2 of 2 of 3 of 4
+            </div>
+        </div>
+        <div class="row">
+            <div class="col border border-primary">
+                1 of 3
+            </div>
+            <div class="col border border-primary">
+                2 of 3
+            </div>
+            <div class="col border border-primary">
+                3 of 3
+            </div>
+        </div>
     </div>
-</div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.135.0.min.js"></script>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.24.min.js"></script>
+  <script src="js/aws-cognito-sdk.min.js"></script>
+  <script src="js/amazon-cognito-identity.min.js"></script>
+  <script src="js/script.js"></script>
 </body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
-<script src="https://sdk.amazonaws.com/js/aws-sdk-2.135.0.min.js"></script>
-<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.24.min.js"></script>
-<script src="js/aws-cognito-sdk.min.js"></script>
-<script src="js/amazon-cognito-identity.min.js"></script>
-<script src="js/script.js"></script>
-<script>
-
-    var app = angular.module('FilesApp', []);
-    var gridScope;
-    var descriptionScope;
-    var filesScope;
-    var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/'
-
-    app.controller('todoFilesListController', function($scope) {
-        filesScope = $scope;
-        var todoID = "34fa3856-6811-4fca-bb2f-d372a21bf04e";
-        getTodoFiles(todoID, applyFilesScope);
-    });
-
-    function applyFilesScope(filesList) {
-        filesScope.files = filesList;
-        filesScope.$apply();
-    }
-
-    function getTodoFiles(todoID, callback) {
-    try{
-        var todoFilesApi = todoFilesApiEndpoint  + todoID + '/files';
-        var idJwt = "eyJraWQiOiJ6dDhhNW14cWpJZ056UUdqeGdmVU54ZjNcL2tJQ0E0bm1RUlwveUVyME8wY1k9IiwiYWxnIjoiUlMyNTYifQ.eyJhdF9oYXNoIjoiLXlHWXhWczFlU3BJMXNjLWUyZ056QSIsInN1YiI6IjczZjBiNDI2LTc3ZTAtNDhhMi1iOGEwLTU5NTQ3ZDFiYTI0NSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9mTTNCekttMXUiLCJwaG9uZV9udW1iZXJfdmVyaWZpZWQiOnRydWUsImNvZ25pdG86dXNlcm5hbWUiOiI3M2YwYjQyNi03N2UwLTQ4YTItYjhhMC01OTU0N2QxYmEyNDUiLCJhdWQiOiI0YWpiNmNsbWw5dmZ0MDBjb2Y2ODlvNmMwcCIsImV2ZW50X2lkIjoiM2Y0NmNiNTUtNDNiOS00NzAzLTgzODItYmQ2ZjYwYWU5ZGJhIiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE2Mjc4MzM3MzIsInBob25lX251bWJlciI6IisyMjk5NzQ5NzkxOSIsImV4cCI6MTYyNzgzNzMzMiwiaWF0IjoxNjI3ODMzNzMyLCJqdGkiOiIyNjhkOWMzNi02MjhhLTQ1YzAtYjZlNC0zMThjZWMyY2VkZTUiLCJlbWFpbCI6ImhwZkBob3Vlc3NvdS5jb20ifQ.WYlvDE8unfdCdm75nUrv7Fygckg8LGcJIlkivF3rQNBXoWmldP868E01Uc37gRYxSHOY78jGyRrOzgv0qb1j3AYaIW_eT-e1MO25kQ_EtIuhj734ZAQJogAgX9nZOTE69R383W9R_LaXxNk0h57kpP5bOWBzftt6OtQSHG1F7Rs5ZMRulrPMqWkJyMcCtkWgM9D1H6664UvYR4roy5cCrS1voZ8z_qkeDDMt3F8vTZOedQsjoHy8OPgWBg6xBhCZTtH4oXWzjE-FaAoxy5bOAvs-wWvuZyw5mzJdPHSsCf134ofqv3eMwoMG8ZjXNacVPJZJ73_Ger3HkxTxC9WXdw";
-
-        $.ajax({
-        url : todoFilesApi,
-        type : 'GET',
-        headers : {'Authorization' : idJwt, 'Access-Control-Allow-Origin': 'https://todo.houessou.com', 'Access-Control-Allow-Headers': 'x-requested-with' },
-        success : function(response) {
-            console.log("successfully loaded files for " + todoID);
-            callback(response.files);
-        },
-        error : function(response) {
-            console.log("could not retrieve files list");
-            if (response.status == "401") {
-                refreshAWSCredentials();
-            }
-        }
-        });
-    }catch(err) {
-        console.log(err.message);
-    }
-}
-</script>

@@ -546,7 +546,6 @@ function getTodoFiles(todoID, callback) {
         headers : {'Authorization' : idJwt },
         success : function(response) {
             console.log("successfully loaded files for " + todoID);
-            console.log(response.files);
             callback(response.files);
         },
         error : function(response) {
