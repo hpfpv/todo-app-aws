@@ -30,6 +30,9 @@ Resources:
         AllowMethods:
           - GET
           - POST
+          - DELETE
+          - HEAD
+          - PUT
         AllowOrigins:
           - https://todo.houessou.com
         AllowHeaders:
@@ -87,6 +90,37 @@ Resources:
               Action: 
                 - 'dynamodb:*'
                 - 's3:PutObject'
+                - 's3:ListBucket'
+              Resource:
+                - !GetAtt 'TodoFilesTable.Arn'
+                - !GetAtt 'TodoFilesBucket.Arn'
+                - !Join ['', [!GetAtt 'TodoFilesBucket.Arn', '/*']]
+
+  deleteTodoFile:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODOFILES_TABLE: !Ref TodoFilesTable 
+          TODOFILES_BUCKET: !Ref TodoFilesBucket
+      CodeUri: ./functions
+      Handler: deleteTodoFile.lambda_handler
+      Events:
+        addTodoApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FilesApi
+            Path: /{todoID}/files/{fileID}/delete
+            Method: DELETE
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 
+                - 'dynamodb:*'
+                - 's3:PutObject'
+                - 's3:GetObject'
+                - 's3:DeleteObject'
                 - 's3:ListBucket'
               Resource:
                 - !GetAtt 'TodoFilesTable.Arn'

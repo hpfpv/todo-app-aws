@@ -578,7 +578,7 @@ function deleteTodoFile(todoID, fileID, filePath, callback) {
 
         $.ajax({
         url : todoFilesApi,
-        type : 'POST',
+        type : 'DELETE',
         headers : {'Content-Type': 'application/json','Authorization' : idJwt },
         dataType: 'json',
         data: JSON.stringify(body),
