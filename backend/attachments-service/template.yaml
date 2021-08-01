@@ -106,7 +106,7 @@ Resources:
       CodeUri: ./functions
       Handler: deleteTodoFile.lambda_handler
       Events:
-        addTodoApi:
+        deleteTodoApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref FilesApi

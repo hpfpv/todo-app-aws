@@ -9,13 +9,14 @@ dynamo = boto3.client('dynamodb', region_name='us-east-1')
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+bucket = os.environ['TODOFILES_TABLE']
 
-def deleteTodosFileS3(filePath):
+def deleteTodosFileS3(key):
     response = s3.delete_object(
-        Bucket=os.environ["TODOFILES_BUCKET"],
-        Key=filePath,
+        Bucket=bucket,
+        Key=key,
     )
-    logging.info(f"{filePath} deleted from S3")
+    logging.info(f"{key} deleted from S3")
     return response
    
 def deleteTodosFileDynamo(fileID, todoID):
@@ -24,10 +25,7 @@ def deleteTodosFileDynamo(fileID, todoID):
         Key={
             'fileID': {
                 'S': fileID
-            },
-            'todoID': {
-                'S': todoID
-            },
+            }
         }
     )
     logging.info(f"{fileID} deleted from DynamoDB")
@@ -37,10 +35,11 @@ def lambda_handler(event, context):
     eventBody = json.loads(event["body"])
     fileID = event["pathParameters"]["fileID"]
     filePath = eventBody["filePath"]
+    fileKey = str(filePath).replace(f'https://{str(bucket)}.s3.amazonaws.com/', '')
     todoID = event["pathParameters"]["fileID"]
 
     print(f"deleting file {fileID}")
-    deleteTodosFileS3(filePath)
+    deleteTodosFileS3(fileKey)
     deleteTodosFileDynamo(fileID,todoID)
 
     responseBody = {}

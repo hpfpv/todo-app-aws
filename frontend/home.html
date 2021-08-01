@@ -56,7 +56,7 @@
         <div class="modal-content">
           <!-- Modal Header -->
           <div class="modal-header">
-            <h5><img src="img/to-do-list.png" title="todo" id="todo-img"/> {{descriptionTodo.title}}</h5>
+            <h4><img src="img/to-do-list.png" title="todo" id="todo-img"/> {{descriptionTodo.title}}</h4>
             <button type="button" class="close" data-dismiss="modal">
               <span aria-hidden="true">&times;</span>
               <span class="sr-only">Close</span>
@@ -82,8 +82,7 @@
                   <div class="col-auto" id={{file.fileID}} ng-repeat="file in files">
                         <p align="center">
                           <a href={{file.filePath}}>{{file.fileName}}</a>
-                          &nbsp;
-                          <button id="deleteFileButton" align="center" type="button" ng-click="deleteFileClicked(file.todoID, file.fileID, file.filePath)" class="btn btn-outline-warning"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
+                          <button id="deleteFileButton" align="center" type="button" ng-click="deleteFileClicked(file.todoID, file.fileID, file.filePath)" class="btn btn-outline-warning small"><img src="img/cross.png" title="deleteFile" id="deleteFile-img"/></button>
                         </p>
                   </div>
                 </div>
