@@ -198,16 +198,19 @@
     $('#descriptionModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
         var todoID = button.data('todoid');
+        localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModalText);
-        app.controller('todosFilesListController', function($scope) {
-          filesScope = $scope;
-          getTodosFiles(todoID, applyFilesScope);
-        });
     });
 
     app.controller('todosListController', function($scope) {
         gridScope = $scope;
         getTodos(applyGridScope);
+    });
+
+    app.controller('todosFilesListController', function($scope) {
+        var todoID = localStorage.getItem('todoID');
+        filesScope = $scope;
+        getTodosFiles(todoID, applyFilesScope);
     });
 
     app.controller('todoDescriptionController', function($scope) {
