@@ -8,6 +8,7 @@ var awsRegion = 'us-east-1';
 
 var gridScope;
 var descriptionScope;
+var filesScope;
 
 function loggedInDisplay() {
     $("#signInButton").addClass("d-none");
@@ -67,6 +68,11 @@ function addFileName () {
 function applyGridScope(todosList) {
     gridScope.todos = todosList;
     gridScope.$apply();
+}
+
+function applyFilesScope(filesList) {
+    filesScope.files = filesList;
+    filesScope.$apply();
 }
 
 function applyDescriptionScope(todo) {
@@ -453,7 +459,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp){
         var file = filesToUp[0];
         var fileName = file.name;
         var filePath = userID + '/' + todoID + '/' + fileName;
-        var fileUrl = 'https://' + awsRegion + '.amazonaws.com/' + bucketName + '/' +  filePath;
+        var fileUrl = 'https://' + bucketName + 's3.amazonaws.com/' +  filePath;
         var sizeInKB = file.size/1024;
         console.log('uploading a file of ' +  sizeInKB)
         if (sizeInKB > 2048) {
@@ -521,6 +527,34 @@ function addTodoFiles(todoID, files) {
     }
     catch(err) {
         //alert("You must be logged in to add todo attachment");
+        console.log(err.message);
+    }
+}
+
+function getTodosFiles(todoID, callback) {
+    try{
+        var todoFilesApi = todoFilesApiEndpoint  + todoID + '/files';
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        $.ajax({
+        url : todoFilesApi,
+        type : 'GET',
+        headers : {'Authorization' : idJwt },
+        success : function(response) {
+            console.log("successfully loaded files for " + todoID);
+            callback(response.files);
+        },
+        error : function(response) {
+            console.log("could not retrieve files list");
+            if (response.status == "401") {
+                refreshAWSCredentials();
+            }
+        }
+        });
+    }catch(err) {
         console.log(err.message);
     }
 }

@@ -20,7 +20,7 @@ def getFilesJson(items):
         file["todoID"] = item["todoID"]["S"]
         file["fileName"] = item["fileName"]["S"]
         file["filePath"] = item["filePath"]["S"]
-        fileList["todos"].append(file)
+        fileList["files"].append(file)
     return fileList
  
 def getTodosFiles(todoID):

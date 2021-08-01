@@ -76,6 +76,16 @@
                   <img src="img/paperclip.png" title="attachments" id="attachments-img"/>
                   <p id="descriptionAttachements"><b>Attachements</b></p>
               </div>
+              <br>
+              <div class="container">
+                <div id="todoFilesGrid" class="row" ng-controller="todosFilesListController">
+                  <div class="col-sm-auto border border-light" ng-repeat="file in files">
+                        <p align="center">
+                          <a href={{file.filePath}}>{{file.fileName}}</a>
+                        </p>
+                  </div>
+                </div>
+            </div>
             <br>
             <br>
             <div class="col-md-12 d-none" id="addFilesForm">
@@ -167,7 +177,7 @@
     var app = angular.module('todosApp', []);
     var gridScope;
     var descriptionScope;
-    var attachementScope;
+    var filesScope;
     
     var configString = localStorage.getItem("awsConfig");
     var config = JSON.parse(configString);
@@ -196,6 +206,13 @@
         getTodos(applyGridScope);
     });
 
+    app.controller('todosFilesListController', function($scope) {
+        filesScope = $scope;
+        var button = $(event.relatedTarget);
+        var todoID = button.data('todoid');
+        getTodosFiles(todoID, applyFilesScope);
+    });
+
     app.controller('todoDescriptionController', function($scope) {
         descriptionScope = $scope;
 
@@ -209,7 +226,7 @@
             console.log("notes | " + notes + " | for: " +  todoID);
             addTodoNotes(todoID, notes);
             $('#descriptionModal').on('hidden.bs.modal', function(event) {
-                $("#descriptionNotes").replaceWith($("#descriptionNotes").val('').clone(true));
+                location.reload();
             });
         }
 
