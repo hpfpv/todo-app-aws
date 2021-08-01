@@ -78,14 +78,14 @@
               </div>
               <br>
               <div class="container">
-                <div id="todoFilesGrid" class="row" ng-controller="todosFilesListController">
-                  <div class="col-sm-auto border border-light" ng-repeat="file in files">
+                <div id="todoFilesGrid" class="row" ng-controller="todoFilesListController">
+                  <div class="col-sm-5 border border-light" ng-repeat="file in files">
                         <p align="center">
                           <a href={{file.filePath}}>{{file.fileName}}</a>
                         </p>
                   </div>
                 </div>
-            </div>
+              </div>
             <br>
             <div class="col-md-12 d-none" id="addFilesForm">
               <div class="input-group upload-form">
@@ -199,7 +199,7 @@
         var todoID = button.data('todoid');
         localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModalText);
-        getTodosFiles(todoID, applyFilesScope);
+        getTodoFiles(todoID, applyFilesScope);
     });
 
     app.controller('todosListController', function($scope) {
@@ -207,7 +207,7 @@
         getTodos(applyGridScope);
     });
 
-    app.controller('todosFilesListController', function($scope) {
+    app.controller('todoFilesListController', function($scope) {
         filesScope = $scope;
     });
 

@@ -531,7 +531,7 @@ function addTodoFiles(todoID, files) {
     }
 }
 
-function getTodosFiles(todoID, callback) {
+function getTodoFiles(todoID, callback) {
     try{
         var todoFilesApi = todoFilesApiEndpoint  + todoID + '/files';
         var sessionTokensString = localStorage.getItem('sessionTokens');
