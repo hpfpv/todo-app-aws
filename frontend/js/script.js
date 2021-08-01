@@ -495,7 +495,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp, callback){
                         data: JSON.stringify(fileObj),
                         success : function(response) {
                             console.log("dynamodb table updated with filePath " + fileName);
-                            callback(todoID);
+                            callback(todoID, applyFilesScope);
                             
                         },
                         error : function(response) {

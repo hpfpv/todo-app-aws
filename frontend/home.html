@@ -122,7 +122,7 @@
           <div class="modal-content">
             <!-- Modal Header -->
             <div class="modal-header">
-              <h5><img src="img/new.png" title="todo" id="todo-img"/> Add a new todo</h5>
+              <h4><img src="img/new.png" title="todo" id="todo-img"/> Add a new todo</h4>
               <button type="button" class="close" data-dismiss="modal">
                 <span aria-hidden="true">&times;</span>
                 <span class="sr-only">Close</span>
@@ -201,6 +201,7 @@
         localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModalText);
     });
+    
     $('#descriptionModal').on('hidden.bs.modal', function (event) {
       hideAddFilesForm();
     });
