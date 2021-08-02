@@ -4,6 +4,7 @@ import os
 import logging
 from collections import defaultdict
 from boto3.dynamodb.conditions import Key
+import re
 
 client = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
@@ -77,7 +78,7 @@ def getSearchedTodos(userID, filter):
     
     for item in data["todos"]:
         todo = {}
-        if filter in item["title"]: 
+        if re.search(filter, item["title"], re.IGNORECASE): 
             todo["todoID"] = item["todoID"]
             todo["userID"] = item["userID"]
             todo["dateCreated"] = item["dateCreated"]
