@@ -137,3 +137,17 @@ sortedData2 = {
 sortedData3 = sorted(sortedData2["todos"], key = lambda i: i["completed"])
 print (sortedData3)
 
+def deleteTodoFilesDynamo(todoID):
+    files = getTodosFiles(todoID)
+    for file in files["files"]:
+        fileID = file["fileID"]
+        response = dynamo.delete_item(
+            TableName=os.environ['TODOFILES_TABLE'],
+            Key={
+                'fileID': {
+                    'S': fileID
+                }
+            }
+        )
+        logging.info(f"{fileID} deleted")
+    return (f"{todoID} files deleted from dynamoDB")

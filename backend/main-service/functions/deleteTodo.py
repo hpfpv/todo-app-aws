@@ -10,6 +10,43 @@ logger.setLevel(logging.INFO)
 
 bucket = s3.Bucket(os.environ['TODOFILES_BUCKET'])
 
+def getFilesJson(items):
+    # loop through the returned todos and add their attributes to a new dict
+    # that matches the JSON response structure expected by the frontend.
+    fileList = defaultdict(list)
+
+    for item in items:
+        file = {}
+        file["fileID"] = item["fileID"]["S"]
+        file["todoID"] = item["todoID"]["S"]
+        file["fileName"] = item["fileName"]["S"]
+        file["filePath"] = item["filePath"]["S"]
+        fileList["files"].append(file)
+    return fileList
+ 
+def getTodosFiles(todoID):
+    # Use the DynamoDB API Query to retrieve todo files from the table that belong
+    # to the specified todoID.
+    filter = "todoID"
+    response = dynamo.query(
+        TableName=os.environ['TODOFILES_TABLE'],
+        IndexName=filter+'Index',
+        KeyConditions={
+            filter: {
+                'AttributeValueList': [
+                    {
+                        'S': todoID
+                    }
+                ],
+                'ComparisonOperator': "EQ"
+            }
+        }
+    )
+    logging.info(response["Items"])
+    fileList = getFilesJson(response["Items"])
+    return json.dumps(fileList)
+
+
 def deleteTodo(todoID):
     response = dynamo.delete_item(
         TableName=os.environ['TODO_TABLE'],
@@ -30,7 +67,21 @@ def deleteTodoFilesS3(userID, todoID):
     return (f"{todoID} files deleted from s3")
 
 def deleteTodoFilesDynamo(todoID):
-    "foobar"
+    data = json.loads(getTodosFiles(todoID))
+    files = data["files"]
+    for file in files:
+        fileID = file["fileID"]
+        dynamo.delete_item(
+            TableName=os.environ['TODOFILES_TABLE'],
+            Key={
+                'fileID': {
+                    'S': fileID
+                }
+            }
+        )
+        logging.info(f"{fileID} deleted")
+    return (f"{todoID} files deleted from dynamoDB")
+
 
 def lambda_handler(event, context):
     logger.info(event)
