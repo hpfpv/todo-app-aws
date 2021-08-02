@@ -3,19 +3,38 @@
 Hi guys! In this post, we'll be building a sample todo app on AWS with Python. We will build a website called  [todo.houessou.com](https://todo.houessou.com) that enables logged in visitors to create their todo list. We will use the AWS Serverless Application Model SAM Framework to deploy the backend services - API, Lambda, DynamoDB and Cognito) and will host the frontend on S3 behind a CloudFront distribution.
 The frontend is basic with no fancy visuals (I am no frontend dev :p). Here we will focus on how the resources are created and deployed on AWS.
 
-### Overview
+## Overview
 
 In this post I will be going through the overall setup of the app and how I deployed it. Mostly this will be a theoretical post but I will be posting needed scripts wherever appropriate. All the code can be found in the **[GitHub repo](https://github.com/hpfpv/todo-app-aws)**.
 
 **[Application web UI](https://todo.houessou.com)**
 
-**About the App**
+### About the App
 
 Before I go into the architecture, let me describe what the app is about and what it does. The app is a todo list manager which helps a user manage and track his/her todo list along with their files or attachments. The user can also find specific todos through the search. 
 
-**Basic Functionality**
+### Basic Functionality
 
 ![appflow.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1627647453541/A17idrTi1.png)
+The image above should describe the app basic functionalities.
+
+**User/Login Management**: 
+*Users are able to login to the app using provided credentials. There is a self register functionality and once a user is registered, the app provides a capability to the user to login using those credentials. It also provides a logout option for the user.*
+
+**Search Todo**: 
+*Users are able to perform a keyword search and the app shows a list of todos which contain that keyword in the name. The search only searches on todos which the logged in user has created. So it has the access boundary and doesn’t show Recipes across users.*
+
+**Add New Todo**: 
+*Users can add new Todos to be stored in the app. There are various details which can be provided for each Todo. Users can also add notes for each Todo.*
+
+**Support for files**: 
+*Users can upload a todo files for each Todo. The app provides a capability where user can select and upload a local file or download existing files while adding notes to a Todo. The file can be anything, from a text file to an image file. The app stores it in a S3 bucket and serves it back to the user via CloudFront.*
+
+### Application Components
+Now that we have a basic functional understanding of the app, let's see how all of these functionalities translate to different technical components. Below image should provide a good overview of each layer of the app and the technical components involved in each layer.
+![app-components.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1627943517673/XSNN_3bOs.png)
+
+Let's go through each component.
 
 The steps to build this application are:
 - Build and deploy backend main resources - **DynamoDB, Lambda and API Gateway**
@@ -23,7 +42,7 @@ The steps to build this application are:
 - Build a frontend website to serve the app - **S3, CloudFront**
 Alright, let's break this down.
 
-### [Build and deploy backend](https://github.com/hpfpv/todo-app-aws/tree/main/backend)
+## Build and deploy backend
 
 Our backend is based on the Serverless Application Module. We will need a DynamoDb table to store users todo-list, lambda functions to query and write to the table and REST APIs to serve the lambda functions.
 
@@ -286,7 +305,7 @@ After building and deploying our backend using the aws sam cli, we can now test 
 Let's build a frontend website that will serve our todo app.
 
 
-### [Frontend website](https://github.com/hpfpv/todo-app-aws/tree/main/frontend)
+## Frontend website
 
 Our frontend is made of basic html and Javascript code. 
 
