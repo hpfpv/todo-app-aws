@@ -24,7 +24,7 @@ def deleteTodo(todoID):
 
 def deleteTodoFilesS3(userID, todoID):
     prefix = userID + "/" + todoID + "/"
-    for key in bucket.objects.filter(prefix=prefix):
+    for key in bucket.objects.filter(Prefix=prefix):
         key.delete()
         logging.info(f"{key} deleted")
     return (f"{todoID} files deleted from s3")
