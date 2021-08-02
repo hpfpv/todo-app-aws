@@ -42,7 +42,7 @@ function updateModalText(descriptionTodo) {
 }
 
 function confirmDeleteTodo(todoID, title) {
-    var response = confirm("You are about to delete todo " + title);
+    var response = confirm("You are about to delete <" + title + ">");
     if (response == true) {
         deleteTodo(todoID);
     }
