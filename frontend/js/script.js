@@ -378,7 +378,6 @@ function addTodo(dateDue, title, description){
     data : JSON.stringify(todo),
     success : function(response) {
         console.log("todo added!")
-        alert("Todo successfully added (^_^)");
         window.location.reload();
     },
     error : function(response) {

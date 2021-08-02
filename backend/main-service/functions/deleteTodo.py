@@ -2,6 +2,7 @@ import boto3
 import json
 import os
 import logging
+from collections import defaultdict
 
 dynamo = boto3.client('dynamodb', region_name='us-east-1')
 s3 = boto3.resource('s3')
