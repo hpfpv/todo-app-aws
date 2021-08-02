@@ -98,15 +98,17 @@
                       <label class="custom-file-label" for="fileinput" id="fileName">Choose File</label>
                   </div>
               </div>
-            </div> 
+            </div>
+            </div>  
           </div>
+          <br>
           <div class="modal-footer">
             <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark btn-sm">Save</button>
             <button id="showAddFilesButton" align="center" type="button" onclick="showAddFilesForm();" class="btn btn-secondary btn-sm">Add Attachements</button>
-            <p align="center">
+            <div align="center">
               <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success btn-sm">Mark Completed!</button>
               <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success btn-sm d-none" disabled>Completed!</button>
-            </p>
+            </div>
             <button id="deleteTodoButton" align="center" type="button" ng-click="deleteTodoClicked(descriptionTodo.todoID, descriptionTodo.title)" class="btn btn-danger btn-sm">Delete</button>
          </div>
         </div>
