@@ -87,7 +87,8 @@
                   </div>
                 </div>
               </div>
-            <br>
+            </div>
+            <p><br></p>
             <div class="col-sm-4 d-none" id="addFilesForm">
               <div class="input-group input-group upload-form">
                   <div class="input-group-prepend">
@@ -98,13 +99,12 @@
                       <label class="custom-file-label" for="fileinput" id="fileName">Choose File</label>
                   </div>
               </div>
-            </div>
-            </div>  
+            </div> 
           </div>
           <br>
           <div class="modal-footer">
             <button id="saveNotesButton" align="center" type="button" ng-click="saveNotesClicked(descriptionTodo.todoID)" class="btn btn-dark btn-sm">Save</button>
-            <button id="showAddFilesButton" align="center" type="button" onclick="showAddFilesForm();" class="btn btn-secondary btn-sm">Add Attachements</button>
+            <button id="showAddFilesButton" align="center" type="button" onclick="showAddFilesForm();" class="btn btn-secondary btn-sm">New <img src="img/file.png" title="attachments" id="attachments-img"/></button>
             <div align="center">
               <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success btn-sm">Mark Completed!</button>
               <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success btn-sm d-none" disabled>Completed!</button>

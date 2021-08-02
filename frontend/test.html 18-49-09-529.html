@@ -27,6 +27,17 @@
                 </div>
             </div>
         </div>
+        <div class="col-sm-4 d-none" id="addFilesForm">
+            <div class="input-group input-group upload-form">
+                <div class="input-group-prepend">
+                    <span type="button" class="btn btn-custom" id="uploadButton" ng-click="uploadFileClicked(descriptionTodo.todoID)">Upload</span>
+                </div>
+                <div class="custom-file">
+                    <input type="file" class="form-control-file input-group" id="fileinput" aria-describedby="fileinput" onChange="addFileName();">
+                    <label class="custom-file-label" for="fileinput" id="fileName">Choose File</label>
+                </div>
+            </div>
+          </div>
         <div class="col-md-12" id="addFilesForm">
             <div class="input-group upload-form">
                 <div class="input-group-prepend">
@@ -38,6 +49,8 @@
                 </div>
             </div>
           </div>
+        </div>  
+    </div>
           <br>
         <div class="row">
             <div class="col border border-primary">
