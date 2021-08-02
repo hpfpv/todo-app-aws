@@ -32,6 +32,7 @@ The image above should describe the app basic functionalities.
 
 ### Application Components
 Now that we have a basic functional understanding of the app, let's see how all of these functionalities translate to different technical components. Below image should provide a good overview of each layer of the app and the technical components involved in each layer.
+
 ![app-components.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1627943517673/XSNN_3bOs.png)
 
 Let's go through each component.
