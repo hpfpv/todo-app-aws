@@ -21,14 +21,17 @@
    
     <!-- Search, New todo and Sign out buttons -->
     <div class="container">
-      <div class='btn-toolbar float-right'>
+      <div>
+        <div class='btn-toolbar float-left'>
           <input type="text" id="searchTodosFilter" placeholder="Search todo.." name="searchTodo">
           <button type="submit" id="searchTodosButton" ng-controller="todosListController" ng-click="searchTodosClicked()" class="btn btn-outline-light btn-sm"><img src="img/search.png" title="search" id="search-img"/></button>
-          &nbsp;
-          <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
-          &nbsp;
-          <button type="button" id="signOutButton" class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button>
-          <button type="button" id="signInButton" class="btn btn-sm btn-nav d-none" onclick="logOut();">Sign in</button>
+        </div>
+        <div class='btn-toolbar float-right'>
+            <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
+            &nbsp;
+            <button type="button" id="signOutButton" class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button>
+            <button type="button" id="signInButton" class="btn btn-sm btn-nav d-none" onclick="logOut();">Sign in</button>
+        </div>
       </div>
   </div>
     <br> 
