@@ -18,7 +18,10 @@
             <b id="brand-title"></b>
         </a>
     </div>
-   
+    <p>
+      <br>
+      <br>
+    </p>
     <!-- Search, New todo and Sign out buttons -->
     <div class="container">
       <div class='btn-toolbar float-left'>
@@ -224,7 +227,7 @@
         }
 
         $scope.showAllTodosClicked = function(){
-          document.getElementById('searchTodosFilter').innerHTML = "";
+          $("#searchTodosFilter").replaceWith($("#searchTodosFilter").val('').clone(true));
           getTodos(applyGridScope);
         }
     });
