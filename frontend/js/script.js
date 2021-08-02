@@ -328,6 +328,38 @@ function getTodos(callback) {
     }
 }
 
+function getSearchedTodos(filter, callback) {
+    try{
+        var userID = localStorage.getItem('userID');
+        var todoApi = todoApiEndpoint + userID +'/todos?search=' + filter;
+
+        var sessionTokensString = localStorage.getItem('sessionTokens');
+        var sessionTokens = JSON.parse(sessionTokensString);
+        var IdToken = sessionTokens.IdToken;
+        var idJwt = IdToken.jwtToken;
+
+        $.ajax({
+        url : todoApi,
+        type : 'GET',
+        headers : {'Authorization' : idJwt },
+        success : function(response) {
+            console.log("successfully loaded todos for " + userID);
+            callback(response.todos);
+        },
+        error : function(response) {
+            console.log("could not retrieve todos list.");
+            if (response.status == "401") {
+            refreshAWSCredentials();
+            }
+        }
+        });
+    }catch(err) {
+        alert("You need to be signed in. Redirecting you to the sign in page!");
+        loggedOutDisplay();
+        console.log(err.message);
+    }
+}
+
 function getTodo(todoID, callback) {
     var userID = localStorage.getItem('userID');
     var todoApi = todoApiEndpoint + userID +'/todos/' + todoID;

@@ -12,6 +12,18 @@
 <body id="body" style="visibility:visible" ng-app="todosApp">
 
     <div class="container">
+        <div class='btn-toolbar float-right'>
+            <input type="text" id="searchTodosFilter" placeholder="Search todo.." name="searchTodo">
+            <button type="submit" id="searchTodosButton" class="btn btn-outline-light btn-sm"><img src="img/search.png" title="search" id="search-img"/></button>
+            &nbsp;
+            <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
+            &nbsp;
+            <button type="button" id="signOutButton" class="btn btn-dark btn-nav" onclick="logOut();">Sign out</button>
+            <button type="button" id="signInButton" class="btn btn-sm btn-nav d-none" onclick="logOut();">Sign in</button>
+        </div>
+    </div>
+    
+    <div class="container">
         <div class="row align-items-start">
             <div class="col-auto ">
                 <div>
@@ -64,7 +76,7 @@
         </div>
     </div>
 
-    script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
@@ -75,7 +87,8 @@
     <script src="js/amazon-cognito-identity.min.js"></script>
     <script src="js/script.js"></script>
     <!--New scripts for extra small button-->
-    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <!--New scripts for search-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </body>
