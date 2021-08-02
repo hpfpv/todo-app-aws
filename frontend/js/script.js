@@ -130,7 +130,7 @@ function register() {
     };
 }
 
-function confirm() {
+function confirmRegister() {
     event.preventDefault();
 
     var confirmCode = document.getElementById('confirmCode').value;
