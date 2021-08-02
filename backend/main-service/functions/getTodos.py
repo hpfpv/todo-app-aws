@@ -72,7 +72,7 @@ def getTodos(userID):
 
 def getSearchedTodos(userID, filter):
     items = getTodos(userID)
-    data = json.loads(items)
+    data = items
     response = defaultdict(list)
     
     for item in data["todos"]:
