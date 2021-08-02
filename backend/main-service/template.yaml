@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: "Stack for todo-houessou-com"
+Description: "Stack for todo-houessou-com main service"
 
 Globals:
   Function:
@@ -25,6 +25,7 @@ Resources:
         AllowMethods:
           - GET
           - POST
+          - DELETE
         AllowOrigins:
           - https://todo.houessou.com
         AllowHeaders:
@@ -94,7 +95,41 @@ Resources:
               Action: 'dynamodb:*'
               Resource:
                 - !GetAtt 'TodoTable.Arn'
-            
+  
+  deleteTodo:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment: 
+        Variables:
+          TODO_TABLE: !Ref TodoTable 
+          TODOFILES_BUCKET: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucket"
+          TODOFILES_TABLE: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTable"
+      CodeUri: ./functions
+      Handler: deleteTodo.lambda_handler
+      Events:
+        deleteTodoApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MainHttpApi
+            Path: /{userID}/todos/{todoID}/delete
+            Method: DELETE
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: 
+                - 'dynamodb:*'
+                - 's3:PutObject'
+                - 's3:GetObject'
+                - 's3:DeleteObject'
+                - 's3:ListBucket'
+              Resource:
+                - !GetAtt 'TodoTable.Arn'
+                - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn'
+                - !Join [ '', [ !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn', '/index/*' ] ]
+                - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn'
+                - !Join ['', [!ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn', '/*']]
+
   addTodo:
     Type: AWS::Serverless::Function
     Properties:

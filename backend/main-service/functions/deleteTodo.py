@@ -2,45 +2,45 @@ import boto3
 import json
 import os
 import logging
-from collections import defaultdict
-from boto3.dynamodb.conditions import Key
 
 dynamo = boto3.client('dynamodb', region_name='us-east-1')
-s3 = boto3.client('s3')
+s3 = boto3.resource('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-bucket = os.environ['TODOFILES_BUCKET']
 
-def deleteTodosFileS3(key):
-    response = s3.delete_object(
-        Bucket=bucket,
-        Key=key,
-    )
-    logging.info(f"{key} deleted from S3")
-    return response
-   
-def deleteTodosFileDynamo(fileID):
+bucket = s3.Bucket(os.environ['TODOFILES_BUCKET'])
+
+def deleteTodo(todoID):
     response = dynamo.delete_item(
-        TableName=os.environ['TODOFILES_TABLE'],
+        TableName=os.environ['TODO_TABLE'],
         Key={
-            'fileID': {
-                'S': fileID
+            'todoID': {
+                'S': todoID
             }
         }
     )
-    logging.info(f"{fileID} deleted from DynamoDB")
+    logging.info(f"{todoID} deleted")
     return response
+
+def deleteTodoFilesS3(userID, todoID):
+    prefix = userID + "/" + todoID + "/"
+    for key in bucket.list(prefix=prefix):
+        key.delete()
+        logging.info(f"{key} deleted")
+    return (f"{todoID} files deleted from s3")
+
+def deleteTodoFilesDynamo(todoID):
+    "foobar"
+
 def lambda_handler(event, context):
     logger.info(event)
-    eventBody = json.loads(event["body"])
-    fileID = event["pathParameters"]["fileID"]
-    filePath = eventBody["filePath"]
-    fileKey = str(filePath).replace(f'https://{str(bucket)}.s3.amazonaws.com/', '').replace('%40','@')
     todoID = event["pathParameters"]["todoID"]
+    userID = event["pathParameters"]["userID"]
 
-    print(f"deleting file {fileID}")
-    deleteTodosFileS3(fileKey)
-    deleteTodosFileDynamo(fileID)
+    print(f"deleting todo {todoID}")
+    deleteTodoFilesS3(userID, todoID)
+    deleteTodoFilesDynamo(todoID)
+    deleteTodo(todoID)
 
     responseBody = {}
     responseBody["status"] = "success"

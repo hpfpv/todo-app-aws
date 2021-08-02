@@ -41,6 +41,13 @@ function updateModalText(descriptionTodo) {
     }
 }
 
+function confirmDeleteTodo(todoID, title) {
+    var response = confirm("You are about to delete todo " + title);
+    if (response == true) {
+        deleteTodo(todoID);
+    }
+}
+
 function markCompleted() {
     $("#completedButton").addClass("d-none");
     $("#alreadyCompletedButton").removeClass("d-none");
@@ -413,6 +420,32 @@ function completeTodo(todoID, callback) {
         alert("You must be logged in");
         console.log(err.message);
         }
+}
+
+function deleteTodo(todoID) {
+    var userID = localStorage.getItem('userID');
+    var todoApi = todoApiEndpoint + userID + '/todos/' + todoID + '/delete';
+
+    var sessionTokensString = localStorage.getItem('sessionTokens');
+    var sessionTokens = JSON.parse(sessionTokensString);
+    var IdToken = sessionTokens.IdToken;
+    var idJwt = IdToken.jwtToken;
+
+    $.ajax({
+    url : todoApi,
+    type : 'DELETE',
+    headers : {'Authorization' : idJwt },
+    success : function(response) {
+        console.log('deleted todo: ' + todoID);
+        location.reload();
+    },
+    error : function(response) {
+        console.log("could not delete todo.");
+        if (response.status == "401") {
+        refreshAWSCredentials();
+        }
+    }
+    });
 }
 
 function addTodoNotes(todoID, notes) {

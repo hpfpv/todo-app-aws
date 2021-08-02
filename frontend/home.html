@@ -107,6 +107,7 @@
               <button id="completedButton" align="center" type="button" ng-click="completedClicked(descriptionTodo.todoID)" class="btn btn-outline-success btn-sm">Mark Completed!</button>
               <button id="alreadyCompletedButton" align="center" type="button" class="btn btn-success btn-sm d-none" disabled>Completed!</button>
             </p>
+            <button id="deleteTodoButton" align="center" type="button" ng-click="deleteTodoClicked(descriptionTodo.todoID, descriptionTodo.title)" class="btn btn-danger btn-sm">Save</button>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
@@ -242,6 +243,10 @@
           //$('#descriptionModal').on('hidden.bs.modal', function(event) {
             //locatio.reload();
           //});
+        }
+
+        $scope.deleteTodoClicked = function(todoID, title){
+          confirmDeleteTodo(todoID, title);
         }
     });
 
