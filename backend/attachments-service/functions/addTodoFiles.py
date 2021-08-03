@@ -9,7 +9,7 @@ dynamo = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-bucketCDN = os.eviron['TODOFILES_BUCKET_CDN']
+bucketCDN = os.environ['TODOFILES_BUCKET_CDN']
 
 def lambda_handler(event, context):
     logger.info(event)
