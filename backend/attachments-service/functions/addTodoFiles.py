@@ -9,6 +9,8 @@ dynamo = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+bucketCDN = os.eviron['TODOFILES_BUCKET_CDN']
+
 def lambda_handler(event, context):
     logger.info(event)
     eventBody = json.loads(event["body"])
@@ -16,7 +18,7 @@ def lambda_handler(event, context):
     fileName = eventBody["fileName"]
     fileID = str(uuid.uuid4())
     filePath = eventBody["filePath"]
-    
+    filePathCDN = 'https://' + bucketCDN + '/' + filePath
     fileForDynamo = {}
     fileForDynamo["fileID"] =  {
         "S": fileID
@@ -28,7 +30,7 @@ def lambda_handler(event, context):
         "S": fileName
     }
     fileForDynamo["filePath"] =  {
-        "S": filePath
+        "S": filePathCDN
     }
 
     logger.info(fileForDynamo)

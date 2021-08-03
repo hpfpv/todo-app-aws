@@ -74,6 +74,7 @@ Resources:
         Variables:
           TODOFILES_TABLE: !Ref TodoFilesTable 
           TODOFILES_BUCKET: !Ref TodoFilesBucket
+          TODOFILES_BUCKET_CDN: !GetAtt 'TodoFilesBucketCF.DomainName' 
       CodeUri: ./functions
       Handler: addTodoFiles.lambda_handler
       Events:
@@ -103,6 +104,7 @@ Resources:
         Variables:
           TODOFILES_TABLE: !Ref TodoFilesTable 
           TODOFILES_BUCKET: !Ref TodoFilesBucket
+          TODOFILES_BUCKET_CDN: !GetAtt 'TodoFilesBucketCF.DomainName' 
       CodeUri: ./functions
       Handler: deleteTodoFile.lambda_handler
       Events:
@@ -175,7 +177,25 @@ Resources:
             AllowedOrigins:
               - 'https://todo.houessou.com'
             
-  
+  TodoFilesBucketCF:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Join ['', ['CDN for ', !Ref TodoFilesBucket] ]
+        Enabled: 'true'
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: 'true'
+          TargetOriginId: only-origin
+          ViewerProtocolPolicy: allow-all
+        Origins:
+        - CustomOriginConfig:
+            HTTPPort: '80'
+            HTTPSPort: '443'
+            OriginProtocolPolicy: http-only
+          DomainName: !Join ['', [!Ref 'TodoFilesBucket', '.s3-website-us-east-1.amazonaws.com'] ]
+          Id: only-origin
+
   TodoIdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
@@ -234,6 +254,10 @@ Outputs:
     Value: !Ref 'TodoFilesBucket' 
     Export:
       Name: !Sub "${AWS::StackName}-TodoFilesBucket"
+  TodoFilesBucketCFDomainName:
+    Value: !GetAtt 'TodoFilesBucketCF.DomainName' 
+    Export:
+      Name: !Sub "${AWS::StackName}-TodoFilesBucketCFDomainName"
   TodoFilesBucketArn:
     Value: !GetAtt 'TodoFilesBucket.Arn' 
     Export:

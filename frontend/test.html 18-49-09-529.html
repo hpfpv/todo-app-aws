@@ -14,7 +14,7 @@
     <div class="container">
         <div class='btn-toolbar float-right'>
             <input type="text" id="searchTodosFilter" placeholder="Search todo.." name="searchTodo">
-            <button type="submit" id="searchTodosButton" class="btn btn-outline-light btn-sm"><img src="img/search.png" title="search" id="search-img"/></button>
+            <button type="submit" id="searchTodosButton" ng-click="searchTodosClicked()" class="btn btn-outline-light btn-sm"><img src="img/search.png" title="search" id="search-img"/></button>
             &nbsp;
             <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
             &nbsp;

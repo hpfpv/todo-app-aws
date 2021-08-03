@@ -550,7 +550,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp, callback){
                     console.log(fileName + ' successfully uploaded for' + todoID);
                     var fileObj = {
                         'fileName': fileName,
-                        'filePath': fileUrl
+                        'filePath': filePath
                     }
                     $.ajax({
                         url : todoFilesApi,

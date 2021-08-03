@@ -10,6 +10,7 @@ s3 = boto3.client('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 bucket = os.environ['TODOFILES_BUCKET']
+bucketCDN = os.eviron['TODOFILES_BUCKET_CDN']
 
 def deleteTodosFileS3(key):
     response = s3.delete_object(
@@ -35,7 +36,7 @@ def lambda_handler(event, context):
     eventBody = json.loads(event["body"])
     fileID = event["pathParameters"]["fileID"]
     filePath = eventBody["filePath"]
-    fileKey = str(filePath).replace(f'https://{str(bucket)}.s3.amazonaws.com/', '').replace('%40','@')
+    fileKey = str(filePath).replace(f'https://{bucketCDN}/', '').replace('%40','@')
     todoID = event["pathParameters"]["todoID"]
 
     print(f"deleting file {fileID}")
