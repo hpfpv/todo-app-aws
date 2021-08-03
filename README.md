@@ -1,7 +1,7 @@
 # Sample todo app on AWS
 
-Hi guys! In this post, we'll be building a sample todo app on AWS with Python. We will build a website called  [todo.houessou.com](https://todo.houessou.com) that enables logged in visitors to create their todo list. We will use the AWS Serverless Application Model SAM Framework to deploy the backend services - API, Lambda, DynamoDB and Cognito) and will host the frontend on S3 behind a CloudFront distribution.
-The frontend is basic with no fancy visuals (I am no frontend dev :p). Here we will focus on how the resources are created and deployed on AWS.
+Hi guys! In this post, we'll be building a sample todo app on AWS with Python. We will build a web application which enables logged in visitors to manage their todo list. We will use the AWS Serverless Application Model SAM Framework to deploy the backend services - API, Lambda, DynamoDB and Cognito) and will host the frontend on S3 behind a CloudFront distribution.
+The frontend is pretty basic with no fancy visuals (I am no frontend dev :p). We will try to focus on how the resources are created and deployed on AWS.
 
 ## Overview
 
@@ -37,7 +37,7 @@ The image above should describe the app basic functionalities.
 ### Application Components
 Now that we have a basic functional understanding of the app, let's see how all of these functionalities translate to different technical components. Below image should provide a good overview of each layer of the app and the technical components involved in each layer.
 
-![app-components.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628001112680/CpSfi3KDr.png)
+![app-components.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628029934959/IyhZavjq0.png)
 
 Let's go through each component:
 
@@ -66,7 +66,7 @@ Let's go through each component:
 
 Now that we have some information about the various components and services involved in the app, let's move on to how to place and connect these various components to get the final working application. 
 
-![architecture.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628010813423/JFVv68JOy.png)
+![architecture.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628029946699/pOk-oRHg4.png)
 
 ### Frontend
 
@@ -154,3 +154,8 @@ The components below are used as part of the deployment pipeline:
 **FrontEnd**
 
 **Backend**
+
+## Takeaways
+
+Hopefully, I was able to describe in detail about the system architecture which I would use for a basic todo-list management app. This application is designed solely for training purposes and there is a lot of room for improvement. I will continue working on making the deployment more secure, HA and fault tolerant. 
+This post should give you a good idea about how to design a basic full stack and fully serverless architecture for an app using the microservices patter. 
