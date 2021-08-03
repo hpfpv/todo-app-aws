@@ -10,7 +10,7 @@ s3 = boto3.client('s3')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 bucket = os.environ['TODOFILES_BUCKET']
-bucketCDN = os.eviron['TODOFILES_BUCKET_CDN']
+bucketCDN = os.environ['TODOFILES_BUCKET_CDN']
 
 def deleteTodosFileS3(key):
     response = s3.delete_object(
