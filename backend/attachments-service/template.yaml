@@ -176,7 +176,27 @@ Resources:
               - HEAD
             AllowedOrigins:
               - 'https://todo.houessou.com'
-            
+  
+  TodoFilesBucketOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties: 
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Join ['', ['OAI ', !Ref TodoFilesBucket] ]
+
+  TodoFilesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TodoFilesBucket
+      PolicyDocument:  
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join ['', [!GetAtt 'TodoFilesBucket.Arn', '/*']]
+            Principal: 
+              - CanonicalUser: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${TodoFilesBucketOAI}'
+
   TodoFilesBucketCF:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -184,17 +204,21 @@ Resources:
         Comment: !Join ['', ['CDN for ', !Ref TodoFilesBucket] ]
         Enabled: 'true'
         DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - DELETE
           ForwardedValues:
-            QueryString: 'true'
-          TargetOriginId: only-origin
-          ViewerProtocolPolicy: allow-all
+            QueryString: 'false'
+          TargetOriginId: !Join ['', [!Ref 'TodoFilesBucket', '.s3.us-east-1.amazonaws.com'] ]
+          ViewerProtocolPolicy: redirect-to-https
         Origins:
-        - CustomOriginConfig:
-            HTTPPort: '80'
-            HTTPSPort: '443'
-            OriginProtocolPolicy: http-only
-          DomainName: !Join ['', [!Ref 'TodoFilesBucket', '.s3-website-us-east-1.amazonaws.com'] ]
-          Id: only-origin
+          - S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${TodoFilesBucketOAI}'
+            DomainName: !Join ['', [!Ref 'TodoFilesBucket', '.s3.us-east-1.amazonaws.com'] ]
+            Id: !Join ['', [!Ref 'TodoFilesBucket', '.s3.us-east-1.amazonaws.com'] ]
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
 
   TodoIdentityPool:
     Type: AWS::Cognito::IdentityPool

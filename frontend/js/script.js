@@ -529,8 +529,9 @@ function uploadTodoFileS3(todoID, bucket, filesToUp, callback){
         //var fileObj = new FormData();
         var file = filesToUp[0];
         var fileName = file.name;
-        var filePath = userID + '/' + todoID + '/' + fileName;
-        var fileUrl = 'https://' + bucketName + '.s3.amazonaws.com/' +  filePath;
+        //var filePath = userID + '/' + todoID + '/' + fileName;
+        //var fileUrl = 'https://' + bucketName + '.s3.amazonaws.com/' +  filePath;
+        var fileKey = userID + '/' + todoID + '/' + fileName;
         var sizeInKB = file.size/1024;
         console.log('uploading a file of ' +  sizeInKB)
         if (sizeInKB > 2048) {
@@ -550,7 +551,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp, callback){
                     console.log(fileName + ' successfully uploaded for ' + todoID);
                     var fileObj = {
                         'fileName': fileName,
-                        'filePath': filePath
+                        'filePath': fileKey
                     }
                     $.ajax({
                         url : todoFilesApi,
