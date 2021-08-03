@@ -9,6 +9,7 @@ dynamo = boto3.client('dynamodb', region_name='us-east-1')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+bucket = os.environ['TODOFILES_BUCKET_CDN']
 bucketCDN = os.environ['TODOFILES_BUCKET_CDN']
 
 def lambda_handler(event, context):
@@ -18,6 +19,7 @@ def lambda_handler(event, context):
     fileName = eventBody["fileName"]
     fileID = str(uuid.uuid4())
     filePath = eventBody["filePath"]
+    fileKey = str(filePath).replace(f'https://{bucket}/.s3.amazonaws.com/','')
     filePathCDN = 'https://' + bucketCDN + '/' + filePath
     fileForDynamo = {}
     fileForDynamo["fileID"] =  {

@@ -547,7 +547,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp, callback){
                     console.log(err, err.stack);
                     alert("Failed to upload file " + fileName);
                 } else {
-                    console.log(fileName + ' successfully uploaded for' + todoID);
+                    console.log(fileName + ' successfully uploaded for ' + todoID);
                     var fileObj = {
                         'fileName': fileName,
                         'filePath': filePath
