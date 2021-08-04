@@ -205,9 +205,11 @@ Resources:
         Enabled: 'true'
         DefaultCacheBehavior:
           AllowedMethods:
-            - GET
             - HEAD
             - DELETE
+            - POST
+            - GET
+            - PUT
           ForwardedValues:
             QueryString: 'false'
           TargetOriginId: !Join ['', [!Ref 'TodoFilesBucket', '.s3.us-east-1.amazonaws.com'] ]
