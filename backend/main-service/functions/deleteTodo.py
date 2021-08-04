@@ -84,6 +84,7 @@ def deleteTodoFilesDynamo(todoID):
             logging.info(f"{fileID} deleted")
         return (f"{todoID} files deleted from dynamoDB")
     else:
+        logging.info(f"{todoID}: no files to delete")
         return (f"{todoID}: no files to delete")
 
 
