@@ -70,18 +70,21 @@ def deleteTodoFilesS3(userID, todoID):
 def deleteTodoFilesDynamo(todoID):
     data = json.loads(getTodosFiles(todoID))
     files = data["files"]
-    for file in files:
-        fileID = file["fileID"]
-        dynamo.delete_item(
-            TableName=os.environ['TODOFILES_TABLE'],
-            Key={
-                'fileID': {
-                    'S': fileID
+    if files :
+        for file in files:
+            fileID = file["fileID"]
+            dynamo.delete_item(
+                TableName=os.environ['TODOFILES_TABLE'],
+                Key={
+                    'fileID': {
+                        'S': fileID
+                    }
                 }
-            }
-        )
-        logging.info(f"{fileID} deleted")
-    return (f"{todoID} files deleted from dynamoDB")
+            )
+            logging.info(f"{fileID} deleted")
+        return (f"{todoID} files deleted from dynamoDB")
+    else:
+        return (f"{todoID}: no files to delete")
 
 
 def lambda_handler(event, context):
