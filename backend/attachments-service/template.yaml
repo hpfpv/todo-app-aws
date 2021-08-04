@@ -209,7 +209,9 @@ Resources:
             - DELETE
             - POST
             - GET
+            - OPTION
             - PUT
+            - PATCH
           ForwardedValues:
             QueryString: 'false'
           TargetOriginId: !Join ['', [!Ref 'TodoFilesBucket', '.s3.us-east-1.amazonaws.com'] ]
