@@ -37,7 +37,7 @@ The image above should describe the app basic functionalities.
 ### Application Components
 Now that we have a basic functional understanding of the app, let's see how all of these functionalities translate to different technical components. Below image should provide a good overview of each layer of the app and the technical components involved in each layer.
 
-![app-components.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628029934959/IyhZavjq0.png)
+![app-components.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628077958693/0vhPB3Gjx.png)
 
 Let's go through each component:
 
@@ -132,7 +132,7 @@ To keep things simple, each document in DynamoDB will represent one todo with at
 - fileID : *unique number identifying file, will serve as primary key*
 - todoID : *ID of belonging todo item, will serve as sort key*
 - fileName : *name of the uploaded file*
-- filePath : *S3 URL of the uploaded file for downloads*
+- filePath : *URL of the uploaded file for downloads*
 
 ### File Storage
 
@@ -153,7 +153,12 @@ The components below are used as part of the deployment pipeline:
 
 **FrontEnd**
 
+![frontend-pipeline.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628077668965/DMv5htTiG.png)
+
 **Backend**
+
+![backend-pipeline.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1628077651575/cMRfCM8MB.png)
+
 
 ## Takeaways
 
