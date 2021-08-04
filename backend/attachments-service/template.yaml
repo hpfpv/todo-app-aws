@@ -188,14 +188,14 @@ Resources:
     Properties:
       Bucket: !Ref TodoFilesBucket
       PolicyDocument:  
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
-          - Action:
+          - Effect: Allow
+            Action:
               - 's3:GetObject'
-            Effect: Allow
-            Resource: !Join ['', [!GetAtt 'TodoFilesBucket.Arn', '/*']]
+            Resource: !Join ['', [!GetAtt 'TodoFilesBucket.Arn', '/*'] ]
             Principal: 
-              - CanonicalUser: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${TodoFilesBucketOAI}'
+              AWS: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${TodoFilesBucketOAI}'
 
   TodoFilesBucketCF:
     Type: AWS::CloudFront::Distribution
