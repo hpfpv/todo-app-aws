@@ -69,8 +69,8 @@ def deleteTodoFilesS3(userID, todoID):
 
 def deleteTodoFilesDynamo(todoID):
     data = json.loads(getTodosFiles(todoID))
-    files = data["files"]
-    if files :
+    if data :
+        files = data["files"]
         for file in files:
             fileID = file["fileID"]
             dynamo.delete_item(
