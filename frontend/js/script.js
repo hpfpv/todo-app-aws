@@ -282,6 +282,7 @@ function refreshAWSCredentials() {
                             RefreshToken: result.getRefreshToken()
                         };
                         localStorage.setItem("sessionTokens", JSON.stringify(sessionTokens));
+                        location.reload();
                         
                     }
                 });
