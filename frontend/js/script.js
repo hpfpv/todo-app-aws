@@ -539,7 +539,7 @@ function uploadTodoFileS3(todoID, bucket, filesToUp, callback){
         }
         else{
             var params = {
-                Key: filePath,
+                Key: fileKey,
                 Body: file,
                 ACL: 'public-read'
             };
