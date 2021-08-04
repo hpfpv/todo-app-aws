@@ -209,7 +209,7 @@ Resources:
             - DELETE
             - POST
             - GET
-            - OPTION
+            - OPTIONS
             - PUT
             - PATCH
           ForwardedValues:
