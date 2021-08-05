@@ -271,6 +271,7 @@ function refreshAWSCredentials() {
                         console.log('Refresh AWS credentials failed ');
                         alert("You need to log back in");
                         checkLogin(false, true);
+
                     }
                     else{
                         console.log('Logged in user');
@@ -287,7 +288,7 @@ function refreshAWSCredentials() {
                     }
                 });
             }
-            location.reload();
+            
         });
     }
 }
