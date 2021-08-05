@@ -270,8 +270,7 @@ function refreshAWSCredentials() {
                     if (err) {//throw err;
                         console.log('Refresh AWS credentials failed ');
                         alert("You need to log back in");
-                        checkLogin(false, true);
-
+                        window.location = './index.html'
                     }
                     else{
                         console.log('Logged in user');
