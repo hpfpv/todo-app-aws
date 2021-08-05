@@ -227,25 +227,29 @@ function checkLogin(redirectOnRec, redirectOnUnrec){
     var identityPoolId = localStorage.getItem('identityPoolId');
     var loginPrefix = localStorage.getItem('loginPrefix');
 
-    var poolData = {
-    UserPoolId : userPoolId, // Your user pool id here
-    ClientId : clientId // Your client id here
-    };
-    var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-    var cognitoUser = userPool.getCurrentUser();
+    if (userPoolId != null & clientId != null){
+        var poolData = {
+        UserPoolId : userPoolId, // Your user pool id here
+        ClientId : clientId // Your client id here
+        };
+        var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+        var cognitoUser = userPool.getCurrentUser();
 
-    if (cognitoUser != null) {
-        console.log("user exist");
-        if (redirectOnRec) {
-            window.location = './home.html';
-            loggedInDisplay();
+        if (cognitoUser != null) {
+            console.log("user exist");
+            if (redirectOnRec) {
+                window.location = './home.html';
+                loggedInDisplay();
+            } else {
+                $("#body").css({'visibility':'visible'});           
+            }
         } else {
-            $("#body").css({'visibility':'visible'});           
+            if (redirectOnUnrec) {
+                window.location = './index.html';
+            } 
         }
-    } else {
-        if (redirectOnUnrec) {
-            window.location = './index.html'
-        } 
+    } else{
+        window.location = './index.html';
     }
 }
 
@@ -270,7 +274,7 @@ function refreshAWSCredentials() {
                     if (err) {//throw err;
                         console.log('Refresh AWS credentials failed ');
                         alert("You need to log back in");
-                        window.location = './index.html'
+                        window.location = './index.html';
                     }
                     else{
                         console.log('Logged in user');
