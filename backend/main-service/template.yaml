@@ -12,8 +12,8 @@ Resources:
     DependsOn: TodoUserPool
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       StageName: dev
       Auth:
         Authorizers:
@@ -39,8 +39,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -66,8 +66,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -92,8 +92,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -129,8 +129,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -155,8 +155,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -181,8 +181,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -208,8 +208,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       UserPoolName: !Sub 'UserPool-${AWS::StackName}'
       UsernameAttributes:
         - email
@@ -249,8 +249,8 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
       Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       UserPoolId: !Ref TodoUserPool
       Domain: auth-todo-houessou-com
   
