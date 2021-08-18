@@ -12,10 +12,8 @@ Resources:
     DependsOn: TodoUserPool
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       StageName: dev
       Auth:
         Authorizers:
@@ -40,10 +38,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -63,10 +59,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -92,10 +86,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -120,10 +112,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -159,10 +149,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -187,10 +175,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -215,10 +201,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -244,10 +228,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       UserPoolName: !Sub 'UserPool-${AWS::StackName}'
       UsernameAttributes:
         - email
@@ -287,10 +269,8 @@ Resources:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       UserPoolId: !Ref TodoUserPool
       Domain: auth-todo-houessou-com
   
@@ -299,10 +279,8 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       Tags:
-        - Key: "resource-group"
-          Value: "todo-houessou-com"
-        - Key: "resource-group-child"
-          Value: "todo-houessou-com-main-service"
+        resource-group: todo-houessou-com
+        resource-group-child: todo-houessou-com-main-service
       TableName: !Sub 'TodoTable-${AWS::StackName}'
       BillingMode: PROVISIONED
       ProvisionedThroughput:
