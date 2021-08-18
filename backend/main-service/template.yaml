@@ -13,7 +13,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       StageName: dev
       Auth:
         Authorizers:
@@ -39,7 +39,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -60,7 +60,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -87,7 +87,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -113,7 +113,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -150,7 +150,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -176,7 +176,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -202,7 +202,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -229,7 +229,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       UserPoolName: !Sub 'UserPool-${AWS::StackName}'
       UsernameAttributes:
         - email
@@ -241,7 +241,7 @@ Resources:
       Properties:
         Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
         ClientName: !Sub 'UserPoolClient-${AWS::StackName}'
         AllowedOAuthFlows:
           - implicit
@@ -268,7 +268,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       UserPoolId: !Ref TodoUserPool
       Domain: auth-todo-houessou-com
   
@@ -278,7 +278,7 @@ Resources:
     Properties:
       Tags:
         - resource-group: todo-houessou-com
-        - resource-group: todo-houessou-com-main-service
+        - resource-group-child: todo-houessou-com-main-service
       TableName: !Sub 'TodoTable-${AWS::StackName}'
       BillingMode: PROVISIONED
       ProvisionedThroughput:
