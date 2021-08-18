@@ -11,6 +11,9 @@ Resources:
     Type: AWS::Serverless::HttpApi
     DependsOn: TodoUserPool
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       StageName: dev
       Auth:
         Authorizers:
@@ -34,6 +37,9 @@ Resources:
   home:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -52,6 +58,9 @@ Resources:
   getTodos:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -76,6 +85,9 @@ Resources:
   getTodo:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -99,6 +111,9 @@ Resources:
   deleteTodo:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -133,6 +148,9 @@ Resources:
   addTodo:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -156,6 +174,9 @@ Resources:
   completeTodo:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -179,6 +200,9 @@ Resources:
   addTodoNotes:
     Type: AWS::Serverless::Function
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -203,6 +227,9 @@ Resources:
   TodoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       UserPoolName: !Sub 'UserPool-${AWS::StackName}'
       UsernameAttributes:
         - email
@@ -212,6 +239,9 @@ Resources:
   TodoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
+        Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
         ClientName: !Sub 'UserPoolClient-${AWS::StackName}'
         AllowedOAuthFlows:
           - implicit
@@ -236,6 +266,9 @@ Resources:
   TodoUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       UserPoolId: !Ref TodoUserPool
       Domain: auth-todo-houessou-com
   
@@ -243,6 +276,9 @@ Resources:
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      Tags:
+        - resource-group: todo-houessou-com
+        - resource-group: todo-houessou-com-main-service
       TableName: !Sub 'TodoTable-${AWS::StackName}'
       BillingMode: PROVISIONED
       ProvisionedThroughput:
