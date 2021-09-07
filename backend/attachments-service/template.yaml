@@ -181,7 +181,7 @@ Resources:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties: 
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Join ['', ['OAI ', !Ref TodoFilesBucket] ]
+        Comment: !Join ['', ['access-identity-', !Ref TodoFilesBucket, '.s3.amazonaws.com'] ]
 
   TodoFilesBucketPolicy:
     Type: AWS::S3::BucketPolicy
