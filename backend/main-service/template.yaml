@@ -11,9 +11,9 @@ Resources:
     Type: AWS::Serverless::HttpApi
     DependsOn: TodoUserPool
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       StageName: dev
       Auth:
         Authorizers:
@@ -38,9 +38,9 @@ Resources:
   getTodos:
     Type: AWS::Serverless::Function
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -65,9 +65,9 @@ Resources:
   getTodo:
     Type: AWS::Serverless::Function
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -91,14 +91,14 @@ Resources:
   deleteTodo:
     Type: AWS::Serverless::Function
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
-          TODOFILES_BUCKET: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucket"
-          TODOFILES_TABLE: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTable"
+          # TODOFILES_BUCKET: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucket"
+          # TODOFILES_TABLE: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTable"
       CodeUri: ./functions
       Handler: deleteTodo.lambda_handler
       Events:
@@ -120,17 +120,17 @@ Resources:
                 - 's3:ListBucket'
               Resource:
                 - !GetAtt 'TodoTable.Arn'
-                - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn'
-                - !Join [ '', [ !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn', '/index/*' ] ]
-                - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn'
-                - !Join ['', [!ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn', '/*']]
+                # - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn'
+                # - !Join [ '', [ !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn', '/index/*' ] ]
+                # - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn'
+                # - !Join ['', [!ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn', '/*']]
 
   addTodo:
     Type: AWS::Serverless::Function
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -154,9 +154,9 @@ Resources:
   completeTodo:
     Type: AWS::Serverless::Function
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -180,9 +180,9 @@ Resources:
   addTodoNotes:
     Type: AWS::Serverless::Function
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
@@ -207,9 +207,9 @@ Resources:
   TodoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       UserPoolName: !Sub 'UserPool-${AWS::StackName}'
       UsernameAttributes:
         - email
@@ -248,9 +248,9 @@ Resources:
   TodoUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain 
     Properties:
-      Tags:
-        resource-group: todo-houessou-com
-        resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   resource-group: todo-houessou-com
+      #   resource-group-child: todo-houessou-com-main-service
       UserPoolId: !Ref TodoUserPool
       Domain: auth-todo-houessou-com
   
