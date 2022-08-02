@@ -85,8 +85,8 @@ Resources:
       Environment: 
         Variables:
           TODO_TABLE: !Ref TodoTable 
-          # TODOFILES_BUCKET: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucket"
-          # TODOFILES_TABLE: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTable"
+          TODOFILES_BUCKET: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucket"
+          TODOFILES_TABLE: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTable"
       CodeUri: ./functions
       Handler: deleteTodo.lambda_handler
       Events:
@@ -108,10 +108,10 @@ Resources:
                 - 's3:ListBucket'
               Resource:
                 - !GetAtt 'TodoTable.Arn'
-                # - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn'
-                # - !Join [ '', [ !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn', '/index/*' ] ]
-                # - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn'
-                # - !Join ['', [!ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn', '/*']]
+                - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn'
+                - !Join [ '', [ !ImportValue 'todo-houessou-com-attachments-service-TodoFilesTableArn', '/index/*' ] ]
+                - !ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn'
+                - !Join ['', [!ImportValue 'todo-houessou-com-attachments-service-TodoFilesBucketArn', '/*']]
 
   addTodo:
     Type: AWS::Serverless::Function
