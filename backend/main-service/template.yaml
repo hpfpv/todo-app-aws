@@ -258,9 +258,9 @@ Resources:
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      Tags:
-        - resource-group: todo-houessou-com
-        - resource-group-child: todo-houessou-com-main-service
+      # Tags:
+      #   - resource-group: todo-houessou-com
+      #   - resource-group-child: todo-houessou-com-main-service
       TableName: !Sub 'TodoTable-${AWS::StackName}'
       BillingMode: PROVISIONED
       ProvisionedThroughput:
