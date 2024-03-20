@@ -763,6 +763,7 @@ function sendMessage() {
           human: message
         };
         websocket.send(JSON.stringify(payload));
+        console.log("invoking bedrock agent with payload: " + JSON.stringify(payload));
       };
   
       websocket.onmessage = function(event) {
