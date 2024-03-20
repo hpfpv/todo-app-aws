@@ -149,3 +149,91 @@ p {
         margin-top: 15px;
     }
 }
+
+.chat-tab {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 60px; /* Adjust if necessary to match your design */
+    height: 60px; /* Adjust if necessary to match your design */
+    border-radius: 50%; /* This gives the circular shape */
+    overflow: hidden; /* Ensures no overflow outside the circular shape */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Optional: Adds a shadow for better visibility */
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #chatIcon {
+    width: 100%; /* Makes the image fill the container */
+    height: auto; /* Maintains the aspect ratio of the image */
+  }
+
+  .chat-container {
+    position: fixed;
+    bottom: 70px; /* Position above the chat-tab */
+    right: 10px;
+    width: 300px;
+    height: 400px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    display: none; /* Initially hide the chat */
+    flex-direction: column;
+  }
+
+  .messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .message {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+  }
+  
+  .message img {
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+
+  .message.user {
+    background-color: #007bff; /* Light gray background for user messages */
+    color: white; /* White text for readability */
+    border-radius: 10px;
+    padding: 5px 10px;
+    margin: 5px;
+    max-width: 80%;
+    align-self: flex-end; /* Align user messages to the right */
+  }
+
+  .message.bot {
+    background-color:#f1f1f1 ; /* Blue background for bot messages */
+    color: black; /* Black text for readability */
+    border-radius: 10px;
+    padding: 5px 10px;
+    margin: 5px;
+    max-width: 80%;
+    align-self: flex-start; /* Align bot messages to the left */
+  }
+
+  .chat-input {
+    display: flex;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    margin: 5px;
+  }
+
+  button {
+    padding: 10px;
+    border: none;
+    margin: 5px;
+  }
