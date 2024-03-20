@@ -1,6 +1,6 @@
 var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/dev/';
 var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/';
-const websocket = new WebSocket('wss://bum4o4rx48.execute-api.us-east-1.amazonaws.com/production/');
+// const websocket = new WebSocket('wss://bum4o4rx48.execute-api.us-east-1.amazonaws.com/production/');
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
 var cognitoIdentityPoolId = 'us-east-1:1d4efcf7-f995-4331-bd94-c3ed6111f246';
@@ -754,16 +754,16 @@ function sendMessage() {
       const IdToken = sessionTokens.IdToken;
       const idJwt = IdToken.jwtToken;
   
-    //   const websocket = new WebSocket('wss://bum4o4rx48.execute-api.us-east-1.amazonaws.com/production/');
-      
+      const websocket = new WebSocket('wss://bum4o4rx48.execute-api.us-east-1.amazonaws.com/production/');
+      const payload = {
+        action: 'invokeBedrockAgent',
+        userID: userID,
+        human: message
+      };
+      console.log("invoking bedrock agent with payload: " + payload);
+
       websocket.onopen = function() {
-        const payload = {
-          action: 'invokeBedrockAgent',
-          userID: userID,
-          human: message
-        };
         websocket.send(JSON.stringify(payload));
-        console.log("invoking bedrock agent with payload: " + JSON.stringify(payload));
       };
   
       websocket.onmessage = function(event) {
