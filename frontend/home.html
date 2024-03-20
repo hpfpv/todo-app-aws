@@ -22,6 +22,19 @@
       <br>
       <br>
     </p>
+
+    <!-- chatbot -->
+    <div class="chat-tab">
+      <img src="img/bot-icon.gif" alt="Chat with us!" style="width: 100%; height: 100%;">
+    </div>
+    <div class="chat-container">
+      <div class="messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
     <!-- Search, New todo and Sign out buttons -->
     <div class="container">
       <div class='btn-toolbar float-left'>
@@ -171,6 +184,7 @@
     <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <!-- <script src="./chatbot.js"></script> -->
 
     <p>
         <br>
@@ -180,7 +194,7 @@
 </body>
 <script>
  
-    checkLogin(false, true);
+    //checkLogin(false, true);
 
     var app = angular.module('todosApp', []);
     var gridScope;
