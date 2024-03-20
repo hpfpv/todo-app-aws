@@ -1,5 +1,6 @@
 var todoApiEndpoint = 'https://j3cv37qhud.execute-api.us-east-1.amazonaws.com/dev/';
 var todoFilesApiEndpoint = 'https://4oumdscha7.execute-api.us-east-1.amazonaws.com/dev/';
+const websocket = new WebSocket('wss://bum4o4rx48.execute-api.us-east-1.amazonaws.com/production/');
 var cognitoUserPoolId = 'us-east-1_fM3BzKm1u';
 var cognitoUserPoolClientId = '4ajb6clml9vft00cof689o6c0p';
 var cognitoIdentityPoolId = 'us-east-1:1d4efcf7-f995-4331-bd94-c3ed6111f246';
@@ -409,21 +410,21 @@ function addTodo(dateDue, title, description){
     }
 
     $.ajax({
-    url : todoApi,
-    type : 'POST',
-    headers : {'Content-Type': 'application/json', 'Authorization' : idJwt},
-    dataType: 'json',
-    data : JSON.stringify(todo),
-    success : function(response) {
-        console.log("todo added!")
-        window.location.reload();
-    },
-    error : function(response) {
-        console.log("could not add todo");
-        alert("Could not add todo (x_x)");
-        console.log(response);
+        url : todoApi,
+        type : 'POST',
+        headers : {'Content-Type': 'application/json', 'Authorization' : idJwt},
+        dataType: 'json',
+        data : JSON.stringify(todo),
+        success : function(response) {
+            console.log("todo added!")
+            window.location.reload();
+        },
+        error : function(response) {
+            console.log("could not add todo");
+            alert("Could not add todo (x_x)");
+            console.log(response);
 
-    }
+        }
     });
 }
 
@@ -671,3 +672,118 @@ function deleteTodoFile(todoID, fileID, filePath, callback) {
         console.log(err.message);
     }
 }
+
+// chatbot
+document.addEventListener('DOMContentLoaded', function() {
+    const chatTab = document.querySelector('.chat-tab');
+    const chatContainer = document.querySelector('.chat-container');
+    const userInput = document.getElementById('userInput');
+  
+    chatTab.addEventListener('click', function() {
+        // Toggle visibility
+        chatContainer.style.display = chatContainer.style.display === 'flex' ? 'none' : 'flex';
+        userInput.focus(); // Focus on the input field when the chat opens
+    });
+  
+    // Send message on Enter key press, but prevent a newline if the Enter key is pressed
+    userInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent the default action to avoid form submission or newline
+            sendMessage();
+        }
+    });
+});
+  
+function displayMessage(text, sender = 'user') {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', sender);
+
+    // Set the Bot and the Human icon. Use unicode Emji '&#129302; '; for bot if no images
+    //const userIcon = '<img src="path/to/user-icon.png" alt="User" style="width: 20px; height: 20px;"> ';
+    const botIcon = '<img src="img/bot-icon.svg" alt="Bot" style="width: 20px; height: 20px;"> ';
+    // Choose icon based on sender
+    const icon = sender === 'user' ? '&#128100; ' : botIcon; // Human icon for user, robot icon for bot
+
+    // Set the innerHTML to include the icon and text
+    // Note: When using innerHTML, ensure your content is safe to prevent XSS vulnerabilities
+    messageElement.innerHTML = icon + text;
+
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+}
+  
+  
+function displayTypingIndicator() {
+    const chatMessages = document.getElementById('chatMessages');
+    let typingIndicator = document.getElementById('typingIndicator');
+    
+    // If the typing indicator doesn't already exist, create it.
+    if (!typingIndicator) {
+        typingIndicator = document.createElement('div');
+        typingIndicator.classList.add('message', 'typing');
+        typingIndicator.id = 'typingIndicator';
+        typingIndicator.textContent = '...';
+        chatMessages.appendChild(typingIndicator);
+    }
+    
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+}
+  
+function removeTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+  
+function sendMessage() {
+    const userInput = document.getElementById('userInput');
+    const message = userInput.value.trim();
+    if (message === '') return; // Prevent sending empty messages
+    userInput.value = ''; // Clear the input field
+  
+    displayMessage(message, 'user'); // Display the user message in the chat
+  
+    displayTypingIndicator(); // Display the typing indicator
+  
+    try {
+      var userID = localStorage.getItem('userID');
+      const sessionTokensString = localStorage.getItem('sessionTokens');
+      const sessionTokens = JSON.parse(sessionTokensString);
+      const IdToken = sessionTokens.IdToken;
+      const idJwt = IdToken.jwtToken;
+  
+    //   const websocket = new WebSocket('wss://bum4o4rx48.execute-api.us-east-1.amazonaws.com/production/');
+      
+      websocket.onopen = function() {
+        const payload = {
+          action: 'invokeBedrockAgent',
+          userID: userID,
+          human: message
+        };
+        websocket.send(JSON.stringify(payload));
+      };
+  
+      websocket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        removeTypingIndicator(); // Remove the typing indicator
+        displayMessage(data.response, 'bot'); // Display the bot response
+        websocket.close(); // Close the WebSocket connection after receiving the response
+      };
+  
+      websocket.onerror = function(event) {
+        console.error('Error:', event);
+        removeTypingIndicator(); // Ensure to remove the typing indicator even on error
+        displayMessage("Sorry, there was an error. Please try again.", 'bot');
+      };
+  
+      websocket.onclose = function() {
+        // WebSocket connection closed
+      };
+  
+    } catch (err) {
+      alert("An error occurred. Please try again!");
+      console.log(err.message);
+    }
+  }
