@@ -89,6 +89,162 @@ the full Bedrock ecosystem. Each phase produces blog-ready technical insights.
 
 ---
 
+## Phase 1 — Implementation session (2026-04-09)
+
+**Milestone:** All Lambda handlers, SAM template, samconfig, and frontend changes
+implemented and merged into PR.
+
+---
+
+### Gotcha: SAM CLI severely out of date — `--lint` flag unavailable
+
+- Date: 2026-04-09
+- Iteration: Phase 1 implementation
+- Related area: Tooling / deployment ergonomics
+- Trigger: Gotcha
+- Observation: `sam validate --lint` failed — installed version is 1.50.0, `--lint`
+  was added in a later release (current latest: 1.157.1). Template validation ran
+  without linting; cfn-lint checks were skipped.
+- Impact: CloudFormation resource-level lint warnings not caught locally before deploy.
+- Resolution: Ran `sam validate` without `--lint`; template was structurally valid.
+  Upgrade SAM CLI before next deploy cycle.
+- Lesson: Pin and validate SAM CLI version in CI (`setup-sam@v2` pulls latest — add
+  `version:` pin to the workflow step for reproducible builds).
+- Blog relevance: Low — tooling hygiene, not architecturally interesting.
+- Tags: `sam`, `tooling`, `ci`
+
+---
+
+### Decision: SAM templates moved to `infra/` subdirectory
+
+- Date: 2026-04-09
+- Related area: Infrastructure layout
+- Trigger: Design decision (user requirement)
+- Decision: `template.yaml` and `samconfig.toml` live under
+  `services/ai-assistant/infra/` rather than the service root.
+- Why: Separates IaC from application code within the service boundary. Consistent
+  with services that may have multiple deployment targets.
+- Implication: `CodeUri` paths in template must use `../src/` (relative to template
+  file location, not working directory). SAM resolves CodeUri relative to template.
+- CI change: `working-directory` in workflow changed from `services/ai-assistant` to
+  `services/ai-assistant/infra`.
+- Lesson: When moving a SAM template, all `CodeUri` values shift with it. Easy to
+  miss — `sam build` will fail with a clear error if paths are wrong.
+- Blog relevance: Medium — useful IaC layout pattern for multi-service repos.
+- Tags: `sam`, `infrastructure`, `serverless`
+
+---
+
+### Security trade-off: JWT audience validation disabled (`verify_aud: False`)
+
+- Date: 2026-04-09
+- Related area: Security / Cognito JWT authorizer
+- Trigger: Trade-off / security observation
+- Observation: The Lambda authorizer uses `options={'verify_aud': False}` in
+  PyJWT decode. This means any valid JWT signed by this Cognito User Pool —
+  including tokens issued to other App Clients in the same pool — will be accepted.
+- Why the trade-off was made: The `COGNITO_CLIENT_ID` (App Client ID) was not
+  included in the plan's env vars, so audience validation was deferred.
+- Impact: In a single-pool, single-client setup this is low risk. In a shared pool
+  this is a meaningful gap — a token from a different application grants chatbot access.
+- Resolution: Flagged in code review. Fix requires adding `COGNITO_CLIENT_ID` as a
+  new parameter to the SAM template and GitHub secret. Deferred to Phase 2.
+- Also noted: No `token_use` check — Cognito `access_token` would also pass because
+  both are signed by the same JWKS. Should verify `payload['token_use'] == 'id'`.
+- Lesson: `verify_aud: False` is a common shortcut in Bedrock/WebSocket tutorials
+  that skips a meaningful security control. Always plan for the App Client ID at
+  architecture time.
+- Blog relevance: High — WebSocket auth + Cognito JWT is a frequent tutorial topic
+  and this gap is almost never mentioned.
+- Tags: `security`, `cognito`, `jwt`, `websocket`, `lambda-authorizer`
+
+---
+
+### Gotcha: `apigatewaymanagementapi` client instantiated inside hot path
+
+- Date: 2026-04-09
+- Related area: Serverless / Lambda performance
+- Trigger: Code review finding / performance
+- Observation: The `post_to_connection` client was created inside `_default()` on
+  every WebSocket message, rather than at module scope alongside the DynamoDB and
+  Bedrock clients.
+- Root cause: `endpoint_url` is dynamic per deployment, so it was read inside the
+  function. In fact, `WS_ENDPOINT` is an env var available at module load time.
+- Impact: boto3 client initialization adds latency to every message handled by the
+  warm function. For a chatbot already waiting on Bedrock Agent (1–5s), this adds
+  measurable overhead.
+- Fix: Moved to module scope: `_api_gw_mgmt = boto3.client('apigatewaymanagementapi',
+  endpoint_url=WS_ENDPOINT) if WS_ENDPOINT else None`.
+- Lesson: All boto3 clients that don't depend on per-request values belong at module
+  scope. This is a basic Lambda cold-start optimization but easy to miss when
+  `endpoint_url` looks like it requires runtime resolution.
+- Blog relevance: Medium — good serverless performance checklist item.
+- Tags: `lambda`, `serverless`, `performance`, `apigw`, `websocket`
+
+---
+
+### Gotcha: TypeScript `Record<string, unknown>` breaks nested property access
+
+- Date: 2026-04-09
+- Related area: Frontend / TypeScript
+- Trigger: TypeScript diagnostic error surfaced by IDE hook
+- Observation: When guarding `JSON.parse(stored)` with a try/catch, the variable
+  was typed as `Record<string, unknown>`. Accessing `tokens?.IdToken?.jwtToken`
+  then failed TypeScript compilation — `Property 'jwtToken' does not exist on type
+  'unknown'`.
+- Fix: Typed the variable with the actual expected shape:
+  `{ IdToken?: { jwtToken?: string } }`.
+- Lesson: When adding a try/catch around JSON.parse in TypeScript, the type must
+  reflect the expected payload shape, not a generic `Record`. The compiler is right
+  to reject it — a type-safe parse forces you to acknowledge the shape.
+- Blog relevance: Low — routine TypeScript.
+- Tags: `typescript`, `frontend`
+
+---
+
+### Observation: `.github/` absent from feature branch — workflows had to be exported from main
+
+- Date: 2026-04-09
+- Related area: CI/CD / Git workflow
+- Trigger: Gotcha
+- Observation: The `chatbot` branch did not contain `.github/workflows/` — those
+  files existed only on `main`. The branch history diverged before workflows were
+  added. `git checkout main -- .github/` failed because the path was not tracked
+  in this branch's index.
+- Fix: Used `git show main:.github/workflows/<file>` to export each file to a temp
+  path, then copied into the branch and committed.
+- Lesson: When a feature branch is long-lived and diverges from main before CI
+  files are added, they won't be present. Check for `.github/` when doing branch
+  work that touches CI, especially if the branch predates the workflow additions.
+- Blog relevance: Low — git housekeeping.
+- Tags: `git`, `ci`, `github-actions`
+
+---
+
+### Decision: Frontend pipeline updated for Vite build (apps/web → dist/)
+
+- Date: 2026-04-09
+- Related area: CI/CD / Frontend deployment
+- Trigger: Architecture change
+- Observation: The original `frontend-pipeline.yaml` synced the `frontend/` directory
+  directly to S3 (plain HTML/JS, no build step). The new frontend uses Vite +
+  TypeScript under `apps/web/`. S3 must receive the compiled `dist/` output.
+- Changes made:
+  - Path trigger: `frontend/**` → `apps/web/**`
+  - Added `actions/setup-node@v4` + `npm ci` + `npm run build`
+  - S3 source: `frontend` → `apps/web/dist`
+  - CloudFront invalidation: `/index.html /home.html /js/script.js` → `/*`
+  - `VITE_CHATBOT_WS_ENDPOINT` injected at build time via GitHub secret
+- Lesson: Static S3 deploys and Vite builds are different deployment models. A
+  pipeline that worked for raw HTML must be rebuilt — not patched — when a build
+  step is introduced. The invalidation path also changes because Vite asset names
+  are hashed.
+- Blog relevance: Medium — common pattern when migrating from plain HTML to a
+  bundled frontend.
+- Tags: `ci`, `github-actions`, `vite`, `s3`, `cloudfront`, `frontend`
+
+---
+
 ## Strongest blog candidates so far
 
 1. WebSocket + Bedrock: the session persistence bug everyone makes
