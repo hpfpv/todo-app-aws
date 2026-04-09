@@ -12,7 +12,7 @@ export function openChatSession(): void {
         window.location.href = './index.html';
         return;
     }
-    let tokens: Record<string, unknown>;
+    let tokens: { IdToken?: { jwtToken?: string } };
     try {
         tokens = JSON.parse(stored);
     } catch {
