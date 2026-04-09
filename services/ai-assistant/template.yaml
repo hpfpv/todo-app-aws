@@ -1,0 +1,277 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Stack for todo-houessou-com ai-assistant service"
+
+Parameters:
+  CognitoUserPoolId:
+    Type: String
+    Description: Cognito User Pool ID for JWT validation
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Tracing: Active
+
+Resources:
+
+  # ── DynamoDB ──────────────────────────────────────────────────────────────
+
+  BotTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "BotTable-${AWS::StackName}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # ── Lambda Functions ──────────────────────────────────────────────────────
+
+  AuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-authorizer"
+      CodeUri: src/authorizer/
+      Handler: handler.lambda_handler
+      Timeout: 10
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPoolId
+          COGNITO_REGION: !Sub "${AWS::Region}"
+
+  WebSocketHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-websocket-handler"
+      CodeUri: src/websocket_handler/
+      Handler: handler.lambda_handler
+      Timeout: 30
+      Environment:
+        Variables:
+          BOT_TABLE: !Ref BotTable
+          AGENT_ID: VLLFJVDUBD
+          AGENT_ALIAS_ID: JLCNDHYLCT
+          ENABLE_TRACE: "false"
+          WS_ENDPOINT: !Sub "https://${ChatbotWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/production"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+              Resource: !GetAtt BotTable.Arn
+            - Effect: Allow
+              Action: bedrock:InvokeAgent
+              Resource: !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent-alias/VLLFJVDUBD/JLCNDHYLCT"
+            - Effect: Allow
+              Action: execute-api:ManageConnections
+              Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatbotWebSocketApi}/production/POST/@connections/*"
+
+  ActionGroupHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-action-group"
+      CodeUri: src/action_group/
+      Handler: handler.lambda_handler
+      Timeout: 30
+      Environment:
+        Variables:
+          TODO_TABLE: !ImportValue "todo-houessou-com-TodoTable"
+          TODO_TABLE_REGION: !Sub "${AWS::Region}"
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+              Resource:
+                - !ImportValue "todo-houessou-com-TodoTableArn"
+                - !Sub
+                  - "${TableArn}/index/*"
+                  - TableArn: !ImportValue "todo-houessou-com-TodoTableArn"
+
+  EnableBedrockLoggingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-enable-bedrock-logging"
+      CodeUri: src/enable_bedrock_logging/
+      Handler: handler.lambda_handler
+      Timeout: 30
+      Environment:
+        Variables:
+          LOGGING_ROLE_ARN: !GetAtt BedrockLoggingRole.Arn
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: bedrock:PutModelInvocationLoggingConfiguration
+              Resource: "*"
+
+  # ── WebSocket API ─────────────────────────────────────────────────────────
+
+  ChatbotWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-websocket"
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  ChatbotAuthorizer:
+    Type: AWS::ApiGatewayV2::Authorizer
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      AuthorizerType: REQUEST
+      AuthorizerUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthorizerFunction.Arn}/invocations"
+      IdentitySource:
+        - route.request.querystring.token
+      Name: CognitoJwtAuthorizer
+
+  ConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketHandlerFunction.Arn}/invocations"
+
+  DisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketHandlerFunction.Arn}/invocations"
+
+  DefaultIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketHandlerFunction.Arn}/invocations"
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      RouteKey: $connect
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref ChatbotAuthorizer
+      Target: !Sub "integrations/${ConnectIntegration}"
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DisconnectIntegration}"
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      RouteKey: $default
+      AuthorizationType: NONE
+      Target: !Sub "integrations/${DefaultIntegration}"
+
+  ChatbotDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DisconnectRoute
+      - DefaultRoute
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+
+  ChatbotStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ChatbotWebSocketApi
+      DeploymentId: !Ref ChatbotDeployment
+      StageName: production
+
+  # ── Lambda Permissions ────────────────────────────────────────────────────
+
+  AuthorizerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt AuthorizerFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatbotWebSocketApi}/*"
+
+  WebSocketHandlerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt WebSocketHandlerFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatbotWebSocketApi}/*"
+
+  # ── Bedrock Observability ─────────────────────────────────────────────────
+
+  BedrockInvocationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/bedrock/model-invocations
+      RetentionInDays: 7
+
+  BedrockLoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-bedrock-logging-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: BedrockCWLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !GetAtt BedrockInvocationLogGroup.Arn
+
+  BedrockLoggingCustomResource:
+    Type: AWS::CloudFormation::CustomResource
+    DependsOn:
+      - BedrockInvocationLogGroup
+      - BedrockLoggingRole
+    Properties:
+      ServiceToken: !GetAtt EnableBedrockLoggingFunction.Arn
+
+  EnableBedrockLoggingInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt EnableBedrockLoggingFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: cloudformation.amazonaws.com
+
+  # ── Outputs ───────────────────────────────────────────────────────────────
+
+Outputs:
+  WebSocketEndpoint:
+    Description: "WebSocket API endpoint — use as VITE_CHATBOT_WS_ENDPOINT"
+    Value: !Sub "wss://${ChatbotWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/production"
+    Export:
+      Name: !Sub "${AWS::StackName}-WebSocketEndpoint"
+  ActionGroupFunctionArn:
+    Description: "ARN for Bedrock action group — update in Bedrock console"
+    Value: !GetAtt ActionGroupHandlerFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ActionGroupFunctionArn"
