@@ -20,11 +20,11 @@ jobs:
           aws-region: us-east-1
 
       - name: sam build
-        working-directory: ./services/ai-assistant
+        working-directory: ./services/ai-assistant/infra
         run: sam build
 
       - name: sam deploy
-        working-directory: ./services/ai-assistant
+        working-directory: ./services/ai-assistant/infra
         run: |
           sam deploy \
             --no-confirm-changeset \

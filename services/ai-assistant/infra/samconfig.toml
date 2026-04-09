@@ -1,0 +1,12 @@
+version = 0.1
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "todo-houessou-com-ai-assistant"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1i1fu54xc3wfs"
+s3_prefix = "todo-houessou-com-ai-assistant"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+parameter_overrides = "CognitoUserPoolId=<REPLACE_WITH_YOUR_COGNITO_POOL_ID>"
+image_repositories = []
