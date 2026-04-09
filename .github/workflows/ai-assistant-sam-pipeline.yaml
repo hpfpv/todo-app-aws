@@ -1,0 +1,36 @@
+name: SAM Deploy todo-houessou-com ai-assistant service
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'services/ai-assistant/**'
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+      - uses: aws-actions/setup-sam@v2
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: sam build
+        working-directory: ./services/ai-assistant
+        run: sam build
+
+      - name: sam deploy
+        working-directory: ./services/ai-assistant
+        run: |
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name todo-houessou-com-ai-assistant \
+            --s3-bucket ${{ secrets.SAM_S3_BUCKET }} \
+            --region us-east-1 \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --parameter-overrides CognitoUserPoolId=${{ secrets.COGNITO_USER_POOL_ID }}
