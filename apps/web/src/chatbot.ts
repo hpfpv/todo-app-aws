@@ -12,7 +12,13 @@ export function openChatSession(): void {
         window.location.href = './index.html';
         return;
     }
-    const tokens = JSON.parse(stored);
+    let tokens: Record<string, unknown>;
+    try {
+        tokens = JSON.parse(stored);
+    } catch {
+        window.location.href = './index.html';
+        return;
+    }
     const token: string = tokens?.IdToken?.jwtToken ?? '';
     if (!token) {
         window.location.href = './index.html';

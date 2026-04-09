@@ -17,6 +17,9 @@ AGENT_ALIAS_ID = os.environ.get('AGENT_ALIAS_ID', '')
 ENABLE_TRACE = os.environ.get('ENABLE_TRACE', 'false').lower() == 'true'
 SESSION_TTL_SECONDS = 1800
 
+WS_ENDPOINT = os.environ.get('WS_ENDPOINT', '')
+_api_gw_mgmt = boto3.client('apigatewaymanagementapi', endpoint_url=WS_ENDPOINT) if WS_ENDPOINT else None
+
 
 def _connect(connection_id, user_id):
     now = int(time.time())
@@ -138,6 +141,13 @@ def _default(connection_id, user_id, body_str):
         elif 'trace' in event and ENABLE_TRACE:
             logger.info(json.dumps({'trace': event['trace']}))
 
+    if not agent_answer:
+        logger.warning(json.dumps({
+            'level': 'WARN', 'route': '$default', 'action': 'empty_agent_response',
+            'connectionId': connection_id,
+        }))
+        agent_answer = 'Sorry, I could not get a response. Please try again.'
+
     duration_ms = int((time.time() - start) * 1000)
     logger.info(json.dumps({
         'level': 'INFO', 'route': '$default',
@@ -150,21 +160,17 @@ def _default(connection_id, user_id, body_str):
     }))
 
     # Post response back to the WebSocket connection
-    ws_endpoint = os.environ.get('WS_ENDPOINT', '')
-    api_gw_mgmt = boto3.client(
-        'apigatewaymanagementapi',
-        endpoint_url=ws_endpoint,
-    )
-    try:
-        api_gw_mgmt.post_to_connection(
-            ConnectionId=connection_id,
-            Data=json.dumps({'response': agent_answer}),
-        )
-    except api_gw_mgmt.exceptions.GoneException:
-        logger.info(json.dumps({
-            'level': 'INFO', 'action': 'connection_gone',
-            'connectionId': connection_id,
-        }))
+    if _api_gw_mgmt:
+        try:
+            _api_gw_mgmt.post_to_connection(
+                ConnectionId=connection_id,
+                Data=json.dumps({'response': agent_answer}),
+            )
+        except _api_gw_mgmt.exceptions.GoneException:
+            logger.info(json.dumps({
+                'level': 'INFO', 'action': 'connection_gone',
+                'connectionId': connection_id,
+            }))
 
     return {'statusCode': 200}
 
@@ -188,13 +194,9 @@ def lambda_handler(event, context):
                 'level': 'ERROR', 'route': '$default',
                 'connectionId': connection_id, 'error': str(exc),
             }))
-            ws_endpoint = os.environ.get('WS_ENDPOINT', '')
-            if ws_endpoint:
+            if _api_gw_mgmt:
                 try:
-                    boto3.client(
-                        'apigatewaymanagementapi',
-                        endpoint_url=ws_endpoint,
-                    ).post_to_connection(
+                    _api_gw_mgmt.post_to_connection(
                         ConnectionId=connection_id,
                         Data=json.dumps({'response': 'Sorry, something went wrong. Please try again.'}),
                     )
