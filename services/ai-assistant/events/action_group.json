@@ -1,0 +1,9 @@
+{
+  "actionGroup": "todos",
+  "apiPath": "/{userID}/todos",
+  "httpMethod": "GET",
+  "parameters": [
+    { "name": "userID", "type": "string", "value": "test@example.com" }
+  ],
+  "requestBody": {}
+}
