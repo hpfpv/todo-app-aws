@@ -1,0 +1,10 @@
+{
+  "requestContext": {
+    "routeKey": "$default",
+    "connectionId": "test-connection-id-abc123",
+    "authorizer": {
+      "userID": "test@example.com"
+    }
+  },
+  "body": "{\"human\": \"show me my todos\"}"
+}

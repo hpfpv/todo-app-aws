@@ -9,8 +9,13 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 dynamodb = boto3.client('dynamodb', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
+bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name='us-east-1')
+
 BOT_TABLE = os.environ.get('BOT_TABLE', '')
-SESSION_TTL_SECONDS = 1800  # 30 minutes — matches Bedrock session idle timeout
+AGENT_ID = os.environ.get('AGENT_ID', '')
+AGENT_ALIAS_ID = os.environ.get('AGENT_ALIAS_ID', '')
+ENABLE_TRACE = os.environ.get('ENABLE_TRACE', 'false').lower() == 'true'
+SESSION_TTL_SECONDS = 1800
 
 
 def _connect(connection_id, user_id):
@@ -70,8 +75,98 @@ def _disconnect(connection_id):
 
 
 def _default(connection_id, user_id, body_str):
-    # Bedrock invocation added in Task 5
-    return {'statusCode': 501, 'body': 'Not implemented yet'}
+    start = time.time()
+    try:
+        body = json.loads(body_str)
+    except json.JSONDecodeError:
+        body = {}
+    human = body.get('human', '').strip()
+    if not human:
+        return {'statusCode': 400}
+
+    # Get sessionId for this connection
+    response = dynamodb.get_item(
+        TableName=BOT_TABLE,
+        Key={'pk': {'S': connection_id}},
+    )
+    conn_item = response.get('Item')
+    if conn_item:
+        session_id = conn_item['sessionId']['S']
+    else:
+        # Recovery: connection item missing, create new session
+        session_id = str(uuid.uuid4())
+        ttl = int(time.time()) + SESSION_TTL_SECONDS
+        dynamodb.put_item(
+            TableName=BOT_TABLE,
+            Item={
+                'pk': {'S': connection_id},
+                'userID': {'S': user_id},
+                'sessionId': {'S': session_id},
+                'ttl': {'N': str(ttl)},
+            },
+        )
+        dynamodb.put_item(
+            TableName=BOT_TABLE,
+            Item={
+                'pk': {'S': user_id},
+                'sessionId': {'S': session_id},
+                'ttl': {'N': str(ttl)},
+            },
+        )
+        logger.info(json.dumps({
+            'level': 'WARN', 'route': '$default',
+            'action': 'session_recovery', 'connectionId': connection_id,
+        }))
+
+    input_text = f'<userid>{user_id}</userid>\n{human}'
+
+    # Invoke Bedrock Agent
+    agent_response = bedrock_agent_runtime.invoke_agent(
+        inputText=input_text,
+        agentId=AGENT_ID,
+        agentAliasId=AGENT_ALIAS_ID,
+        sessionId=session_id,
+        enableTrace=ENABLE_TRACE,
+        endSession=False,
+    )
+
+    # Stream the response and collect final answer
+    agent_answer = ''
+    for event in agent_response['completion']:
+        if 'chunk' in event:
+            agent_answer = event['chunk']['bytes'].decode('utf-8')
+        elif 'trace' in event and ENABLE_TRACE:
+            logger.info(json.dumps({'trace': event['trace']}))
+
+    duration_ms = int((time.time() - start) * 1000)
+    logger.info(json.dumps({
+        'level': 'INFO', 'route': '$default',
+        'connectionId': connection_id,
+        'userIdPrefix': user_id[:3] + '***',
+        'sessionId': session_id,
+        'inputLength': len(human),
+        'responseLength': len(agent_answer),
+        'agentDurationMs': duration_ms,
+    }))
+
+    # Post response back to the WebSocket connection
+    ws_endpoint = os.environ.get('WS_ENDPOINT', '')
+    api_gw_mgmt = boto3.client(
+        'apigatewaymanagementapi',
+        endpoint_url=ws_endpoint,
+    )
+    try:
+        api_gw_mgmt.post_to_connection(
+            ConnectionId=connection_id,
+            Data=json.dumps({'response': agent_answer}),
+        )
+    except api_gw_mgmt.exceptions.GoneException:
+        logger.info(json.dumps({
+            'level': 'INFO', 'action': 'connection_gone',
+            'connectionId': connection_id,
+        }))
+
+    return {'statusCode': 200}
 
 
 def lambda_handler(event, context):
@@ -86,4 +181,23 @@ def lambda_handler(event, context):
     else:
         user_id = event['requestContext'].get('authorizer', {}).get('userID', 'unknown')
         body_str = event.get('body', '{}')
-        return _default(connection_id, user_id, body_str)
+        try:
+            return _default(connection_id, user_id, body_str)
+        except Exception as exc:
+            logger.error(json.dumps({
+                'level': 'ERROR', 'route': '$default',
+                'connectionId': connection_id, 'error': str(exc),
+            }))
+            ws_endpoint = os.environ.get('WS_ENDPOINT', '')
+            if ws_endpoint:
+                try:
+                    boto3.client(
+                        'apigatewaymanagementapi',
+                        endpoint_url=ws_endpoint,
+                    ).post_to_connection(
+                        ConnectionId=connection_id,
+                        Data=json.dumps({'response': 'Sorry, something went wrong. Please try again.'}),
+                    )
+                except Exception:
+                    pass
+            raise
