@@ -2,7 +2,7 @@ name: SAM Deploy todo-houessou-com ai-assistant service
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'services/ai-assistant/**'
 
@@ -11,8 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v4
+
       - uses: aws-actions/setup-sam@v2
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -20,11 +23,11 @@ jobs:
           aws-region: us-east-1
 
       - name: sam build
-        working-directory: ./services/ai-assistant/infra
+        working-directory: ./infra/sam/ai-assistant
         run: sam build
 
       - name: sam deploy
-        working-directory: ./services/ai-assistant/infra
+        working-directory: ./infra/sam/ai-assistant
         run: |
           sam deploy \
             --no-confirm-changeset \
@@ -34,3 +37,15 @@ jobs:
             --region us-east-1 \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --parameter-overrides CognitoUserPoolId=${{ secrets.COGNITO_USER_POOL_ID }}
+
+      - name: Extract stack outputs and update frontend secrets
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          WS_ENDPOINT=$(aws cloudformation describe-stacks \
+            --stack-name todo-houessou-com-ai-assistant \
+            --region us-east-1 \
+            --query 'Stacks[0].Outputs[?OutputKey==`WebSocketEndpoint`].OutputValue' \
+            --output text --no-cli-pager)
+
+          gh secret set VITE_CHATBOT_WS_ENDPOINT --body "$WS_ENDPOINT" --repo ${{ github.repository }}

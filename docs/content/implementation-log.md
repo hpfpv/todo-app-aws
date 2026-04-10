@@ -252,3 +252,41 @@ implemented and merged into PR.
 3. Single-table DynamoDB for WebSocket connection + session tracking
 4. Bedrock model invocation logging: the operational blind spot
 5. IAM scoping for Bedrock Agents: from `dynamodb:*` to least privilege
+
+
+
+Two pending tasks before you can merge and go live:
+
+  ---
+  Step 1 — Deploy the backend (Task 9)
+
+  1. Find your Cognito User Pool ID (AWS Console → Cognito, or from your main-service stack outputs)
+  2. Edit services/ai-assistant/infra/samconfig.toml — replace <REPLACE_WITH_YOUR_COGNITO_POOL_ID>
+  3. Run:
+  cd services/ai-assistant/infra
+  sam build
+  sam deploy
+  4. Note the two stack outputs:
+    - WebSocketEndpoint → wss://....execute-api.us-east-1.amazonaws.com/production
+    - ActionGroupFunctionArn
+  5. In AWS Console → Bedrock → Agents → todo2 (VLLFJVDUBD):
+    - Update action group Lambda to the new ActionGroupFunctionArn
+    - Switch model to Amazon Nova Micro (amazon.nova-micro-v1:0)
+    - Click Prepare — don't skip this
+
+  ---
+  Step 2 — Wire the WebSocket endpoint (Task 12)
+
+  1. Add two GitHub repository secrets:
+    - COGNITO_USER_POOL_ID — your pool ID
+    - VITE_CHATBOT_WS_ENDPOINT — the wss:// URL from Step 1
+  2. If you want to test locally before merging: update apps/web/.env with VITE_CHATBOT_WS_ENDPOINT=wss://... and run npm run build in apps/web/
+
+  ---
+  Step 3 — Merge the PR
+
+  Open: https://github.com/hpfpv/todo-app-aws/compare/main...chatbot
+
+  Merging to main will trigger:
+  - ai-assistant-sam-pipeline.yaml — redeployes the SAM stack
+  - frontend-pipeline.yaml — builds Vite app and deploys to S3/CloudFront

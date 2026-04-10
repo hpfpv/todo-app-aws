@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Confirm - TodoHouessou</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="shortcut icon" href="favicon.png">
+</head>
+<body>
+    <div class="container-fluid" style="text-align: center">
+        <a class="navbar-brand" href="#">
+            <img src="img/logo.png" id="logo" align="center"/>
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 offset-md-4">
+                <h5>Enter the code sent to the email you provided. Then, login again on the home page.</h5>
+                <br>
+                <form id="userDetails">
+                    <div class="form-group">
+                        <label for="confirmCode">Confirmation Code:</label>
+                        <input type="number" class="form-control" id="confirmCode" placeholder="Enter Confirmation Code" name="confirmCode">
+                    </div>
+                    <button type="submit" class="btn btn-custom signin">Confirm</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/pages/confirm.ts"></script>
+</body>
+</html>

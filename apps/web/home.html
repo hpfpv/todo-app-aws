@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Home - TodoHouessou</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="shortcut icon" href="favicon.png">
+</head>
+<body id="body">
+
+    <!-- Logo -->
+    <div class="container-fluid" style="text-align: center">
+        <a class="navbar-brand" href="#">
+            <img src="img/logo.png" id="logo" align="center"/>
+        </a>
+    </div>
+    <br><br>
+
+    <!-- Chatbot -->
+    <div class="chat-tab">
+        <img src="img/bot-icon.gif" alt="Chat with us!" style="width: 100%; height: 100%;">
+    </div>
+    <div class="chat-container">
+        <div class="messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Type a message...">
+            <button id="sendMessageButton">Send</button>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="container">
+        <div class="btn-toolbar float-left">
+            <input type="text" id="searchTodosFilter" placeholder="Search todo.." name="searchTodo">
+            <button type="button" id="searchTodosButton" class="btn btn-outline-light btn-sm">
+                <img src="img/search.png" title="search" id="search-img"/>
+            </button>
+            &nbsp;
+            <button type="button" id="showAllTodosButton" class="btn btn-primary btn-sm">Show All</button>
+        </div>
+        <div class="btn-toolbar float-right">
+            <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
+            &nbsp;
+            <button type="button" id="signOutButton" class="btn btn-dark btn-nav">Sign out</button>
+        </div>
+    </div>
+    <br><br>
+
+    <!-- Todos list -->
+    <div class="container">
+        <div id="todosList" class="row"></div>
+    </div>
+
+    <!-- Description Modal -->
+    <div class="modal fade" id="descriptionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><img src="img/to-do-list.png" title="todo" id="todo-img" style="width: 32px; height: 32px;"/> <span id="descriptionTitle"></span></h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><b>Description</b><br><span id="descriptionDescription"></span></p>
+                    <br>
+                    <p><b>Due Date:</b> <span id="descriptionDateDue"></span></p>
+                    <br>
+                    <p><b>Created Date:</b> <span id="descriptionDateCreated"></span></p>
+                    <br>
+                    <textarea class="form-control" id="descriptionNotes"></textarea>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <img src="img/paperclip.png" title="attachments" id="attachments-img"/>
+                            <p><b>Attachments</b></p>
+                        </div>
+                        <div class="container">
+                            <div id="filesList" class="row"></div>
+                        </div>
+                    </div>
+                    <p><br></p>
+                    <div class="col-sm-auto d-none" id="addFilesForm">
+                        <div class="input-group upload-form">
+                            <div class="input-group-prepend">
+                                <span type="button" class="btn btn-custom" id="uploadButton">Upload</span>
+                            </div>
+                            <div class="custom-file">
+                                <input type="file" class="form-control-file" id="fileinput">
+                                <label class="custom-file-label" for="fileinput" id="fileName">Choose File</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="modal-footer">
+                    <button id="saveNotesButton" type="button" class="btn btn-dark btn-sm">Save</button>
+                    <button id="showAddFilesButton" type="button" class="btn btn-secondary btn-sm">New <img src="img/file.png" title="attachments" style="width: 16px; height: 16px;"/></button>
+                    <div>
+                        <button id="completedButton" type="button" class="btn btn-outline-success btn-sm">Mark Completed!</button>
+                        <button id="alreadyCompletedButton" type="button" class="btn btn-success btn-sm d-none" disabled>Completed!</button>
+                    </div>
+                    <button id="deleteTodoButton" type="button" class="btn btn-danger btn-sm">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Todo Modal -->
+    <div class="modal fade" id="newTodoModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><img src="img/new.png" title="todo" style="width: 32px; height: 32px;"/> Add a new todo</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="newTodoForm">
+                        <label for="newTodoModalTitle">Title:</label>
+                        <input type="text" class="form-control" id="newTodoModalTitle" name="newTodoModalTitle" required />
+                        <br>
+                        <label for="newTodoModalDateDue">Due date:</label>
+                        <input type="date" id="newTodoModalDateDue" name="newTodoModalDateDue" min="2021-01-01"/>
+                        <br>
+                        <label for="newTodoModalDescription">Description:</label>
+                        <textarea class="form-control" id="newTodoModalDescription"></textarea>
+                        <br>
+                        <input type="submit" id="newTodo-modal-button" class="btn btn-outline-success" value="Add todo!" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p><br><br>&nbsp;&nbsp;This site is a sample todo-list app created for training purposes.</p>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script type="module" src="/src/pages/home.ts"></script>
+</body>
+</html>

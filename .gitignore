@@ -3,6 +3,17 @@
 **/temp
 **/.venv/
 
+# Node / Vite
+node_modules/
+apps/web/dist/
+*.log
+npm-debug.log*
+
+# Env files
+.env
+.env.local
+.env.*.local
+
 # Created by https://www.gitignore.io/api/osx,linux,python,windows,pycharm,visualstudiocode
 
 ### Linux ###
@@ -191,7 +202,6 @@ celerybeat-schedule.*
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/
