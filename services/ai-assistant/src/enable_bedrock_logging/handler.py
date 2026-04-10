@@ -40,7 +40,6 @@ def lambda_handler(event, context):
                     'cloudWatchConfig': {
                         'logGroupName': '/aws/bedrock/model-invocations',
                         'roleArn': os.environ['LOGGING_ROLE_ARN'],
-                        'largeDataDeliveryS3Config': {},
                     },
                     'textDataDeliveryEnabled': True,
                     'imageDataDeliveryEnabled': False,
