@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'services/attachments-service/**'
+      - 'infra/sam/attachments-service/**'
+  workflow_dispatch:
 
 jobs:
   build-deploy:
