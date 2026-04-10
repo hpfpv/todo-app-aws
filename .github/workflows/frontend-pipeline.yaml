@@ -1,37 +1,56 @@
-name: Deploy Frontend 
+name: Deploy Frontend
 
-# Deploy when push made from frontend folder.
 on:
-    push:
-        branches: [ main ]
-        paths:
-        - 'frontend/**'
-    
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-        
-    #Uplaod to S3
-    - uses: actions/checkout@master
-    - name: Sync S3
-      uses: jakejarvis/s3-sync-action@master
-      with:
-        args: --follow-symlinks --delete
-      env:
-        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}  
-        SOURCE_DIR: 'frontend'      
+      - uses: actions/checkout@v4
 
-    #Invalidate CloudFront
-    - name: Invalidate CF index.html
-      uses: chetan/invalidate-cloudfront-action@master
-      env:
-        DISTRIBUTION: ${{ secrets.CFDISTRIBUTION }}
-        PATHS: '/index.html /home.html /js/script.js'
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install dependencies
+        working-directory: ./apps/web
+        run: npm ci
+
+      - name: Build
+        working-directory: ./apps/web
+        run: npm run build
+        env:
+          VITE_TODO_API_ENDPOINT: ${{ secrets.VITE_TODO_API_ENDPOINT }}
+          VITE_FILES_API_ENDPOINT: ${{ secrets.VITE_FILES_API_ENDPOINT }}
+          VITE_COGNITO_USER_POOL_ID: ${{ secrets.VITE_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ secrets.VITE_COGNITO_CLIENT_ID }}
+          VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.VITE_COGNITO_IDENTITY_POOL_ID }}
+          VITE_S3_BUCKET: ${{ secrets.VITE_S3_BUCKET }}
+          VITE_AWS_REGION: ${{ secrets.AWS_REGION }}
+          VITE_CHATBOT_WS_ENDPOINT: ${{ secrets.VITE_CHATBOT_WS_ENDPOINT }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync apps/web/dist s3://${{ secrets.AWS_S3_BUCKET }} \
+            --delete \
+            --follow-symlinks \
+            --no-cli-pager
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CFDISTRIBUTION }} \
+            --paths "/*" \
+            --no-cli-pager

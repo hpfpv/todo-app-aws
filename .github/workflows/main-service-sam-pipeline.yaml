@@ -2,37 +2,55 @@ name: SAM Deploy todo-houessou-com main service
 
 on:
   push:
-      branches: [ main ]
-      paths:
-        - 'backend/main-service/**'
+    branches: [main]
+    paths:
+      - 'services/main-service/**'
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: aws-actions/setup-sam@v1
-      - uses: aws-actions/configure-aws-credentials@v1
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+
+      - uses: aws-actions/setup-sam@v2
+
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-# sam build 
       - name: sam build
-        working-directory: ./backend/main-service
-        run: sam build --use-container 
+        working-directory: ./infra/sam/main-service
+        run: sam build
 
-# Run Unit tests- Specify unit tests here 
-     ## - name: Run tests
-      ##  run: |
-          ## pushd './backend/main-service/tests/'
-          ## pip install awscli
-          ## python -m pip install --upgrade pip
-          ## pip install -r requirements.txt      
-          ## python -m nose2 test_getTodos.lambda_handler test_addTodo.lambda_handler test_completeTodo.lambda_handler
-
-# sam deploy
       - name: sam deploy
-        working-directory: ./backend/main-service
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name ${{ secrets.MAIN_STACK_NAME}} --s3-bucket ${{ secrets.SAM_S3_BUCKET }} --capabilities CAPABILITY_NAMED_IAM --region ${{ secrets.AWS_REGION }}
+        working-directory: ./infra/sam/main-service
+        run: |
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name ${{ secrets.MAIN_STACK_NAME }} \
+            --s3-bucket ${{ secrets.SAM_S3_BUCKET }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Extract stack outputs and update frontend secrets
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          OUTPUTS=$(aws cloudformation describe-stacks \
+            --stack-name ${{ secrets.MAIN_STACK_NAME }} \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'Stacks[0].Outputs' \
+            --output json --no-cli-pager)
+
+          TODO_API=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="MainHttpApi") | .OutputValue')
+          USER_POOL=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="TodoUserPool") | .OutputValue')
+          USER_POOL_CLIENT=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="TodoUserPoolClient") | .OutputValue')
+
+          gh secret set VITE_TODO_API_ENDPOINT --body "$TODO_API" --repo ${{ github.repository }}
+          gh secret set VITE_COGNITO_USER_POOL_ID --body "$USER_POOL" --repo ${{ github.repository }}
+          gh secret set VITE_COGNITO_CLIENT_ID --body "$USER_POOL_CLIENT" --repo ${{ github.repository }}

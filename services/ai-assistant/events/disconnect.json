@@ -1,0 +1,7 @@
+{
+  "requestContext": {
+    "routeKey": "$disconnect",
+    "connectionId": "test-connection-id-abc123",
+    "disconnectStatusCode": 1001
+  }
+}

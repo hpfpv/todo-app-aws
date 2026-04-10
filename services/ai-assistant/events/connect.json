@@ -1,0 +1,11 @@
+{
+  "type": "REQUEST",
+  "methodArn": "arn:aws:execute-api:us-east-1:123456789012:abcdef1234/production/$connect",
+  "queryStringParameters": {
+    "token": "REPLACE_WITH_VALID_COGNITO_ID_TOKEN"
+  },
+  "requestContext": {
+    "routeKey": "$connect",
+    "connectionId": "test-connection-id"
+  }
+}
