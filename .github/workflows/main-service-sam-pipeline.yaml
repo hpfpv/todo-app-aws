@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'services/main-service/**'
+      - 'infra/sam/main-service/**'
+  workflow_dispatch:
 
 jobs:
   build-deploy:
@@ -53,4 +55,5 @@ jobs:
 
           gh secret set VITE_TODO_API_ENDPOINT --body "$TODO_API" --repo ${{ github.repository }}
           gh secret set VITE_COGNITO_USER_POOL_ID --body "$USER_POOL" --repo ${{ github.repository }}
+          gh secret set COGNITO_USER_POOL_ID --body "$USER_POOL" --repo ${{ github.repository }}
           gh secret set VITE_COGNITO_CLIENT_ID --body "$USER_POOL_CLIENT" --repo ${{ github.repository }}
