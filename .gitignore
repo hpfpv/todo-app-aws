@@ -6,6 +6,7 @@
 # Node / Vite
 node_modules/
 apps/web/dist/
+apps/web/.vite/
 *.log
 npm-debug.log*
 
