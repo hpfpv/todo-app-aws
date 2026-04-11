@@ -2,7 +2,40 @@ import { config } from './config';
 
 type Sender = 'user' | 'bot';
 
+interface PersistedMessage {
+    text: string;
+    sender: Sender;
+}
+
+const CHAT_HISTORY_KEY = 'chatHistory';
+
 let ws: WebSocket | null = null;
+
+function persistMessage(text: string, sender: Sender): void {
+    const raw = localStorage.getItem(CHAT_HISTORY_KEY);
+    const history: PersistedMessage[] = raw ? JSON.parse(raw) : [];
+    history.push({ text, sender });
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(history));
+}
+
+export function restoreChatHistory(): void {
+    const raw = localStorage.getItem(CHAT_HISTORY_KEY);
+    if (!raw) return;
+    const history: PersistedMessage[] = JSON.parse(raw);
+    history.forEach(({ text, sender }) => displayMessage(text, sender, false));
+}
+
+export function clearChatHistory(): void {
+    localStorage.removeItem(CHAT_HISTORY_KEY);
+}
+
+function formatBotText(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+}
 
 export function openChatSession(): void {
     if (ws && ws.readyState === WebSocket.OPEN) return; // already connected
@@ -55,7 +88,7 @@ export function closeChatSession(): void {
     ws = null;
 }
 
-export function displayMessage(text: string, sender: Sender = 'user'): void {
+export function displayMessage(text: string, sender: Sender = 'user', persist = true): void {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
 
@@ -63,13 +96,15 @@ export function displayMessage(text: string, sender: Sender = 'user'): void {
     messageElement.classList.add('message', sender);
 
     if (sender === 'bot') {
-        messageElement.innerHTML = '<span class="bot-avatar-sm">✦</span>' + text;
+        messageElement.innerHTML = '<span class="bot-avatar-sm">✦</span>' + formatBotText(text);
     } else {
         messageElement.textContent = text;
     }
 
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    if (persist) persistMessage(text, sender);
 }
 
 export function displayTypingIndicator(): void {

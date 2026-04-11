@@ -1,6 +1,6 @@
 import { getTodos, getTodo, addTodo, completeTodo, deleteTodo, addTodoNotes } from '../api';
 import { logOut } from '../auth';
-import { sendMessage, openChatSession, closeChatSession } from '../chatbot';
+import { sendMessage, openChatSession, closeChatSession, restoreChatHistory, clearChatHistory } from '../chatbot';
 import { renderTodos, markCompleted, showAddFilesForm, hideAddFilesForm, addFileName } from '../ui';
 import { Todo } from '../types';
 
@@ -9,8 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load todos on page load
     getTodos(renderTodos);
 
-    // Sign out button
-    document.getElementById('signOutButton')?.addEventListener('click', logOut);
+    // Restore chat history from previous session
+    restoreChatHistory();
+
+    // Sign out button — clear chat history before logging out
+    document.getElementById('signOutButton')?.addEventListener('click', () => {
+        clearChatHistory();
+        logOut();
+    });
 
     // Chatbot — FAB and drawer toggle
     const chatFab = document.getElementById('chatFab') as HTMLElement | null;
@@ -63,12 +69,18 @@ document.addEventListener('DOMContentLoaded', () => {
         getTodos(renderTodos);
     });
 
+    // Capture todoID on card Open button click (Bootstrap 4 does not set relatedTarget on native DOM events)
+    document.getElementById('todosList')?.addEventListener('click', (e: MouseEvent) => {
+        const btn = (e.target as HTMLElement).closest('[data-todoid]') as HTMLElement | null;
+        if (btn?.dataset?.todoid) {
+            localStorage.setItem('todoID', btn.dataset.todoid);
+        }
+    });
+
     // Description modal — load todo details when opened
-    document.getElementById('descriptionModal')?.addEventListener('show.bs.modal', (e: Event) => {
-        const button = (e as any).relatedTarget as HTMLElement;
-        const todoID = button?.dataset?.todoid;
+    document.getElementById('descriptionModal')?.addEventListener('show.bs.modal', () => {
+        const todoID = localStorage.getItem('todoID');
         if (!todoID) return;
-        localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModal);
     });
 
