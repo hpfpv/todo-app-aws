@@ -5,6 +5,10 @@ Description: "Stack for todo-houessou-com main service"
 Globals:
   Function:
     Runtime: python3.12
+    Tags:
+      Project: todo-houessou-com
+      Service: main-service
+      ManagedBy: SAM
 
 Resources:
   MainHttpApi:
@@ -12,6 +16,10 @@ Resources:
     DependsOn: TodoUserPool
     Properties:
       StageName: dev
+      Tags:
+        Project: todo-houessou-com
+        Service: main-service
+        ManagedBy: SAM
       Auth:
         Authorizers:
           TodoAuthorizer:
@@ -189,6 +197,10 @@ Resources:
         - email
       AutoVerifiedAttributes:
         - email
+      UserPoolTags:
+        Project: todo-houessou-com
+        Service: main-service
+        ManagedBy: SAM
 
   TodoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -225,6 +237,13 @@ Resources:
     Properties:
       TableName: !Sub 'TodoTable-${AWS::StackName}'
       BillingMode: PROVISIONED
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: main-service
+        - Key: ManagedBy
+          Value: SAM
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1

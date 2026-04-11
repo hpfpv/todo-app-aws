@@ -5,12 +5,20 @@ Description: "Stack for todo-houessou-com attachement service"
 Globals:
   Function:
     Runtime: python3.12
+    Tags:
+      Project: todo-houessou-com
+      Service: attachments-service
+      ManagedBy: SAM
 
 Resources:
   FilesApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: dev
+      Tags:
+        Project: todo-houessou-com
+        Service: attachments-service
+        ManagedBy: SAM
       Auth:
         Authorizers:
           TodoAuthorizer:
@@ -134,6 +142,13 @@ Resources:
     Properties:
       TableName: !Sub 'TodoFilesTable-${AWS::StackName}'
       BillingMode: PROVISIONED
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: attachments-service
+        - Key: ManagedBy
+          Value: SAM
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
@@ -162,6 +177,13 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub 'hpf-todo-app-files'
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: attachments-service
+        - Key: ManagedBy
+          Value: SAM
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -198,6 +220,13 @@ Resources:
   TodoFilesBucketCF:
     Type: AWS::CloudFront::Distribution
     Properties:
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: attachments-service
+        - Key: ManagedBy
+          Value: SAM
       DistributionConfig:
         Comment: !Join ['', ['CDN for ', !Ref TodoFilesBucket] ]
         Enabled: 'true'
@@ -227,11 +256,22 @@ Resources:
     Properties:
       IdentityPoolName: !Sub 'IdentityPool_todo_houessou_com'
       AllowUnauthenticatedIdentities: true
+      IdentityPoolTags:
+        Project: todo-houessou-com
+        Service: attachments-service
+        ManagedBy: SAM
 
   TodoIdentityPoolRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub 'identity-pool-role-${AWS::StackName}'
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: attachments-service
+        - Key: ManagedBy
+          Value: SAM
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:

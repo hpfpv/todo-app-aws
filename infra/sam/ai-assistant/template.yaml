@@ -11,6 +11,10 @@ Globals:
   Function:
     Runtime: python3.12
     Tracing: Active
+    Tags:
+      Project: todo-houessou-com
+      Service: ai-assistant
+      ManagedBy: SAM
 
 Resources:
 
@@ -21,6 +25,13 @@ Resources:
     Properties:
       TableName: !Sub "BotTable-${AWS::StackName}"
       BillingMode: PAY_PER_REQUEST
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: ai-assistant
+        - Key: ManagedBy
+          Value: SAM
       AttributeDefinitions:
         - AttributeName: pk
           AttributeType: S
@@ -129,6 +140,10 @@ Resources:
       Name: !Sub "${AWS::StackName}-websocket"
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.action"
+      Tags:
+        Project: todo-houessou-com
+        Service: ai-assistant
+        ManagedBy: SAM
 
   ChatbotAuthorizer:
     Type: AWS::ApiGatewayV2::Authorizer
@@ -201,6 +216,10 @@ Resources:
       ApiId: !Ref ChatbotWebSocketApi
       DeploymentId: !Ref ChatbotDeployment
       StageName: production
+      Tags:
+        Project: todo-houessou-com
+        Service: ai-assistant
+        ManagedBy: SAM
 
   # ── Lambda Permissions ────────────────────────────────────────────────────
 
@@ -227,11 +246,25 @@ Resources:
     Properties:
       LogGroupName: /aws/bedrock/model-invocations
       RetentionInDays: 7
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: ai-assistant
+        - Key: ManagedBy
+          Value: SAM
 
   BedrockLoggingRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub "${AWS::StackName}-bedrock-logging-role"
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: ai-assistant
+        - Key: ManagedBy
+          Value: SAM
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
