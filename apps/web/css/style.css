@@ -615,6 +615,22 @@ p {
     resize: vertical;
 }
 
+.todo-modal-input {
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    width: 100%;
+    outline: none;
+    color: var(--text-primary);
+    background: #fff;
+}
+
+.todo-modal-input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
 .todo-modal-files {
     font-size: 13px;
 }

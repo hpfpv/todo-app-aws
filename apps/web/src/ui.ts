@@ -7,8 +7,8 @@ import { Todo, TodoFile } from './types';
   function toggleClass(id: string, addClass: string, removeClass: string): void {
       const el = getElement(id);
       if (!el) return;
-      el.classList.add(addClass);
-      el.classList.remove(removeClass);
+      if (addClass) el.classList.add(addClass);
+      if (removeClass) el.classList.remove(removeClass);
   }
 
   export function markCompleted(): void {
