@@ -47,7 +47,7 @@ jobs:
             --s3-bucket ${{ secrets.SAM_S3_BUCKET }} \
             --region us-east-1 \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --parameter-overrides CognitoUserPoolId=${{ env.COGNITO_USER_POOL_ID }}
+            --parameter-overrides CognitoUserPoolId=$COGNITO_USER_POOL_ID
 
       - name: Write outputs to SSM
         run: |
