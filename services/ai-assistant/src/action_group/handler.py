@@ -47,7 +47,17 @@ def getTodos(userID):
     todos = sorted(todos, key=lambda i: i['dateDue'])
     todos = sorted(todos, key=lambda i: i['completed'])
     logger.info(json.dumps({'action': 'getTodos', 'userID': userID[:3] + '***', 'count': len(todos)}))
-    return {'todos': todos}
+    slim = [
+        {
+            'todoID': t['todoID'],
+            'title': t['title'],
+            'description': t['description'],
+            'dateDue': t['dateDue'],
+            'completed': t['completed'],
+        }
+        for t in todos
+    ]
+    return {'todos': slim}
 
 
 def addTodo(userID, body):
