@@ -233,21 +233,11 @@ Under `ActionGroupHandlerFunction > Properties > Environment > Variables`, add:
 ```yaml
           FILES_TABLE: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTable"
           FILES_BUCKET: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucket"
-          FILES_BUCKET_CDN: !Sub "{{resolve:ssm:/todo-houessou-com/attachments-service/cdn-domain}}"
+          FILES_BUCKET_CDN: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucketCFDomainName"
 ```
 
-> **NOTE:** If the CDN domain is not in SSM, export it from the attachments-service stack first, then import it here. Alternatively hard-code the CloudFront domain as a Parameter.
+> The CDN domain is exported from the attachments-service stack as `todo-houessou-com-attachments-service-TodoFilesBucketCFDomainName`. No Parameter needed.
 
-Add a Parameter to expose CDN domain if not already exported:
-
-At the top `Parameters` section, add:
-```yaml
-  TodoFilesBucketCDN:
-    Type: String
-    Description: CloudFront domain for todo files (e.g. d1234.cloudfront.net)
-```
-
-Then use `!Ref TodoFilesBucketCDN` for `FILES_BUCKET_CDN`.
 
 - [ ] **Step 2.2 — Add IAM permissions for files table and S3**
 
