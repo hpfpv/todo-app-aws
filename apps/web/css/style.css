@@ -1,3 +1,22 @@
+/* ── Color tokens ───────────────────────────────── */
+:root {
+  --teal:           #0d9488;
+  --teal-light:     #f0fdfa;
+  --teal-border:    #99f6e4;
+  --green:          #22c55e;
+  --amber:          #f59e0b;
+  --surface:        #f0f2f5;
+  --card:           #ffffff;
+  --text-primary:   #111827;
+  --text-secondary: #64748b;
+  --border:         #e2e8f0;
+}
+
+body {
+  background: var(--surface);
+  margin: 0;
+}
+
 #logo {
     width: 55%;
 }
@@ -227,12 +246,6 @@ p {
 
   .chat-input input[type="text"] {
     flex: 1;
-    padding: 10px;
-    border: none;
-    margin: 5px;
-  }
-
-  button {
     padding: 10px;
     border: none;
     margin: 5px;
