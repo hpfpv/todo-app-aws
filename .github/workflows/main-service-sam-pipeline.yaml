@@ -1,4 +1,4 @@
-name: SAM Deploy todo-houessou-com main service
+name: sam-deploy-main-service
 
 on:
   push:

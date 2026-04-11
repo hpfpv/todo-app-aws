@@ -1,4 +1,4 @@
-name: SAM Deploy todo-houessou-com attachments service
+name: sam-deploy-attachments-service
 
 on:
   push:

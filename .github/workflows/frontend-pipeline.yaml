@@ -1,10 +1,11 @@
-name: Deploy Frontend
+name: deploy-frontend
 
 on:
   push:
     branches: [main]
     paths:
       - 'apps/web/**'
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:

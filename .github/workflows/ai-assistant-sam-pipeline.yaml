@@ -1,4 +1,4 @@
-name: SAM Deploy todo-houessou-com ai-assistant service
+name: sam-deploy-ai-assistant-service
 
 on:
   push:
