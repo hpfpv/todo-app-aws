@@ -50,24 +50,52 @@ import { Todo, TodoFile } from './types';
   export function renderTodos(todos: Todo[]): void {
       const list = getElement('todosList');
       if (!list) return;
-      list.innerHTML = todos.map(todo => `
-          <div class="col-md-4 border border-info" style="margin-bottom: 1rem;">
-              <br>
-              <p align="center">
-                  <strong>${todo.title}</strong><br>
-                  ${todo.description}<br>
-                  <b>Due Date:</b> ${todo.dateDue}<br>
-                  <button type="button"
-                      class="btn btn-sm"
-                      data-toggle="modal"
-                      data-target="#descriptionModal"
-                      data-todoid="${todo.todoID}">
-                      Details
-                  </button>
-              </p>
-              <br>
-          </div>
-      `).join('');
+
+      const today = new Date().toISOString().split('T')[0];
+
+      list.innerHTML = todos.map(todo => {
+          const isOverdue = !todo.completed && !!todo.dateDue && todo.dateDue < today;
+          const statusClass = todo.completed ? 'status-done' : isOverdue ? 'status-overdue' : 'status-inprogress';
+          const badgeHtml = todo.completed
+              ? '<span class="todo-badge badge-done">✓ Done</span>'
+              : isOverdue
+                  ? '<span class="todo-badge badge-overdue">⚠ Overdue</span>'
+                  : '<span class="todo-badge badge-inprogress">● In progress</span>';
+          const titleClass = todo.completed ? 'todo-title-done' : '';
+
+          return `
+<div class="col-md-4 mb-3">
+  <div class="todo-card ${statusClass}">
+    <div class="todo-card-top">
+      <span class="todo-title ${titleClass}">${todo.title}</span>
+      ${badgeHtml}
+    </div>
+    <p class="todo-desc">${todo.description}</p>
+    <p class="todo-due">📅 ${todo.dateDue || '—'}</p>
+    <button type="button"
+        class="todo-open-btn${todo.completed ? ' todo-open-btn-muted' : ''}"
+        data-toggle="modal"
+        data-target="#descriptionModal"
+        data-todoid="${todo.todoID}">
+      Open
+    </button>
+  </div>
+</div>`;
+      }).join('');
+
+      updateStatsBar(todos);
+  }
+
+  export function updateStatsBar(todos: Todo[]): void {
+      const done = todos.filter(t => t.completed).length;
+      const inProgress = todos.length - done;
+      const setCount = (id: string, n: number) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = String(n);
+      };
+      setCount('statTotal', todos.length);
+      setCount('statInProgress', inProgress);
+      setCount('statDone', done);
   }
 
   export function renderFiles(files: TodoFile[]): void {
