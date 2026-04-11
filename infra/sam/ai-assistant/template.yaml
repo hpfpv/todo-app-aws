@@ -325,7 +325,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: bedrock:InvokeModel
-                Resource: !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
+                Resource: !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/amazon.nova-lite-v1:0"
               - Effect: Allow
                 Action: lambda:InvokeFunction
                 Resource: !GetAtt ActionGroupHandlerFunction.Arn
@@ -334,7 +334,7 @@ Resources:
     Type: AWS::Bedrock::Agent
     Properties:
       AgentName: !Sub "${AWS::StackName}-todo-assistant"
-      FoundationModel: anthropic.claude-3-5-sonnet-20241022-v2:0
+      FoundationModel: amazon.nova-lite-v1:0
       AgentResourceRoleArn: !GetAtt TodoAgentRole.Arn
       AutoPrepare: true
       Instruction: |
