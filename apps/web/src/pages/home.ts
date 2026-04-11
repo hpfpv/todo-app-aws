@@ -79,6 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
         getTodo(todoID, updateModal);
     });
 
+    // Blur focused element before modal hides to avoid aria-hidden focus warning
+    document.getElementById('descriptionModal')?.addEventListener('hide.bs.modal', () => {
+        (document.activeElement as HTMLElement)?.blur();
+    });
+
     // Hide file form when modal closes
     document.getElementById('descriptionModal')?.addEventListener('hidden.bs.modal', hideAddFilesForm);
 

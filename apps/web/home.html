@@ -126,26 +126,30 @@
     <!-- New Todo Modal -->
     <div class="modal fade" id="newTodoModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4><img src="img/new.png" title="todo" style="width: 32px; height: 32px;"/> Add a new todo</h4>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+            <div class="modal-content todo-modal-content">
+                <div class="modal-header todo-modal-header">
+                    <h5 class="todo-modal-title">+ New todo</h5>
+                    <button type="button" class="todo-modal-close" data-dismiss="modal" aria-label="Close">✕</button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body todo-modal-body">
                     <form id="newTodoForm">
-                        <label for="newTodoModalTitle">Title:</label>
-                        <input type="text" class="form-control" id="newTodoModalTitle" name="newTodoModalTitle" required />
-                        <br>
-                        <label for="newTodoModalDateDue">Due date:</label>
-                        <input type="date" id="newTodoModalDateDue" name="newTodoModalDateDue" min="2021-01-01"/>
-                        <br>
-                        <label for="newTodoModalDescription">Description:</label>
-                        <textarea class="form-control" id="newTodoModalDescription"></textarea>
-                        <br>
-                        <input type="submit" id="newTodo-modal-button" class="btn btn-outline-success" value="Add todo!" />
+                        <div class="todo-modal-field">
+                            <span class="todo-modal-label">Title</span>
+                            <input type="text" class="todo-modal-input" id="newTodoModalTitle" name="newTodoModalTitle" placeholder="What needs to be done?" required />
+                        </div>
+                        <div class="todo-modal-field">
+                            <span class="todo-modal-label">Due date</span>
+                            <input type="date" class="todo-modal-input" id="newTodoModalDateDue" name="newTodoModalDateDue" min="2021-01-01"/>
+                        </div>
+                        <div class="todo-modal-field">
+                            <span class="todo-modal-label">Description</span>
+                            <textarea class="todo-modal-notes" id="newTodoModalDescription" placeholder="Add a description…"></textarea>
+                        </div>
                     </form>
+                </div>
+                <div class="modal-footer todo-modal-footer">
+                    <button type="submit" form="newTodoForm" id="newTodo-modal-button" class="todo-modal-btn btn-modal-save">Add todo</button>
+                    <button type="button" class="todo-modal-btn btn-modal-secondary" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
