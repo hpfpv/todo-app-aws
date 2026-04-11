@@ -257,9 +257,12 @@ Resources:
       IdentityPoolName: !Sub 'IdentityPool_todo_houessou_com'
       AllowUnauthenticatedIdentities: true
       IdentityPoolTags:
-        Project: todo-houessou-com
-        Service: attachments-service
-        ManagedBy: SAM
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: attachments-service
+        - Key: ManagedBy
+          Value: SAM
 
   TodoIdentityPoolRole:
     Type: AWS::IAM::Role
