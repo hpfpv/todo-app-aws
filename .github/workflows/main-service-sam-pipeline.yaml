@@ -39,21 +39,35 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM \
             --region ${{ secrets.AWS_REGION }}
 
-      - name: Extract stack outputs and update frontend secrets
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Write outputs to SSM
         run: |
           OUTPUTS=$(aws cloudformation describe-stacks \
             --stack-name ${{ secrets.MAIN_STACK_NAME }} \
-            --region ${{ secrets.AWS_REGION }} \
+            --region us-east-1 \
             --query 'Stacks[0].Outputs' \
-            --output json --no-cli-pager)
+            --output json)
 
           TODO_API=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="MainHttpApi") | .OutputValue')
           USER_POOL=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="TodoUserPool") | .OutputValue')
           USER_POOL_CLIENT=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="TodoUserPoolClient") | .OutputValue')
 
-          gh secret set VITE_TODO_API_ENDPOINT --body "$TODO_API" --repo ${{ github.repository }}
-          gh secret set VITE_COGNITO_USER_POOL_ID --body "$USER_POOL" --repo ${{ github.repository }}
-          gh secret set COGNITO_USER_POOL_ID --body "$USER_POOL" --repo ${{ github.repository }}
-          gh secret set VITE_COGNITO_CLIENT_ID --body "$USER_POOL_CLIENT" --repo ${{ github.repository }}
+          aws ssm put-parameter \
+            --name "/todo-houessou-com/main-service/api-url" \
+            --value "$TODO_API" \
+            --type String \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/todo-houessou-com/main-service/cognito-user-pool-id" \
+            --value "$USER_POOL" \
+            --type String \
+            --overwrite \
+            --region us-east-1
+
+          aws ssm put-parameter \
+            --name "/todo-houessou-com/main-service/cognito-client-id" \
+            --value "$USER_POOL_CLIENT" \
+            --type String \
+            --overwrite \
+            --region us-east-1

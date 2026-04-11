@@ -25,6 +25,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Read config from SSM
+        run: |
+          echo "VITE_TODO_API_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/main-service/api-url --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+          echo "VITE_COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name /todo-houessou-com/main-service/cognito-user-pool-id --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+          echo "VITE_COGNITO_CLIENT_ID=$(aws ssm get-parameter --name /todo-houessou-com/main-service/cognito-client-id --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+          echo "VITE_FILES_API_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/files-api-url --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+          echo "VITE_COGNITO_IDENTITY_POOL_ID=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/identity-pool-id --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+          echo "VITE_S3_BUCKET=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/s3-bucket --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+          echo "VITE_CHATBOT_WS_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/ai-assistant/websocket-endpoint --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+
       - name: Install dependencies
         working-directory: ./apps/web
         run: npm ci
@@ -33,14 +43,14 @@ jobs:
         working-directory: ./apps/web
         run: npm run build
         env:
-          VITE_TODO_API_ENDPOINT: ${{ secrets.VITE_TODO_API_ENDPOINT }}
-          VITE_FILES_API_ENDPOINT: ${{ secrets.VITE_FILES_API_ENDPOINT }}
-          VITE_COGNITO_USER_POOL_ID: ${{ secrets.VITE_COGNITO_USER_POOL_ID }}
-          VITE_COGNITO_CLIENT_ID: ${{ secrets.VITE_COGNITO_CLIENT_ID }}
-          VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.VITE_COGNITO_IDENTITY_POOL_ID }}
-          VITE_S3_BUCKET: ${{ secrets.VITE_S3_BUCKET }}
+          VITE_TODO_API_ENDPOINT: ${{ env.VITE_TODO_API_ENDPOINT }}
+          VITE_FILES_API_ENDPOINT: ${{ env.VITE_FILES_API_ENDPOINT }}
+          VITE_COGNITO_USER_POOL_ID: ${{ env.VITE_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ env.VITE_COGNITO_CLIENT_ID }}
+          VITE_COGNITO_IDENTITY_POOL_ID: ${{ env.VITE_COGNITO_IDENTITY_POOL_ID }}
+          VITE_S3_BUCKET: ${{ env.VITE_S3_BUCKET }}
           VITE_AWS_REGION: ${{ secrets.AWS_REGION }}
-          VITE_CHATBOT_WS_ENDPOINT: ${{ secrets.VITE_CHATBOT_WS_ENDPOINT }}
+          VITE_CHATBOT_WS_ENDPOINT: ${{ env.VITE_CHATBOT_WS_ENDPOINT }}
 
       - name: Deploy to S3
         run: |

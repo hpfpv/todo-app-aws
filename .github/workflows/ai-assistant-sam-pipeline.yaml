@@ -28,6 +28,15 @@ jobs:
         working-directory: ./infra/sam/ai-assistant
         run: sam build
 
+      - name: Read Cognito User Pool ID from SSM
+        run: |
+          COGNITO_USER_POOL_ID=$(aws ssm get-parameter \
+            --name "/todo-houessou-com/main-service/cognito-user-pool-id" \
+            --query Parameter.Value \
+            --output text \
+            --region us-east-1)
+          echo "COGNITO_USER_POOL_ID=$COGNITO_USER_POOL_ID" >> $GITHUB_ENV
+
       - name: sam deploy
         working-directory: ./infra/sam/ai-assistant
         run: |
@@ -38,16 +47,19 @@ jobs:
             --s3-bucket ${{ secrets.SAM_S3_BUCKET }} \
             --region us-east-1 \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --parameter-overrides CognitoUserPoolId=${{ secrets.COGNITO_USER_POOL_ID }}
+            --parameter-overrides CognitoUserPoolId=${{ env.COGNITO_USER_POOL_ID }}
 
-      - name: Extract stack outputs and update frontend secrets
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Write outputs to SSM
         run: |
           WS_ENDPOINT=$(aws cloudformation describe-stacks \
             --stack-name todo-houessou-com-ai-assistant \
             --region us-east-1 \
             --query 'Stacks[0].Outputs[?OutputKey==`WebSocketEndpoint`].OutputValue' \
-            --output text --no-cli-pager)
+            --output text)
 
-          gh secret set VITE_CHATBOT_WS_ENDPOINT --body "$WS_ENDPOINT" --repo ${{ github.repository }}
+          aws ssm put-parameter \
+            --name "/todo-houessou-com/ai-assistant/websocket-endpoint" \
+            --value "$WS_ENDPOINT" \
+            --type String \
+            --overwrite \
+            --region us-east-1
