@@ -349,130 +349,71 @@ Resources:
           Description: Actions for reading and managing the user's todos
           ActionGroupExecutor:
             Lambda: !GetAtt ActionGroupHandlerFunction.Arn
-          ApiSchema:
-            Payload: |
-              openapi: "3.0.0"
-              info:
-                title: Todo API
-                version: "1.0.0"
-              paths:
-                /{userID}/todos:
-                  get:
-                    summary: Get all todos for a user
-                    operationId: getTodos
-                    parameters:
-                      - name: userID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The user's ID
-                    responses:
-                      "200":
-                        description: List of todos returned successfully
-                /{userID}/todos/{todoID}:
-                  get:
-                    summary: Get a specific todo by ID
-                    operationId: getTodo
-                    parameters:
-                      - name: userID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The user's ID
-                      - name: todoID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The todo's ID
-                    responses:
-                      "200":
-                        description: Todo details returned successfully
-                /{userID}/todos/add:
-                  post:
-                    summary: Add a new todo
-                    operationId: addTodo
-                    parameters:
-                      - name: userID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The user's ID
-                    requestBody:
-                      required: true
-                      content:
-                        application/json:
-                          schema:
-                            type: object
-                            required: [title, description, dateDue]
-                            properties:
-                              title:
-                                type: string
-                                description: Title of the todo
-                              description:
-                                type: string
-                                description: Description of the todo
-                              dateDue:
-                                type: string
-                                format: date
-                                description: Due date in YYYY-MM-DD format
-                    responses:
-                      "200":
-                        description: Todo created successfully
-                /{userID}/todos/{todoID}/addnotes:
-                  post:
-                    summary: Add or update notes on a todo
-                    operationId: addTodoNotes
-                    parameters:
-                      - name: userID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The user's ID
-                      - name: todoID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The todo's ID
-                    requestBody:
-                      required: true
-                      content:
-                        application/json:
-                          schema:
-                            type: object
-                            required: [notes]
-                            properties:
-                              notes:
-                                type: string
-                                description: Notes to add to the todo
-                    responses:
-                      "200":
-                        description: Notes updated successfully
-                /{userID}/todos/{todoID}/complete:
-                  post:
-                    summary: Mark a todo as complete
-                    operationId: completeTodo
-                    parameters:
-                      - name: userID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The user's ID
-                      - name: todoID
-                        in: path
-                        required: true
-                        schema:
-                          type: string
-                        description: The todo's ID
-                    responses:
-                      "200":
-                        description: Todo marked as complete
+          FunctionSchema:
+            Functions:
+              - Name: getTodos
+                Description: Get all todos for a user
+                Parameters:
+                  userID:
+                    Type: string
+                    Description: The user's ID
+                    Required: true
+              - Name: getTodo
+                Description: Get a specific todo by ID
+                Parameters:
+                  userID:
+                    Type: string
+                    Description: The user's ID
+                    Required: true
+                  todoID:
+                    Type: string
+                    Description: The todo's ID
+                    Required: true
+              - Name: addTodo
+                Description: Create a new todo
+                Parameters:
+                  userID:
+                    Type: string
+                    Description: The user's ID
+                    Required: true
+                  title:
+                    Type: string
+                    Description: Title of the todo
+                    Required: true
+                  description:
+                    Type: string
+                    Description: Description of the todo
+                    Required: true
+                  dateDue:
+                    Type: string
+                    Description: Due date in YYYY-MM-DD format
+                    Required: true
+              - Name: addTodoNotes
+                Description: Add or update notes on a todo
+                Parameters:
+                  userID:
+                    Type: string
+                    Description: The user's ID
+                    Required: true
+                  todoID:
+                    Type: string
+                    Description: The todo's ID
+                    Required: true
+                  notes:
+                    Type: string
+                    Description: Notes to add to the todo
+                    Required: true
+              - Name: completeTodo
+                Description: Mark a todo as complete
+                Parameters:
+                  userID:
+                    Type: string
+                    Description: The user's ID
+                    Required: true
+                  todoID:
+                    Type: string
+                    Description: The todo's ID
+                    Required: true
       Tags:
         Project: todo-houessou-com
         Service: ai-assistant

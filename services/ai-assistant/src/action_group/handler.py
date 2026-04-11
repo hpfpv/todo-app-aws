@@ -92,37 +92,33 @@ def completeTodo(todoID):
 def lambda_handler(event, context):
     logger.info(json.dumps({'event': event}))
     parameters = {p['name']: p['value'] for p in event.get('parameters', [])}
-    api_path = event['apiPath']
+    function = event['function']
 
-    if api_path == '/{userID}/todos':
+    if function == 'getTodos':
         body = getTodos(parameters['userID'])
-    elif api_path == '/{userID}/todos/{todoID}':
+    elif function == 'getTodo':
         body = getTodo(parameters['todoID'])
-    elif api_path == '/{userID}/todos/add':
-        props = {
-            p['name']: p['value']
-            for p in event['requestBody']['content']['application/json']['properties']
-        }
-        body = addTodo(parameters['userID'], props)
-    elif api_path == '/{userID}/todos/{todoID}/addnotes':
-        props = {
-            p['name']: p['value']
-            for p in event['requestBody']['content']['application/json']['properties']
-        }
-        body = addTodoNotes(parameters['todoID'], props['notes'])
-    elif api_path == '/{userID}/todos/{todoID}/complete':
+    elif function == 'addTodo':
+        body = addTodo(parameters['userID'], {
+            'title': parameters['title'],
+            'description': parameters['description'],
+            'dateDue': parameters['dateDue'],
+        })
+    elif function == 'addTodoNotes':
+        body = addTodoNotes(parameters['todoID'], parameters['notes'])
+    elif function == 'completeTodo':
         body = completeTodo(parameters['todoID'])
     else:
-        body = {'error': f'{event["actionGroup"]}::{api_path} is not a valid api path'}
+        body = {'error': f'{event["actionGroup"]}::{function} is not a valid function'}
 
     return {
         'response': {
             'actionGroup': event['actionGroup'],
-            'apiPath': event['apiPath'],
-            'httpMethod': event['httpMethod'],
-            'httpStatusCode': 200,
-            'responseBody': {
-                'application/json': {'body': str(body)}
+            'function': function,
+            'functionResponse': {
+                'responseBody': {
+                    'TEXT': {'body': json.dumps(body)}
+                }
             }
         }
     }
