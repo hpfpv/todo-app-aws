@@ -66,8 +66,8 @@ Resources:
       Environment:
         Variables:
           BOT_TABLE: !Ref BotTable
-          AGENT_ID: VLLFJVDUBD
-          AGENT_ALIAS_ID: JLCNDHYLCT
+          AGENT_ID: !GetAtt TodoAgent.AgentId
+          AGENT_ALIAS_ID: !GetAtt TodoAgentAlias.AgentAliasId
           ENABLE_TRACE: "false"
           WS_ENDPOINT: !Sub "https://${ChatbotWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/production"
       Policies:
@@ -81,7 +81,7 @@ Resources:
               Resource: !GetAtt BotTable.Arn
             - Effect: Allow
               Action: bedrock:InvokeAgent
-              Resource: !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:agent-alias/VLLFJVDUBD/JLCNDHYLCT"
+              Resource: !GetAtt TodoAgentAlias.AgentAliasArn
             - Effect: Allow
               Action: execute-api:ManageConnections
               Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatbotWebSocketApi}/production/POST/@connections/*"
@@ -298,6 +298,204 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: cloudformation.amazonaws.com
 
+  # ── Bedrock Agent ─────────────────────────────────────────────────────────
+
+  TodoAgentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-bedrock-agent-role"
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: ai-assistant
+        - Key: ManagedBy
+          Value: SAM
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: BedrockAgentPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: bedrock:InvokeModel
+                Resource: !Sub "arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt ActionGroupHandlerFunction.Arn
+
+  TodoAgent:
+    Type: AWS::Bedrock::Agent
+    Properties:
+      AgentName: !Sub "${AWS::StackName}-todo-assistant"
+      FoundationModel: anthropic.claude-3-5-sonnet-20241022-v2:0
+      AgentResourceRoleArn: !GetAtt TodoAgentRole.Arn
+      AutoPrepare: true
+      Instruction: |
+        You are a helpful assistant for a todo list application called TodoHouessou.
+        The user's ID is provided at the start of each message in the format <userid>USER_ID</userid>.
+        Always extract and use this userID when calling API actions.
+        You can help users: list their todos, view a specific todo, create new todos, mark todos as complete, and add notes to todos.
+        When referring to todos, use natural language. Never expose internal IDs unless the user asks.
+        Always respond concisely and in a friendly tone.
+      ActionGroups:
+        - ActionGroupName: TodoActions
+          Description: Actions for reading and managing the user's todos
+          ActionGroupExecutor:
+            Lambda: !GetAtt ActionGroupHandlerFunction.Arn
+          ApiSchema:
+            Payload: |
+              openapi: "3.0.0"
+              info:
+                title: Todo API
+                version: "1.0.0"
+              paths:
+                /{userID}/todos:
+                  get:
+                    summary: Get all todos for a user
+                    operationId: getTodos
+                    parameters:
+                      - name: userID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The user's ID
+                    responses:
+                      "200":
+                        description: List of todos returned successfully
+                /{userID}/todos/{todoID}:
+                  get:
+                    summary: Get a specific todo by ID
+                    operationId: getTodo
+                    parameters:
+                      - name: userID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The user's ID
+                      - name: todoID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The todo's ID
+                    responses:
+                      "200":
+                        description: Todo details returned successfully
+                /{userID}/todos/add:
+                  post:
+                    summary: Add a new todo
+                    operationId: addTodo
+                    parameters:
+                      - name: userID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The user's ID
+                    requestBody:
+                      required: true
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                            required: [title, description, dateDue]
+                            properties:
+                              title:
+                                type: string
+                                description: Title of the todo
+                              description:
+                                type: string
+                                description: Description of the todo
+                              dateDue:
+                                type: string
+                                format: date
+                                description: Due date in YYYY-MM-DD format
+                    responses:
+                      "200":
+                        description: Todo created successfully
+                /{userID}/todos/{todoID}/addnotes:
+                  post:
+                    summary: Add or update notes on a todo
+                    operationId: addTodoNotes
+                    parameters:
+                      - name: userID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The user's ID
+                      - name: todoID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The todo's ID
+                    requestBody:
+                      required: true
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                            required: [notes]
+                            properties:
+                              notes:
+                                type: string
+                                description: Notes to add to the todo
+                    responses:
+                      "200":
+                        description: Notes updated successfully
+                /{userID}/todos/{todoID}/complete:
+                  post:
+                    summary: Mark a todo as complete
+                    operationId: completeTodo
+                    parameters:
+                      - name: userID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The user's ID
+                      - name: todoID
+                        in: path
+                        required: true
+                        schema:
+                          type: string
+                        description: The todo's ID
+                    responses:
+                      "200":
+                        description: Todo marked as complete
+      Tags:
+        Project: todo-houessou-com
+        Service: ai-assistant
+        ManagedBy: SAM
+
+  TodoAgentAlias:
+    Type: AWS::Bedrock::AgentAlias
+    Properties:
+      AgentId: !GetAtt TodoAgent.AgentId
+      AgentAliasName: !Sub "${AWS::StackName}-alias"
+      Tags:
+        Project: todo-houessou-com
+        Service: ai-assistant
+        ManagedBy: SAM
+
+  ActionGroupLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ActionGroupHandlerFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: bedrock.amazonaws.com
+      SourceArn: !GetAtt TodoAgent.AgentArn
+
   # ── Outputs ───────────────────────────────────────────────────────────────
 
 Outputs:
@@ -307,7 +505,17 @@ Outputs:
     Export:
       Name: !Sub "${AWS::StackName}-WebSocketEndpoint"
   ActionGroupFunctionArn:
-    Description: "ARN for Bedrock action group — update in Bedrock console"
+    Description: "ARN of the action group Lambda function"
     Value: !GetAtt ActionGroupHandlerFunction.Arn
     Export:
       Name: !Sub "${AWS::StackName}-ActionGroupFunctionArn"
+  AgentId:
+    Description: "Bedrock Agent ID"
+    Value: !GetAtt TodoAgent.AgentId
+    Export:
+      Name: !Sub "${AWS::StackName}-AgentId"
+  AgentAliasId:
+    Description: "Bedrock Agent Alias ID"
+    Value: !GetAtt TodoAgentAlias.AgentAliasId
+    Export:
+      Name: !Sub "${AWS::StackName}-AgentAliasId"
