@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
@@ -6,6 +7,16 @@ export default defineConfig(({ mode }) => {
     return {
         define: {
             global: 'globalThis',
+        },
+        build: {
+            rollupOptions: {
+                input: {
+                    index: resolve(__dirname, 'index.html'),
+                    home: resolve(__dirname, 'home.html'),
+                    register: resolve(__dirname, 'register.html'),
+                    confirm: resolve(__dirname, 'confirm.html'),
+                },
+            },
         },
         ...(env.USE_PROXY === 'true' && {
             server: {
