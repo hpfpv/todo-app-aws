@@ -62,9 +62,11 @@ export function displayMessage(text: string, sender: Sender = 'user'): void {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
 
-    const botIcon = '<img src="public/img/bot-icon.svg" alt="Bot" style="width: 20px; height: 20px;"> ';
-    const icon = sender === 'user' ? '&#128100; ' : botIcon;
-    messageElement.innerHTML = icon + text;
+    if (sender === 'bot') {
+        messageElement.innerHTML = '<span class="bot-avatar-sm">✦</span>' + text;
+    } else {
+        messageElement.textContent = text;
+    }
 
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
