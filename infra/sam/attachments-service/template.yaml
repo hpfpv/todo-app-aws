@@ -305,6 +305,34 @@ Resources:
       IdentityPoolId: !Ref TodoIdentityPool
       Roles: {"unauthenticated": !GetAtt TodoIdentityPoolRole.Arn }
 
+  SsmFilesApiUrl:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/attachments-service/files-api-url
+      Type: String
+      Value: !Join [ '', [ 'https://', !Ref FilesApi, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/dev' ] ]
+
+  SsmIdentityPoolId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/attachments-service/identity-pool-id
+      Type: String
+      Value: !Ref TodoIdentityPool
+
+  SsmS3Bucket:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/attachments-service/s3-bucket
+      Type: String
+      Value: !Ref TodoFilesBucket
+
+  SsmCdnDomain:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/attachments-service/cdn-domain
+      Type: String
+      Value: !GetAtt TodoFilesBucketCF.DomainName
+
 Outputs:
   FilesApi:
     Value: !Join [ '', ['https://', !Ref FilesApi, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/dev'] ]

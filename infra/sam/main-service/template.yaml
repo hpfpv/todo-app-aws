@@ -268,6 +268,27 @@ Resources:
             ReadCapacityUnits: 1
             WriteCapacityUnits: 1
 
+  SsmApiUrl:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/main-service/api-url
+      Type: String
+      Value: !Join [ '', [ 'https://', !Ref MainHttpApi, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/dev' ] ]
+
+  SsmCognitoUserPoolId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/main-service/cognito-user-pool-id
+      Type: String
+      Value: !Ref TodoUserPool
+
+  SsmCognitoClientId:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/main-service/cognito-client-id
+      Type: String
+      Value: !Ref TodoUserPoolClient
+
 Outputs:
   MainHttpApi:
     Value: !Join [ '', ['https://', !Ref MainHttpApi, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/dev'] ]

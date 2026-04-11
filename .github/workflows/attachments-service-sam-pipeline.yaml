@@ -24,6 +24,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Read stack name from config
+        run: |
+          STACK_NAME=$(jq -r '.attachmentsServiceStackName' infra/sam/config.json)
+          echo "STACK_NAME=$STACK_NAME" >> $GITHUB_ENV
+
       - name: sam build
         working-directory: ./infra/sam/attachments-service
         run: sam build
@@ -34,48 +39,7 @@ jobs:
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --stack-name ${{ secrets.FILES_STACK_NAME }} \
-            --s3-bucket ${{ secrets.SAM_S3_BUCKET }} \
+            --stack-name $STACK_NAME \
+            --resolve-s3 \
             --capabilities CAPABILITY_NAMED_IAM \
             --region ${{ secrets.AWS_REGION }}
-
-      - name: Write outputs to SSM
-        run: |
-          OUTPUTS=$(aws cloudformation describe-stacks \
-            --stack-name ${{ secrets.FILES_STACK_NAME }} \
-            --region us-east-1 \
-            --query 'Stacks[0].Outputs' \
-            --output json)
-
-          FILES_API=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="FilesApi") | .OutputValue')
-          IDENTITY_POOL=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="TodoIdentityPoolId") | .OutputValue')
-          S3_BUCKET=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="TodoFilesBucket") | .OutputValue')
-          CDN_DOMAIN=$(echo "$OUTPUTS" | jq -r '.[] | select(.OutputKey=="TodoFilesBucketCFDomainName") | .OutputValue')
-
-          aws ssm put-parameter \
-            --name "/todo-houessou-com/attachments-service/files-api-url" \
-            --value "$FILES_API" \
-            --type String \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/todo-houessou-com/attachments-service/identity-pool-id" \
-            --value "$IDENTITY_POOL" \
-            --type String \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/todo-houessou-com/attachments-service/s3-bucket" \
-            --value "$S3_BUCKET" \
-            --type String \
-            --overwrite \
-            --region us-east-1
-
-          aws ssm put-parameter \
-            --name "/todo-houessou-com/attachments-service/cdn-domain" \
-            --value "$CDN_DOMAIN" \
-            --type String \
-            --overwrite \
-            --region us-east-1

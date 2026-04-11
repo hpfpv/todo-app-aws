@@ -1,0 +1,6 @@
+{
+  "mainServiceStackName": "todo-houessou-com",
+  "attachmentsServiceStackName": "todo-houessou-com-attachments-service",
+  "aiAssistantStackName": "todo-houessou-com-ai-assistant",
+  "frontendHostingStackName": "todo-houessou-com-frontend-hosting"
+}

@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Stack for todo-houessou-com frontend hosting (S3 + CloudFront)"
+
+Resources:
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: hpf-todo-app-frontend
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: frontend
+        - Key: ManagedBy
+          Value: SAM
+
+  FrontendBucketOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub "OAI for ${FrontendBucket}"
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${FrontendBucketOAI}"
+
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: frontend
+        - Key: ManagedBy
+          Value: SAM
+      DistributionConfig:
+        Comment: !Sub "CDN for ${FrontendBucket}"
+        Enabled: true
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        Origins:
+          - Id: !Sub "${FrontendBucket}.s3.${AWS::Region}.amazonaws.com"
+            DomainName: !Sub "${FrontendBucket}.s3.${AWS::Region}.amazonaws.com"
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${FrontendBucketOAI}"
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub "${FrontendBucket}.s3.${AWS::Region}.amazonaws.com"
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized managed policy
+          AllowedMethods:
+            - GET
+            - HEAD
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+  FrontendBucketSSMParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/frontend/s3-bucket
+      Type: String
+      Value: !Ref FrontendBucket
+      Description: S3 bucket name for frontend static hosting
+
+  FrontendDistributionIdSSMParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/frontend/cf-distribution-id
+      Type: String
+      Value: !Ref FrontendDistribution
+      Description: CloudFront distribution ID for frontend CDN
+
+Outputs:
+  FrontendBucket:
+    Value: !Ref FrontendBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-FrontendBucket"
+  FrontendDistributionId:
+    Value: !Ref FrontendDistribution
+    Export:
+      Name: !Sub "${AWS::StackName}-FrontendDistributionId"
+  FrontendDomainName:
+    Value: !GetAtt FrontendDistribution.DomainName
+    Export:
+      Name: !Sub "${AWS::StackName}-FrontendDomainName"

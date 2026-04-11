@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'apps/web/**'
+      - 'infra/sam/frontend-hosting/**'
   workflow_dispatch:
 
 jobs:
@@ -19,21 +20,42 @@ jobs:
           cache: 'npm'
           cache-dependency-path: apps/web/package-lock.json
 
+      - uses: aws-actions/setup-sam@v2
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Read stack name from config
+        run: |
+          STACK_NAME=$(jq -r '.frontendHostingStackName' infra/sam/config.json)
+          echo "STACK_NAME=$STACK_NAME" >> $GITHUB_ENV
+
+      - name: Deploy frontend hosting infrastructure
+        working-directory: ./infra/sam/frontend-hosting
+        run: |
+          sam build
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name $STACK_NAME \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --region ${{ secrets.AWS_REGION }}
+
       - name: Read config from SSM
         run: |
-          echo "VITE_TODO_API_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/main-service/api-url --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
-          echo "VITE_COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name /todo-houessou-com/main-service/cognito-user-pool-id --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
-          echo "VITE_COGNITO_CLIENT_ID=$(aws ssm get-parameter --name /todo-houessou-com/main-service/cognito-client-id --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
-          echo "VITE_FILES_API_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/files-api-url --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
-          echo "VITE_COGNITO_IDENTITY_POOL_ID=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/identity-pool-id --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
-          echo "VITE_S3_BUCKET=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/s3-bucket --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
-          echo "VITE_CHATBOT_WS_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/ai-assistant/websocket-endpoint --query Parameter.Value --output text --region us-east-1)" >> $GITHUB_ENV
+          echo "VITE_TODO_API_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/main-service/api-url --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "VITE_COGNITO_USER_POOL_ID=$(aws ssm get-parameter --name /todo-houessou-com/main-service/cognito-user-pool-id --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "VITE_COGNITO_CLIENT_ID=$(aws ssm get-parameter --name /todo-houessou-com/main-service/cognito-client-id --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "VITE_FILES_API_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/files-api-url --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "VITE_COGNITO_IDENTITY_POOL_ID=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/identity-pool-id --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "VITE_S3_BUCKET=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/s3-bucket --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "VITE_CHATBOT_WS_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/ai-assistant/websocket-endpoint --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "FRONTEND_BUCKET=$(aws ssm get-parameter --name /todo-houessou-com/frontend/s3-bucket --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "CF_DISTRIBUTION_ID=$(aws ssm get-parameter --name /todo-houessou-com/frontend/cf-distribution-id --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
 
       - name: Install dependencies
         working-directory: ./apps/web
@@ -54,7 +76,7 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync apps/web/dist s3://${{ secrets.AWS_S3_BUCKET }} \
+          aws s3 sync apps/web/dist s3://${{ env.FRONTEND_BUCKET }} \
             --delete \
             --follow-symlinks \
             --no-cli-pager
@@ -62,6 +84,6 @@ jobs:
       - name: Invalidate CloudFront
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CFDISTRIBUTION }} \
+            --distribution-id ${{ env.CF_DISTRIBUTION_ID }} \
             --paths "/*" \
             --no-cli-pager

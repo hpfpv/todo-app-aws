@@ -437,6 +437,15 @@ Resources:
       Principal: bedrock.amazonaws.com
       SourceArn: !GetAtt TodoAgent.AgentArn
 
+  # ── SSM Parameters ────────────────────────────────────────────────────────
+
+  SsmWebSocketEndpoint:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /todo-houessou-com/ai-assistant/websocket-endpoint
+      Type: String
+      Value: !Sub "wss://${ChatbotWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/production"
+
   # ── Outputs ───────────────────────────────────────────────────────────────
 
 Outputs:
