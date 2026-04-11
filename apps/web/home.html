@@ -43,6 +43,27 @@
         </div>
     </div>
 
+    <!-- Chat FAB -->
+    <button id="chatFab" class="chat-fab" aria-label="Open assistant">✦</button>
+
+    <!-- Chat Drawer -->
+    <div id="chatDrawer" class="chat-drawer">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div class="drawer-avatar">✦</div>
+            <div class="drawer-identity">
+                <strong>Assistant</strong>
+                <span class="drawer-status">● Online</span>
+            </div>
+            <button id="chatCloseBtn" class="drawer-close" aria-label="Close">✕</button>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+            <input type="text" id="userInput" placeholder="Type a message…" class="chat-pill-input">
+            <button id="sendMessageButton" class="chat-send-btn">➤</button>
+        </div>
+    </div>
+
     <!-- Todos list -->
     <div class="container">
         <div id="todosList" class="row"></div>
