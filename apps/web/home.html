@@ -71,34 +71,37 @@
 
     <!-- Description Modal -->
     <div class="modal fade" id="descriptionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4><img src="img/to-do-list.png" title="todo" id="todo-img" style="width: 32px; height: 32px;"/> <span id="descriptionTitle"></span></h4>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content todo-modal-content">
+                <div class="modal-header todo-modal-header">
+                    <h5 class="todo-modal-title" id="descriptionTitle">Loading…</h5>
+                    <button type="button" class="todo-modal-close" data-dismiss="modal" aria-label="Close">✕</button>
                 </div>
-                <div class="modal-body">
-                    <p><b>Description</b><br><span id="descriptionDescription"></span></p>
-                    <br>
-                    <p><b>Due Date:</b> <span id="descriptionDateDue"></span></p>
-                    <br>
-                    <p><b>Created Date:</b> <span id="descriptionDateCreated"></span></p>
-                    <br>
-                    <textarea class="form-control" id="descriptionNotes"></textarea>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <img src="img/paperclip.png" title="attachments" id="attachments-img"/>
-                            <p><b>Attachments</b></p>
+                <div class="modal-body todo-modal-body">
+                    <div class="todo-modal-field">
+                        <span class="todo-modal-label">Description</span>
+                        <span class="todo-modal-value" id="descriptionDescription"></span>
+                    </div>
+                    <div class="todo-modal-row">
+                        <div class="todo-modal-field">
+                            <span class="todo-modal-label">Due Date</span>
+                            <span class="todo-modal-value" id="descriptionDateDue"></span>
                         </div>
-                        <div class="container">
-                            <div id="filesList" class="row"></div>
+                        <div class="todo-modal-field">
+                            <span class="todo-modal-label">Created</span>
+                            <span class="todo-modal-value" id="descriptionDateCreated"></span>
                         </div>
                     </div>
-                    <p><br></p>
-                    <div class="col-sm-auto d-none" id="addFilesForm">
-                        <div class="input-group upload-form">
+                    <div class="todo-modal-field">
+                        <span class="todo-modal-label">Notes</span>
+                        <textarea class="todo-modal-notes form-control" id="descriptionNotes" placeholder="Add notes…"></textarea>
+                    </div>
+                    <div class="todo-modal-field">
+                        <span class="todo-modal-label">Attachments</span>
+                        <div id="filesList" class="todo-modal-files"></div>
+                    </div>
+                    <div class="d-none" id="addFilesForm">
+                        <div class="input-group upload-form mt-2">
                             <div class="input-group-prepend">
                                 <span type="button" class="btn btn-custom" id="uploadButton">Upload</span>
                             </div>
@@ -109,15 +112,12 @@
                         </div>
                     </div>
                 </div>
-                <br>
-                <div class="modal-footer">
-                    <button id="saveNotesButton" type="button" class="btn btn-dark btn-sm">Save</button>
-                    <button id="showAddFilesButton" type="button" class="btn btn-secondary btn-sm">New <img src="img/file.png" title="attachments" style="width: 16px; height: 16px;"/></button>
-                    <div>
-                        <button id="completedButton" type="button" class="btn btn-outline-success btn-sm">Mark Completed!</button>
-                        <button id="alreadyCompletedButton" type="button" class="btn btn-success btn-sm d-none" disabled>Completed!</button>
-                    </div>
-                    <button id="deleteTodoButton" type="button" class="btn btn-danger btn-sm">Delete</button>
+                <div class="modal-footer todo-modal-footer">
+                    <button id="saveNotesButton" type="button" class="todo-modal-btn btn-modal-save">Save notes</button>
+                    <button id="showAddFilesButton" type="button" class="todo-modal-btn btn-modal-secondary">+ Attachment</button>
+                    <button id="completedButton" type="button" class="todo-modal-btn btn-modal-complete">Mark complete</button>
+                    <button id="alreadyCompletedButton" type="button" class="todo-modal-btn btn-modal-done d-none" disabled>✓ Done</button>
+                    <button id="deleteTodoButton" type="button" class="todo-modal-btn btn-modal-delete">Delete</button>
                 </div>
             </div>
         </div>

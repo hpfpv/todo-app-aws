@@ -69,18 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
         getTodos(renderTodos);
     });
 
-    // Capture todoID on card Open button click (Bootstrap 4 does not set relatedTarget on native DOM events)
+    // Capture todoID on card Open button click and load todo details immediately
+    // (Bootstrap 4 show.bs.modal fires as native event "show", not "show.bs.modal", so we skip that listener)
     document.getElementById('todosList')?.addEventListener('click', (e: MouseEvent) => {
         const btn = (e.target as HTMLElement).closest('[data-todoid]') as HTMLElement | null;
-        if (btn?.dataset?.todoid) {
-            localStorage.setItem('todoID', btn.dataset.todoid);
-        }
-    });
-
-    // Description modal — load todo details when opened
-    document.getElementById('descriptionModal')?.addEventListener('show.bs.modal', () => {
-        const todoID = localStorage.getItem('todoID');
-        if (!todoID) return;
+        if (!btn?.dataset?.todoid) return;
+        const todoID = btn.dataset.todoid;
+        localStorage.setItem('todoID', todoID);
         getTodo(todoID, updateModal);
     });
 
