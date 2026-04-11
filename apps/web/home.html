@@ -12,43 +12,57 @@
 </head>
 <body id="body">
 
-    <!-- Logo -->
-    <div class="container-fluid" style="text-align: center">
-        <a class="navbar-brand" href="#">
-            <img src="img/logo.png" id="logo" align="center"/>
+    <!-- Navbar -->
+    <nav class="site-navbar">
+        <a href="#" class="navbar-logo">
+            <img src="img/logo.png" alt="Logo" style="height:36px;width:auto;">
         </a>
-    </div>
-    <br><br>
+        <div class="navbar-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchTodosFilter" placeholder="Search todos…">
+        </div>
+        <div class="navbar-actions">
+            <button type="button" id="addTodoButton" class="btn-primary-nav" data-toggle="modal" data-target="#newTodoModal">+ New todo</button>
+            <button type="button" id="signOutButton" class="btn-outline-nav">Sign out</button>
+        </div>
+    </nav>
 
-    <!-- Chatbot -->
-    <div class="chat-tab">
-        <img src="img/bot-icon.gif" alt="Chat with us!" style="width: 100%; height: 100%;">
-    </div>
-    <div class="chat-container">
-        <div class="messages" id="chatMessages"></div>
-        <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Type a message...">
-            <button id="sendMessageButton">Send</button>
+    <!-- Stats bar -->
+    <div class="stats-bar">
+        <div class="stat-pill">
+            <span class="stat-count" id="statTotal" style="color:var(--teal)">0</span>
+            <span class="stat-label">TOTAL</span>
+        </div>
+        <div class="stat-pill">
+            <span class="stat-count" id="statInProgress" style="color:var(--amber)">0</span>
+            <span class="stat-label">IN PROGRESS</span>
+        </div>
+        <div class="stat-pill">
+            <span class="stat-count" id="statDone" style="color:var(--green)">0</span>
+            <span class="stat-label">DONE</span>
         </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="container">
-        <div class="btn-toolbar float-left">
-            <input type="text" id="searchTodosFilter" placeholder="Search todo.." name="searchTodo">
-            <button type="button" id="searchTodosButton" class="btn btn-outline-light btn-sm">
-                <img src="img/search.png" title="search" id="search-img"/>
-            </button>
-            &nbsp;
-            <button type="button" id="showAllTodosButton" class="btn btn-primary btn-sm">Show All</button>
+    <!-- Chat FAB -->
+    <button id="chatFab" class="chat-fab" aria-label="Open assistant">✦</button>
+
+    <!-- Chat Drawer -->
+    <div id="chatDrawer" class="chat-drawer">
+        <div class="drawer-handle"></div>
+        <div class="drawer-header">
+            <div class="drawer-avatar">✦</div>
+            <div class="drawer-identity">
+                <strong>Assistant</strong>
+                <span class="drawer-status">● Online</span>
+            </div>
+            <button id="chatCloseBtn" class="drawer-close" aria-label="Close">✕</button>
         </div>
-        <div class="btn-toolbar float-right">
-            <button type="button" id="addTodoButton" class="btn btn-success btn-nav" data-toggle="modal" data-target="#newTodoModal">New todo</button>
-            &nbsp;
-            <button type="button" id="signOutButton" class="btn btn-dark btn-nav">Sign out</button>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+            <input type="text" id="userInput" placeholder="Type a message…" class="chat-pill-input">
+            <button id="sendMessageButton" class="chat-send-btn">➤</button>
         </div>
     </div>
-    <br><br>
 
     <!-- Todos list -->
     <div class="container">
