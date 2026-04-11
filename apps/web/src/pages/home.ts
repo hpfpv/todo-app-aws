@@ -12,21 +12,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sign out button
     document.getElementById('signOutButton')?.addEventListener('click', logOut);
 
-    // Chatbot toggle
-    const chatTab = document.querySelector('.chat-tab');
-    const chatContainer = document.querySelector('.chat-container') as HTMLElement | null;
-    chatTab?.addEventListener('click', () => {
-        if (!chatContainer) return;
-        const isOpen = chatContainer.style.display === 'flex';
-        if (isOpen) {
-            chatContainer.style.display = 'none';
-            closeChatSession();
-        } else {
-            chatContainer.style.display = 'flex';
-            openChatSession();
-            (document.getElementById('userInput') as HTMLInputElement)?.focus();
-        }
-    });
+    // Chatbot — FAB and drawer toggle
+    const chatFab = document.getElementById('chatFab') as HTMLElement | null;
+    const chatDrawer = document.getElementById('chatDrawer') as HTMLElement | null;
+    const chatCloseBtn = document.getElementById('chatCloseBtn') as HTMLElement | null;
+
+    function openDrawer(): void {
+        if (!chatDrawer || !chatFab) return;
+        chatDrawer.classList.add('open');
+        chatFab.style.display = 'none';
+        openChatSession();
+        (document.getElementById('userInput') as HTMLInputElement)?.focus();
+    }
+
+    function closeDrawer(): void {
+        if (!chatDrawer || !chatFab) return;
+        chatDrawer.classList.remove('open');
+        chatFab.style.display = 'flex';
+        closeChatSession();
+    }
+
+    chatFab?.addEventListener('click', openDrawer);
+    chatCloseBtn?.addEventListener('click', closeDrawer);
 
     // Chatbot send on Enter
     document.getElementById('userInput')?.addEventListener('keydown', (e: KeyboardEvent) => {
