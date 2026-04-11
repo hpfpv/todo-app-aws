@@ -117,6 +117,9 @@ Resources:
             - Effect: Allow
               Action: bedrock:PutModelInvocationLoggingConfiguration
               Resource: "*"
+            - Effect: Allow
+              Action: iam:PassRole
+              Resource: !GetAtt BedrockLoggingRole.Arn
 
   # ── WebSocket API ─────────────────────────────────────────────────────────
 
