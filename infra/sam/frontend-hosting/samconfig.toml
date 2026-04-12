@@ -1,0 +1,15 @@
+version = 0.1
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "todo-houessou-com-frontend-hosting"
+s3_prefix = "todo-houessou-com-frontend-hosting"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+parameter_overrides = "AcmCertificateArn=\"arn:aws:acm:us-east-1:601091111123:certificate/f9dd3bde-8b8a-4973-8d01-9b9e41c5a871\""
+confirm_changeset = true
+
+[default.global.parameters]
+region = "us-east-1"

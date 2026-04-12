@@ -2,6 +2,11 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: "Stack for todo-houessou-com frontend hosting (S3 + CloudFront)"
 
+Parameters:
+  AcmCertificateArn:
+    Type: String
+    Description: "ARN of the ACM certificate for todo.houessou.com (must be in us-east-1)"
+
 Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
@@ -16,11 +21,15 @@ Resources:
         - Key: ManagedBy
           Value: SAM
 
-  FrontendBucketOAI:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+  FrontendBucketOAC:
+    Type: AWS::CloudFront::OriginAccessControl
     Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub "OAI for ${FrontendBucket}"
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-oac"
+        Description: !Sub "OAC for ${FrontendBucket}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
   FrontendBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -33,7 +42,10 @@ Resources:
             Action: s3:GetObject
             Resource: !Sub "${FrontendBucket.Arn}/*"
             Principal:
-              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${FrontendBucketOAI}"
+              Service: cloudfront.amazonaws.com
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}"
 
   FrontendDistribution:
     Type: AWS::CloudFront::Distribution
@@ -49,6 +61,12 @@ Resources:
         Comment: !Sub "CDN for ${FrontendBucket}"
         Enabled: true
         DefaultRootObject: index.html
+        Aliases:
+          - todo.houessou.com
+        ViewerCertificate:
+          AcmCertificateArn: !Ref AcmCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
         CustomErrorResponses:
           - ErrorCode: 403
             ResponseCode: 200
@@ -60,16 +78,15 @@ Resources:
           - Id: !Sub "${FrontendBucket}.s3.${AWS::Region}.amazonaws.com"
             DomainName: !Sub "${FrontendBucket}.s3.${AWS::Region}.amazonaws.com"
             S3OriginConfig:
-              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${FrontendBucketOAI}"
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !GetAtt FrontendBucketOAC.Id
         DefaultCacheBehavior:
           TargetOriginId: !Sub "${FrontendBucket}.s3.${AWS::Region}.amazonaws.com"
           ViewerProtocolPolicy: redirect-to-https
-          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized managed policy
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           AllowedMethods:
             - GET
             - HEAD
-        ViewerCertificate:
-          CloudFrontDefaultCertificate: true
 
   FrontendBucketSSMParam:
     Type: AWS::SSM::Parameter
