@@ -3,6 +3,15 @@
 **/temp
 **/.venv/
 
+# Superpowers / tooling
+.superpowers/
+.playwright-mcp/
+superpowers/
+
+# Docs (local only)
+docs/content/
+docs/blog-post/
+
 # Node / Vite
 node_modules/
 apps/web/dist/
