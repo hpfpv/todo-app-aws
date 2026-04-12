@@ -1,6 +1,6 @@
 import { getTodos, getTodo, addTodo, completeTodo, deleteTodo, addTodoNotes } from '../api';
 import { logOut } from '../auth';
-import { sendMessage, openChatSession, closeChatSession, restoreChatHistory, clearChatHistory } from '../chatbot';
+import { sendMessage, openChatSession, closeChatSession, restoreChatHistory, clearChatHistory, initChatDropZone } from '../chatbot';
 import { renderTodos, markCompleted, showAddFilesForm, hideAddFilesForm, addFileName } from '../ui';
 import { Todo } from '../types';
 
@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatDrawer.classList.add('open');
         chatFab.style.display = 'none';
         openChatSession();
+        initChatDropZone();
         (document.getElementById('userInput') as HTMLInputElement)?.focus();
     }
 

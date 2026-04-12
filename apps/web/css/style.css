@@ -211,6 +211,11 @@ p {
     transform: translateY(0);
 }
 
+#chatDrawer.drag-over {
+    border: 2px dashed var(--teal, #2d7d6f);
+    background-color: rgba(45, 125, 111, 0.05);
+}
+
 .drawer-handle {
     width: 36px;
     height: 4px;

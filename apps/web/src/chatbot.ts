@@ -143,3 +143,61 @@ export function sendMessage(): void {
 
     ws.send(JSON.stringify({ human: message }));
 }
+
+let pendingFileUrl: string | null = null;
+let pendingFileName: string | null = null;
+
+export function initChatDropZone(): void {
+    const drawer = document.getElementById('chatDrawer');
+    if (!drawer) return;
+
+    // Prevent re-registering listeners
+    if (drawer.dataset.dropzoneInit) return;
+    drawer.dataset.dropzoneInit = '1';
+
+    drawer.addEventListener('dragover', (e: DragEvent) => {
+        e.preventDefault();
+        drawer.classList.add('drag-over');
+    });
+
+    drawer.addEventListener('dragleave', () => {
+        drawer.classList.remove('drag-over');
+    });
+
+    drawer.addEventListener('drop', async (e: DragEvent) => {
+        e.preventDefault();
+        drawer.classList.remove('drag-over');
+        const file = e.dataTransfer?.files?.[0];
+        if (!file || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+        displayMessage(`Uploading ${file.name}…`, 'bot', false);
+        displayTypingIndicator();
+
+        try {
+            const { uploadToS3 } = await import('./s3upload');
+            const { config: appConfig } = await import('./config');
+            const todoID = localStorage.getItem('todoID') ?? '';
+            const key = await uploadToS3(file, todoID || 'unassigned');
+            const fileUrl = `https://${appConfig.cdnDomain}/${key}`;
+
+            pendingFileUrl = fileUrl;
+            pendingFileName = file.name;
+
+            removeTypingIndicator();
+            displayMessage(
+                `File "${file.name}" uploaded. I'll ask the AI to attach it to a todo.`,
+                'bot',
+                false,
+            );
+
+            const msg = `I just uploaded a file named "${file.name}". Its URL is: ${fileUrl}. Please attach it to the appropriate todo, or ask me which todo to attach it to.`;
+            displayMessage(msg, 'user');
+            displayTypingIndicator();
+            ws.send(JSON.stringify({ human: msg }));
+        } catch (err) {
+            removeTypingIndicator();
+            displayMessage('File upload failed. Please try again.', 'bot', false);
+            console.error('[chatbot] drop upload error:', err);
+        }
+    });
+}
