@@ -3,8 +3,7 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "todo-houessou-com"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1i1fu54xc3wfs"
 s3_prefix = "todo-houessou-com"
-region = "ca-central-1"
+region = "us-east-1"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
