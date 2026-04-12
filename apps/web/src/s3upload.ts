@@ -19,7 +19,7 @@ export async function uploadToS3(file: File, todoID: string): Promise<string> {
     await s3.send(new PutObjectCommand({
         Bucket: config.s3Bucket,
         Key: key,
-        Body: file,
+        Body: new Uint8Array(await file.arrayBuffer()),
         ContentType: file.type,
     }));
 
