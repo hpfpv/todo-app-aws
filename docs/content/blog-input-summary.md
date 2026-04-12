@@ -1,7 +1,8 @@
 # Blog Input Summary — Todo App AWS Chatbot
 
-Last updated: 2026-04-09
+Last updated: 2026-04-12
 Phase: 1 complete (IaC, auth, session persistence, observability, Nova Micro)
+Phase 2 complete (attachments, AI action group, drag-and-drop, CDN)
 
 ---
 
@@ -124,6 +125,67 @@ Deploying a SAM stack with `--s3-bucket <bucket-in-region-A>` and `--region <reg
 When the frontend uploads a file and needs the AI agent to register it, pass the final CDN URL — not a presigned S3 URL or S3 key. Presigned URLs expire and add complexity to the agent's action schema. CDN URLs are stable, short, and require no AWS credentials to resolve.
 
 **Blog angle:** Sidebar in "Designing clean AI agent action schemas"
+
+---
+
+---
+
+### 10. Bedrock Agent context memory: with and without the Memory feature
+
+**Context (Phase 2 — current state):**
+The app uses session-scoped context only — no Bedrock Agent Memory feature activated.
+On each `invoke_agent` call, Bedrock constructs the model prompt as:
+
+```
+[agent instruction]        ← always included
+[action group schemas]     ← always included
+[recent conversation turns]  ← sliding window, oldest dropped when limit hit
+[current user message]
+```
+
+The agent "remembers" within a session because the full turn history is replayed
+to the model on each invocation. This is standard conversational state, not memory.
+
+**What happens when history exceeds the model's context window:**
+Bedrock silently drops the oldest turns from the reconstructed prompt. The session ID
+and TTL are unaffected. No error is surfaced — the agent simply loses early context.
+For task-oriented sessions (list todos, create a todo, attach a file) this is rarely
+a problem, but for long sessions or sessions where early context matters (user
+preferences, earlier decisions), facts get lost silently.
+
+**Phase 3 plan — activating Bedrock Agent Memory:**
+The Memory feature solves this by periodically summarizing old turns into a compressed
+memory store. On future invocations Bedrock injects a summary of older context instead
+of the raw turns, so long-term facts survive context truncation.
+
+SAM template change to enable it:
+```yaml
+# On the agent alias resource
+AgentAliasMemoryConfiguration:
+  EnabledMemoryTypes:
+    - SESSION_SUMMARY
+```
+
+The DynamoDB session table design stays the same — Bedrock manages the memory store
+internally.
+
+**Blog angle:**
+- Part A (current): "How Bedrock Agents handle conversation context without Memory —
+  and what breaks at scale"
+- Part B (after Phase 3): "Activating Bedrock Agent Memory: one config change, real
+  before/after comparison"
+- Together they form a complete two-part post showing the evolution from stateless
+  session replay → summarised long-term memory, with the same app as the through-line.
+
+**Key contrast points to capture for the post:**
+| | Without Memory | With Memory |
+|---|---|---|
+| Context scope | Current session only | Across sessions |
+| Long conv handling | Silent truncation (oldest dropped) | Summarised, injected as context |
+| Cross-session recall | None (new sessionId = blank slate) | Preserved facts survive logout/re-login |
+| SAM config | None | `SESSION_SUMMARY` on alias |
+| Cost | Base invocation only | + memory storage/retrieval calls |
+| Useful when | Short, task-focused sessions | Long sessions, returning users, preferences |
 
 ---
 
