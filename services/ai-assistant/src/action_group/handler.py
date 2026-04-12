@@ -4,9 +4,9 @@ import logging
 import os
 import uuid
 from datetime import datetime
+from urllib.parse import unquote
 
 client = boto3.client('dynamodb', region_name=os.environ.get('TODO_TABLE_REGION', 'us-east-1'))
-files_client = boto3.client('dynamodb', region_name=os.environ.get('TODO_TABLE_REGION', 'us-east-1'))
 s3_client = boto3.client('s3')
 
 TODO_TABLE = os.environ['TODO_TABLE']
@@ -110,7 +110,7 @@ def completeTodo(todoID):
 def deleteTodo(userID, todoID):
     # Delete all associated files first
     if FILES_TABLE:
-        resp = files_client.query(
+        resp = client.query(
             TableName=FILES_TABLE,
             IndexName='todoIDIndex',
             KeyConditions={
@@ -124,12 +124,12 @@ def deleteTodo(userID, todoID):
             file_id = item['fileID']['S']
             file_path = item['filePath']['S']
             if FILES_BUCKET and FILES_BUCKET_CDN:
-                s3_key = file_path.replace(f'https://{FILES_BUCKET_CDN}/', '').replace('%40', '@')
+                s3_key = unquote(file_path.replace(f'https://{FILES_BUCKET_CDN}/', ''))
                 try:
                     s3_client.delete_object(Bucket=FILES_BUCKET, Key=s3_key)
                 except Exception as e:
                     logger.warning(json.dumps({'action': 'deleteTodo_s3_warn', 'fileID': file_id, 'error': str(e)}))
-            files_client.delete_item(
+            client.delete_item(
                 TableName=FILES_TABLE,
                 Key={'fileID': {'S': file_id}},
             )
@@ -144,7 +144,7 @@ def deleteTodo(userID, todoID):
 def listTodoFiles(todoID):
     if not FILES_TABLE:
         return {'files': []}
-    resp = files_client.query(
+    resp = client.query(
         TableName=FILES_TABLE,
         IndexName='todoIDIndex',
         KeyConditions={
@@ -171,7 +171,7 @@ def addTodoFile(todoID, fileName, fileUrl):
     if not FILES_TABLE:
         return json.dumps({'error': 'Files service not configured'})
     file_id = str(uuid.uuid4())
-    files_client.put_item(
+    client.put_item(
         TableName=FILES_TABLE,
         Item={
             'fileID': {'S': file_id},
@@ -187,23 +187,24 @@ def addTodoFile(todoID, fileName, fileUrl):
 def deleteTodoFile(todoID, fileID):
     if not FILES_TABLE:
         return json.dumps({'error': 'Files service not configured'})
-    resp = files_client.get_item(
+    resp = client.get_item(
         TableName=FILES_TABLE,
         Key={'fileID': {'S': fileID}},
     )
     item = resp.get('Item')
-    if item:
-        file_path = item['filePath']['S']
-        if FILES_BUCKET and FILES_BUCKET_CDN:
-            s3_key = file_path.replace(f'https://{FILES_BUCKET_CDN}/', '').replace('%40', '@')
-            try:
-                s3_client.delete_object(Bucket=FILES_BUCKET, Key=s3_key)
-            except Exception as e:
-                logger.warning(json.dumps({'action': 'deleteTodoFile_s3_warn', 'fileID': fileID, 'error': str(e)}))
-        files_client.delete_item(
-            TableName=FILES_TABLE,
-            Key={'fileID': {'S': fileID}},
-        )
+    if not item:
+        return json.dumps({'status': 'not_found', 'fileID': fileID})
+    file_path = item['filePath']['S']
+    if FILES_BUCKET and FILES_BUCKET_CDN:
+        s3_key = unquote(file_path.replace(f'https://{FILES_BUCKET_CDN}/', ''))
+        try:
+            s3_client.delete_object(Bucket=FILES_BUCKET, Key=s3_key)
+        except Exception as e:
+            logger.warning(json.dumps({'action': 'deleteTodoFile_s3_warn', 'fileID': fileID, 'error': str(e)}))
+    client.delete_item(
+        TableName=FILES_TABLE,
+        Key={'fileID': {'S': fileID}},
+    )
     logger.info(json.dumps({'action': 'deleteTodoFile', 'todoID': todoID, 'fileID': fileID}))
     return json.dumps({'status': 'success'})
 
