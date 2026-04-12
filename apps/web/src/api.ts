@@ -90,7 +90,7 @@ export async function deleteTodo(todoID: string): Promise<void> {
 }
 
 export async function addTodoNotes(todoID: string, notes: string): Promise<void> {
-    const userID = localStorage.getItem('userID');                                                                                                                                                  
+    const userID = localStorage.getItem('userID');
     const url = `${config.todoApiEndpoint}${userID}/todos/${todoID}/addnotes`;
 
     const payload = { notes };
@@ -102,5 +102,33 @@ export async function addTodoNotes(todoID: string, notes: string): Promise<void>
     }
 
     await apiFetch<void>(url, options);
-    
+
+}
+
+export async function getTodoFiles(todoID: string): Promise<import('./types').TodoFile[]> {
+    const url = `${config.filesApiEndpoint}${todoID}/files`;
+    const data = await apiFetch<import('./types').FilesResponse>(url);
+    return data?.files ?? [];
+}
+
+export async function registerTodoFile(todoID: string, fileName: string, filePath: string): Promise<boolean> {
+    const url = `${config.filesApiEndpoint}${todoID}/files/upload`;
+    const options: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName, filePath }),
+    };
+    const data = await apiFetch<{ status: string }>(url, options);
+    return data?.status === 'success';
+}
+
+export async function deleteTodoFile(todoID: string, fileID: string, filePath: string): Promise<boolean> {
+    const url = `${config.filesApiEndpoint}${todoID}/files/${fileID}/delete`;
+    const options: RequestInit = {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath }),
+    };
+    const data = await apiFetch<{ status: string }>(url, options);
+    return data?.status === 'success';
 }
