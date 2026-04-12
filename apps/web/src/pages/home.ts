@@ -141,12 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const filePath = btn.dataset.filepath!;
         const todoID = localStorage.getItem('todoID')!;
         if (!confirm('Delete this attachment?')) return;
-        const { deleteTodoFile } = await import('../api');
-        const { getTodoFiles, renderFiles } = await import('../api');
-        const { renderFiles: renderUI } = await import('../ui');
+        const { deleteTodoFile, getTodoFiles } = await import('../api');
+        const { renderFiles } = await import('../ui');
         await deleteTodoFile(todoID, fileID, filePath);
         const files = await getTodoFiles(todoID);
-        renderUI(files);
+        renderFiles(files);
     });
 
     // Show file upload form

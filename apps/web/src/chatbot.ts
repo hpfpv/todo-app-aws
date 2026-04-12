@@ -144,9 +144,6 @@ export function sendMessage(): void {
     ws.send(JSON.stringify({ human: message }));
 }
 
-let pendingFileUrl: string | null = null;
-let pendingFileName: string | null = null;
-
 export function initChatDropZone(): void {
     const drawer = document.getElementById('chatDrawer');
     if (!drawer) return;
@@ -179,9 +176,6 @@ export function initChatDropZone(): void {
             const todoID = localStorage.getItem('todoID') ?? '';
             const key = await uploadToS3(file, todoID || 'unassigned');
             const fileUrl = `https://${appConfig.cdnDomain}/${key}`;
-
-            pendingFileUrl = fileUrl;
-            pendingFileName = file.name;
 
             removeTypingIndicator();
             displayMessage(
