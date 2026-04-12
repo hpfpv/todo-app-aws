@@ -7,8 +7,8 @@ stack_name = "todo-houessou-com-ai-assistant"
 s3_prefix = "todo-houessou-com-ai-assistant"
 region = "us-east-1"
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "CognitoUserPoolId=\"<REPLACE_WITH_YOUR_COGNITO_POOL_ID>\""
-image_repositories = []
+parameter_overrides = "CognitoUserPoolId=\"us-east-1_fM3BzKm1u\""
+resolve_s3 = true
 confirm_changeset = true
 
 [default.global.parameters]
