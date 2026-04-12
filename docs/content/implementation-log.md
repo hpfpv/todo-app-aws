@@ -422,6 +422,163 @@ first pipeline run attempted.
 
 ---
 
+---
+
+## Phase 2 post-deploy fixes + Phase 3 planning (2026-04-12)
+
+**Goal:** Fix Nova XML tag leakage root cause, consolidate CloudFront/S3 to SAM-managed
+infrastructure, upgrade CloudFront OAI → OAC.
+
+---
+
+### Gotcha: Nova Lite passes `<userid>` XML tags literally as function parameter values
+
+- **Date:** 2026-04-12
+- **Iteration:** Phase 2 post-deploy debug
+- **Related area:** AI / Bedrock / Nova prompt design
+- **Trigger:** Gotcha — model behavior differed from expectation
+
+**Observation:** The websocket handler injected `<userid>email</userid>` at the
+start of every user message. The agent instruction told the model to extract the value
+inside those tags and use it as the `userID` parameter when calling action group
+functions. Nova Lite passed the full string `<userid>hpf@houessou.com</userid>`
+(tags included) as the parameter value. DynamoDB queried for a user with that literal
+string, found zero matches, and returned an empty list silently.
+
+**Impact:** Every `getTodos` call returned zero results. The bug was invisible from
+the UI — no error surfaced, just an empty conversation response.
+
+**Resolution:** Patched with `_clean_user_id()` regex in `action_group/handler.py`.
+Root cause fix (Phase 3): replace XML injection with `promptSessionAttributes`. The
+agent instruction references `$prompt_session.userID$`, which Bedrock substitutes
+server-side before the model processes the message. No XML in user messages, no tag
+leakage possible.
+
+**Lesson:** Nova models treat XML-like tags in user messages as plain text content. The
+model may or may not strip them before passing values to tool parameters — do not
+assume stripping. Use Bedrock's native session context mechanism (`promptSessionAttributes`)
+for structured metadata. The XML approach was borrowed from Claude prompt engineering
+patterns where `<tags>` have special meaning; Nova does not honour that convention the
+same way.
+
+**Blog relevance:** High. Real-world Bedrock Agent gotcha with a concrete root cause,
+silent failure mode, and the correct alternative pattern. Useful for anyone building
+Bedrock Agents with per-session context (userID, tenantID, session metadata).
+
+**Tags:** `bedrock`, `nova`, `agent`, `xml`, `dynamodb`, `ai`, `gotcha`,
+`prompt-engineering`
+
+---
+
+### Decision: Switch to `promptSessionAttributes` for userID injection (OAI → native Bedrock mechanism)
+
+- **Date:** 2026-04-12
+- **Iteration:** Phase 3 design
+- **Related area:** AI / Bedrock agent architecture / security
+- **Trigger:** Architecture decision
+
+**Decision:** Replace the `<userid>...</userid>` XML prefix in user messages with
+Bedrock's `sessionState.promptSessionAttributes`. The websocket handler passes
+`{'promptSessionAttributes': {'userID': user_id}}` on each `invoke_agent` call.
+The agent instruction uses `$prompt_session.userID$`, which Bedrock substitutes
+server-side.
+
+**Alternatives considered:**
+- Keep XML approach + improve instruction clarity (option B) — simpler, but root
+  cause remains, defensive patching in Lambda required.
+- Remove `userID` from all function schemas + read from `event['promptSessionAttributes']`
+  in the action group Lambda — cleanest boundary, but requires schema changes on six
+  functions and more invasive handler changes. Deferred.
+
+**Trade-offs:**
+- `promptSessionAttributes` is a Bedrock-native mechanism, not a prompt-engineering
+  workaround. Cleaner architecture, no XML parsing defensive code.
+- Requires adding `sessionState` parameter to `invoke_agent` call — one-line change.
+- `_clean_user_id()` kept as a silent fallback; no harm in retaining it.
+
+**Blog relevance:** High. Shows the right Bedrock pattern vs the intuitive-but-wrong
+one. Strong contrast with the XML leakage bug above.
+
+**Tags:** `bedrock`, `nova`, `agent`, `session-state`, `architecture`, `ai`,
+`prompt-engineering`
+
+---
+
+### Gotcha: CloudFront split-brain — SAM distribution never wired to live domain
+
+- **Date:** 2026-04-12
+- **Iteration:** Phase 3 infrastructure consolidation
+- **Related area:** CloudFront / DNS / S3 / infrastructure
+- **Trigger:** Issue — pipeline deploys to the right bucket but the live site serves
+  the wrong one
+
+**Observation:** The SAM `frontend-hosting` stack was deployed and manages bucket
+`hpf-todo-app-frontend` + CloudFront distribution `E118TDTPSAOMXC`. SSM params
+correctly point to both. The GitHub Actions frontend pipeline reads SSM params, syncs
+to `hpf-todo-app-frontend`, and invalidates `E118TDTPSAOMXC`. However, `todo.houessou.com`
+Route53 alias still pointed at old manually-created distribution `E18XPNF7F5JXIL`
+backed by the separate bucket `hpf-todo-app-web`. The SAM distribution had no alternate
+domain name configured, so Route53 could not be updated to it without first adding the
+alias + ACM cert.
+
+**Impact:** Every pipeline deploy was invisible at the live domain. Chatbot and file
+attachment features were fully deployed but unreachable. Temporary workaround: manually
+sync `hpf-todo-app-frontend` → `hpf-todo-app-web` after each pipeline run.
+
+**Resolution (Phase 3):** Add `Aliases: [todo.houessou.com]` and ACM cert to the SAM
+distribution, update Route53, delete old distribution and bucket.
+
+**Lesson:** When IaC creates new infrastructure alongside existing manually-managed
+resources, the DNS wiring step is easy to miss. The new distribution is live but
+unreachable at the custom domain until the alias + cert + DNS are all updated together.
+Always verify the full DNS → CloudFront → S3 request chain after introducing IaC for
+previously-manual infrastructure.
+
+**Blog relevance:** High. IaC drift + split-brain CDN is a common scenario when
+migrating from manual setup to SAM/CDK. The three-step fix (alias, cert, DNS) is
+concrete and reusable.
+
+**Tags:** `cloudfront`, `s3`, `route53`, `dns`, `iac`, `sam`, `networking`,
+`infrastructure`, `pipeline`
+
+---
+
+### Decision: CloudFront OAI → OAC upgrade bundled with domain fix
+
+- **Date:** 2026-04-12
+- **Iteration:** Phase 3 infrastructure consolidation
+- **Related area:** CloudFront / security / infrastructure
+- **Trigger:** Architecture decision — AWS service upgrade
+
+**Decision:** Upgrade the SAM-managed CloudFront distribution from OAI (Origin Access
+Identity) to OAC (Origin Access Control) while adding the custom domain alias and ACM
+cert. Cost of the upgrade is near-zero since the distribution is already being
+modified.
+
+**Why OAC over OAI:**
+- OAI is legacy — AWS recommends OAC for all new distributions.
+- OAC uses IAM-style bucket policies (`cloudfront.amazonaws.com` service principal
+  with `AWS:SourceArn` condition) instead of the special OAI principal.
+- OAC supports SSE-KMS encrypted buckets; OAI does not.
+- S3 access logs show the CloudFront distribution ARN in the request, making
+  access audits clearer.
+
+**Changes:** Replace `AWS::CloudFront::CloudFrontOriginAccessIdentity` resource with
+`AWS::CloudFront::OriginAccessControl`. Update S3 bucket policy principal from OAI
+to service principal with source ARN condition.
+
+**Lesson:** Bundle low-cost security hygiene into required changes. OAI → OAC is the
+kind of one-time upgrade worth doing whenever a distribution is touched for another
+reason. The SAM resource change is small; the operational and security benefit is durable.
+
+**Blog relevance:** Medium-High. OAI → OAC migration is a common action item for AWS
+teams working on legacy CloudFront setups. Pairing it with a real bug fix makes the
+migration concrete rather than hypothetical.
+
+**Tags:** `cloudfront`, `oac`, `oai`, `s3`, `security`, `iam`, `aws`, `infrastructure`
+
+---
+
 ## Strongest blog candidates so far
 
 1. WebSocket + Bedrock: the session persistence bug everyone makes

@@ -2,6 +2,7 @@ import boto3
 import json
 import logging
 import os
+import re
 import uuid
 from datetime import datetime
 from urllib.parse import unquote
@@ -16,6 +17,12 @@ FILES_BUCKET_CDN = os.environ.get('FILES_BUCKET_CDN', '')
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+
+def _clean_user_id(user_id: str) -> str:
+    """Strip <userid>...</userid> XML tags if the model included them by mistake."""
+    match = re.search(r'<userid>(.*?)</userid>', user_id, re.IGNORECASE)
+    return match.group(1).strip() if match else user_id.strip()
 
 
 def _todo_from_item(item):
@@ -215,11 +222,11 @@ def lambda_handler(event, context):
     function = event['function']
 
     if function == 'getTodos':
-        body = getTodos(parameters['userID'])
+        body = getTodos(_clean_user_id(parameters['userID']))
     elif function == 'getTodo':
         body = getTodo(parameters['todoID'])
     elif function == 'addTodo':
-        body = addTodo(parameters['userID'], {
+        body = addTodo(_clean_user_id(parameters['userID']), {
             'title': parameters['title'],
             'description': parameters['description'],
             'dateDue': parameters['dateDue'],
@@ -229,7 +236,7 @@ def lambda_handler(event, context):
     elif function == 'completeTodo':
         body = completeTodo(parameters['todoID'])
     elif function == 'deleteTodo':
-        body = deleteTodo(parameters['userID'], parameters['todoID'])
+        body = deleteTodo(_clean_user_id(parameters['userID']), parameters['todoID'])
     elif function == 'listTodoFiles':
         body = listTodoFiles(parameters['todoID'])
     elif function == 'addTodoFile':

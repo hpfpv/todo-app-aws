@@ -189,6 +189,53 @@ internally.
 
 ---
 
+---
+
+### 11. Nova XML tag leakage in Bedrock Agent tool calls
+
+Nova Lite passed `<userid>hpf@houessou.com</userid>` (tags included) as a function
+parameter value. DynamoDB found zero matches. The agent returned empty results with
+no error — a completely silent failure.
+
+Root cause: XML tags in user messages are treated as plain content by Nova. The model
+does not strip them before passing values to tool parameters, unlike Claude where XML
+tags carry semantic meaning in prompt templates.
+
+Fix: Bedrock `promptSessionAttributes` — pass `{'userID': user_id}` as session context,
+reference via `$prompt_session.userID$` in the agent instruction. User messages stay
+clean, no XML, no defensive stripping needed.
+
+**Blog angle:** "The silent Bedrock Agent bug: how XML tags in user messages break
+tool calls with Amazon Nova"
+
+---
+
+### 12. CloudFront split-brain: SAM infrastructure invisible at the live domain
+
+SAM deployed `hpf-todo-app-frontend` + a new CloudFront distribution. Pipeline
+synced to the SAM bucket correctly. But `todo.houessou.com` Route53 still pointed
+at the old manual distribution (`E18XPNF7F5JXIL` → `hpf-todo-app-web`). The SAM
+distribution had no alternate domain name configured, so it was unreachable at the
+custom domain. Every deploy was invisible at the live URL.
+
+The three-step fix: add alias + ACM cert to SAM distribution → update Route53 →
+delete old distribution and bucket.
+
+**Blog angle:** "IaC and DNS don't wire themselves: the CloudFront split-brain trap"
+
+---
+
+### 13. CloudFront OAI → OAC: the upgrade worth bundling
+
+OAI is legacy. OAC uses IAM-style bucket policies with a `cloudfront.amazonaws.com`
+service principal and `AWS:SourceArn` condition. Supports SSE-KMS, cleaner audit
+logs, and is the current AWS standard. Marginal SAM change when you're already touching
+a distribution.
+
+**Blog angle:** Sidebar/checklist in any CloudFront + S3 post — "Are you still using OAI?"
+
+---
+
 ## Open questions / unresolved items
 
 - `verify_aud: False` — needs `COGNITO_CLIENT_ID` added as parameter before production
