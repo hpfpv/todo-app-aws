@@ -126,9 +126,10 @@ def _default(connection_id, user_id, body_str):
             'action': 'session_recovery', 'connectionId': connection_id,
         }))
 
-    input_text = f'<userid>{user_id}</userid>\n{human}'
+    input_text = human
 
-    # Invoke Bedrock Agent
+    # Invoke Bedrock Agent — userID is injected via promptSessionAttributes,
+    # referenced as $prompt_session.userID$ in the agent instruction
     agent_response = bedrock_agent_runtime.invoke_agent(
         inputText=input_text,
         agentId=AGENT_ID,
@@ -136,6 +137,9 @@ def _default(connection_id, user_id, body_str):
         sessionId=session_id,
         enableTrace=ENABLE_TRACE,
         endSession=False,
+        sessionState={
+            'promptSessionAttributes': {'userID': user_id},
+        },
     )
 
     # Stream the response and collect final answer
