@@ -11,12 +11,13 @@ const CHAT_HISTORY_KEY = 'chatHistory';
 const CHAT_FRESH_KEY = 'chatFreshSession';
 
 let ws: WebSocket | null = null;
+let _intentionalClose = false;
 
-function setStatus(label: string, online: boolean): void {
+function setStatus(label: string, connected: boolean): void {
     const el = document.querySelector<HTMLElement>('.drawer-status');
     if (!el) return;
     el.textContent = `● ${label}`;
-    el.style.color = online ? '' : 'var(--clr-muted, #999)';
+    el.classList.toggle('connected', connected);
 }
 
 function persistMessage(text: string, sender: Sender): void {
@@ -95,12 +96,25 @@ export function openChatSession(): void {
 
     ws.onclose = () => {
         console.log('[chatbot] WebSocket closed');
-        setStatus('Offline', false);
         ws = null;
+        if (_intentionalClose) {
+            _intentionalClose = false;
+            setStatus('Offline', false);
+            return;
+        }
+        // Unexpected close (server timeout) — auto-reconnect if drawer still open
+        const drawer = document.getElementById('chatDrawer');
+        if (drawer?.classList.contains('open')) {
+            setStatus('Reconnecting…', false);
+            setTimeout(() => openChatSession(), 1500);
+        } else {
+            setStatus('Offline', false);
+        }
     };
 }
 
 export function closeChatSession(): void {
+    _intentionalClose = true;
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.close();
     }

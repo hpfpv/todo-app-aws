@@ -121,16 +121,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const { showFileUploading, hideFileUploading, renderFiles, hideAddFilesForm: hideForm } = await import('../ui');
         showFileUploading(file.name);
 
-        const { uploadToS3 } = await import('../s3upload');
-        const { registerTodoFile, getTodoFiles } = await import('../api');
+        try {
+            const { uploadToS3 } = await import('../s3upload');
+            const { registerTodoFile, getTodoFiles } = await import('../api');
 
-        const key = await uploadToS3(file, todoID);
-        await registerTodoFile(todoID, file.name, key);
+            const key = await uploadToS3(file, todoID);
+            await registerTodoFile(todoID, file.name, key);
 
-        hideFileUploading();
-        hideForm();
-        const files = await getTodoFiles(todoID);
-        renderFiles(files);
+            hideFileUploading();
+            hideForm();
+            const files = await getTodoFiles(todoID);
+            renderFiles(files);
+        } catch (err) {
+            hideFileUploading();
+            console.error('[upload] file upload failed:', err);
+            alert(`Upload failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
     });
 
     // Delete file handler (event delegation on filesList)

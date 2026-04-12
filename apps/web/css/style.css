@@ -260,6 +260,10 @@ p {
 
 .drawer-status {
     font-size: 11px;
+    color: #999;
+}
+
+.drawer-status.connected {
     color: var(--green);
 }
 
