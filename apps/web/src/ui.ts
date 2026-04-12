@@ -98,12 +98,31 @@ import { Todo, TodoFile } from './types';
       setCount('statDone', done);
   }
 
-  export function renderFiles(files: TodoFile[]): void {
-      const list = getElement('filesList');
-      if (!list) return;
-      list.innerHTML = files.map(file => `
-          <div id="${file.fileID}">
-              <a href="${file.filePath}" target="_blank">${file.fileName}</a>
-          </div>
-      `).join('');
-  }
+export function renderFiles(files: TodoFile[]): void {
+    const list = getElement('filesList');
+    if (!list) return;
+    if (files.length === 0) {
+        list.innerHTML = '<p class="text-muted small">No attachments</p>';
+        return;
+    }
+    list.innerHTML = files.map(f => `
+        <div class="d-flex align-items-center justify-content-between mb-1" data-fileid="${f.fileID}">
+            <a href="${f.filePath}" target="_blank" class="text-truncate mr-2" style="max-width:200px">${f.fileName}</a>
+            <button class="btn btn-sm btn-outline-danger delete-file-btn" data-fileid="${f.fileID}" data-filepath="${f.filePath}">&#x2715;</button>
+        </div>
+    `).join('');
+}
+
+export function showFileUploading(fileName: string): void {
+    const list = getElement('filesList');
+    if (!list) return;
+    const el = document.createElement('div');
+    el.id = 'uploadingIndicator';
+    el.className = 'text-muted small';
+    el.textContent = `Uploading ${fileName}…`;
+    list.appendChild(el);
+}
+
+export function hideFileUploading(): void {
+    document.getElementById('uploadingIndicator')?.remove();
+}

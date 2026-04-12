@@ -109,6 +109,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Upload attachment via Upload button inside addFilesForm
+    document.getElementById('uploadButton')?.addEventListener('click', async () => {
+        const todoID = localStorage.getItem('todoID');
+        if (!todoID) return;
+        const input = document.getElementById('fileinput') as HTMLInputElement;
+        const file = input?.files?.[0];
+        if (!file) return;
+
+        const { showFileUploading, hideFileUploading, renderFiles, hideAddFilesForm: hideForm } = await import('../ui');
+        showFileUploading(file.name);
+
+        const { uploadToS3 } = await import('../s3upload');
+        const { registerTodoFile, getTodoFiles } = await import('../api');
+
+        const key = await uploadToS3(file, todoID);
+        await registerTodoFile(todoID, file.name, key);
+
+        hideFileUploading();
+        hideForm();
+        const files = await getTodoFiles(todoID);
+        renderFiles(files);
+    });
+
+    // Delete file handler (event delegation on filesList)
+    document.getElementById('filesList')?.addEventListener('click', async (e: MouseEvent) => {
+        const btn = (e.target as HTMLElement).closest('.delete-file-btn') as HTMLElement | null;
+        if (!btn) return;
+        const fileID = btn.dataset.fileid!;
+        const filePath = btn.dataset.filepath!;
+        const todoID = localStorage.getItem('todoID')!;
+        if (!confirm('Delete this attachment?')) return;
+        const { deleteTodoFile } = await import('../api');
+        const { getTodoFiles, renderFiles } = await import('../api');
+        const { renderFiles: renderUI } = await import('../ui');
+        await deleteTodoFile(todoID, fileID, filePath);
+        const files = await getTodoFiles(todoID);
+        renderUI(files);
+    });
+
     // Show file upload form
     document.getElementById('showAddFilesButton')?.addEventListener('click', showAddFilesForm);
 
@@ -137,4 +176,11 @@ function updateModal(todo: Todo): void {
     } else {
         import('../ui').then(({ markNotCompleted }) => markNotCompleted());
     }
+
+    // Load files for this todo
+    import('../api').then(({ getTodoFiles }) => {
+        getTodoFiles(todo.todoID).then(files => {
+            import('../ui').then(({ renderFiles }) => renderFiles(files));
+        });
+    });
 }
