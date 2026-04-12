@@ -97,6 +97,9 @@ Resources:
         Variables:
           TODO_TABLE: !ImportValue "todo-houessou-com-TodoTable"
           TODO_TABLE_REGION: !Sub "${AWS::Region}"
+          FILES_TABLE: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTable"
+          FILES_BUCKET: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucket"
+          FILES_BUCKET_CDN: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucketCFDomainName"
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -111,6 +114,25 @@ Resources:
                 - !Sub
                   - "${TableArn}/index/*"
                   - TableArn: !ImportValue "todo-houessou-com-TodoTableArn"
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+              Resource:
+                - !ImportValue "todo-houessou-com-attachments-service-TodoFilesTableArn"
+                - !Sub
+                  - "${TableArn}/index/*"
+                  - TableArn: !ImportValue "todo-houessou-com-attachments-service-TodoFilesTableArn"
+            - Effect: Allow
+              Action:
+                - s3:DeleteObject
+                - s3:GetObject
+              Resource:
+                - !Sub
+                  - "${BucketArn}/*"
+                  - BucketArn: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucketArn"
 
   EnableBedrockLoggingFunction:
     Type: AWS::Serverless::Function
@@ -340,9 +362,13 @@ Resources:
       Instruction: |
         You are a helpful assistant for a todo list application called TodoHouessou.
         The user's ID is provided at the start of each message in the format <userid>USER_ID</userid>.
-        Always extract and use this userID when calling API actions.
-        You can help users: list their todos, view a specific todo, create new todos, mark todos as complete, and add notes to todos.
-        When referring to todos, use natural language. Never expose internal IDs unless the user asks.
+        Always extract and use this userID when calling API actions that require it.
+        You can help users:
+        - List, view, create, complete, and delete todos
+        - Add and update notes on todos
+        - List, add, and delete file attachments on todos
+        When a user uploads a file via drag-and-drop, they will tell you the file URL and name. Ask which todo to attach it to if not specified.
+        When referring to todos or files, use natural language. Never expose internal IDs unless the user asks.
         Always respond concisely and in a friendly tone.
       ActionGroups:
         - ActionGroupName: TodoActions
@@ -413,6 +439,50 @@ Resources:
                   todoID:
                     Type: string
                     Description: The todo's ID
+                    Required: true
+              - Name: deleteTodo
+                Description: Delete a todo and all its attachments
+                Parameters:
+                  userID:
+                    Type: string
+                    Description: The user's ID
+                    Required: true
+                  todoID:
+                    Type: string
+                    Description: The todo's ID
+                    Required: true
+              - Name: listTodoFiles
+                Description: List all file attachments for a specific todo
+                Parameters:
+                  todoID:
+                    Type: string
+                    Description: The todo's ID
+                    Required: true
+              - Name: addTodoFile
+                Description: Register a file that has already been uploaded to storage as an attachment on a todo
+                Parameters:
+                  todoID:
+                    Type: string
+                    Description: The todo's ID
+                    Required: true
+                  fileName:
+                    Type: string
+                    Description: Display name of the file
+                    Required: true
+                  fileUrl:
+                    Type: string
+                    Description: The CDN or storage URL of the uploaded file
+                    Required: true
+              - Name: deleteTodoFile
+                Description: Delete a file attachment from a todo
+                Parameters:
+                  todoID:
+                    Type: string
+                    Description: The todo's ID
+                    Required: true
+                  fileID:
+                    Type: string
+                    Description: The file's ID
                     Required: true
       Tags:
         Project: todo-houessou-com
