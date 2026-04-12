@@ -39,6 +39,7 @@ jobs:
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
+            --resolve-s3 \
             --stack-name $STACK_NAME \
             --capabilities CAPABILITY_NAMED_IAM \
             --region ${{ secrets.AWS_REGION }}
