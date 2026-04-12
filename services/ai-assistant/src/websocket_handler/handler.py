@@ -21,14 +21,18 @@ WS_ENDPOINT = os.environ.get('WS_ENDPOINT', '')
 _api_gw_mgmt = boto3.client('apigatewaymanagementapi', endpoint_url=WS_ENDPOINT) if WS_ENDPOINT else None
 
 
-def _connect(connection_id, user_id):
+def _connect(connection_id, user_id, fresh=False):
     now = int(time.time())
-    # Check for an existing session for this user
-    response = dynamodb.get_item(
-        TableName=BOT_TABLE,
-        Key={'pk': {'S': user_id}},
-    )
-    item = response.get('Item')
+    # Check for an existing session for this user (skip reuse when fresh=True)
+    if not fresh:
+        response = dynamodb.get_item(
+            TableName=BOT_TABLE,
+            Key={'pk': {'S': user_id}},
+        )
+        item = response.get('Item')
+    else:
+        item = None
+
     if item and int(item['ttl']['N']) > now:
         session_id = item['sessionId']['S']
         logger.info(json.dumps({
@@ -38,7 +42,8 @@ def _connect(connection_id, user_id):
     else:
         session_id = str(uuid.uuid4())
         logger.info(json.dumps({
-            'level': 'INFO', 'route': '$connect', 'action': 'new_session',
+            'level': 'INFO', 'route': '$connect',
+            'action': 'fresh_session' if fresh else 'new_session',
             'connectionId': connection_id, 'userIdPrefix': user_id[:3] + '***',
         }))
 
@@ -181,7 +186,8 @@ def lambda_handler(event, context):
 
     if route == '$connect':
         user_id = event['requestContext'].get('authorizer', {}).get('userID', 'unknown')
-        return _connect(connection_id, user_id)
+        fresh = event.get('queryStringParameters', {}).get('fresh') == '1'
+        return _connect(connection_id, user_id, fresh=fresh)
     elif route == '$disconnect':
         return _disconnect(connection_id)
     else:

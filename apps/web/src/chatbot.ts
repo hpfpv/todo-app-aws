@@ -8,8 +8,16 @@ interface PersistedMessage {
 }
 
 const CHAT_HISTORY_KEY = 'chatHistory';
+const CHAT_FRESH_KEY = 'chatFreshSession';
 
 let ws: WebSocket | null = null;
+
+function setStatus(label: string, online: boolean): void {
+    const el = document.querySelector<HTMLElement>('.drawer-status');
+    if (!el) return;
+    el.textContent = `● ${label}`;
+    el.style.color = online ? '' : 'var(--clr-muted, #999)';
+}
 
 function persistMessage(text: string, sender: Sender): void {
     const raw = localStorage.getItem(CHAT_HISTORY_KEY);
@@ -27,6 +35,8 @@ export function restoreChatHistory(): void {
 
 export function clearChatHistory(): void {
     localStorage.removeItem(CHAT_HISTORY_KEY);
+    // Mark that next WS connection should start a fresh Bedrock session
+    localStorage.setItem(CHAT_FRESH_KEY, '1');
 }
 
 function formatBotText(text: string): string {
@@ -58,10 +68,17 @@ export function openChatSession(): void {
         return;
     }
 
-    ws = new WebSocket(`${config.chatbotWsEndpoint}?token=${encodeURIComponent(token)}`);
+    // If this is a fresh login (after logout), request a new Bedrock session
+    const fresh = localStorage.getItem(CHAT_FRESH_KEY) === '1';
+    if (fresh) localStorage.removeItem(CHAT_FRESH_KEY);
+
+    const url = `${config.chatbotWsEndpoint}?token=${encodeURIComponent(token)}${fresh ? '&fresh=1' : ''}`;
+    setStatus('Connecting…', false);
+    ws = new WebSocket(url);
 
     ws.onopen = () => {
         console.log('[chatbot] WebSocket connected');
+        setStatus('Online', true);
     };
 
     ws.onmessage = (event: MessageEvent) => {
@@ -72,11 +89,13 @@ export function openChatSession(): void {
 
     ws.onerror = () => {
         removeTypingIndicator();
+        setStatus('Error', false);
         displayMessage('Connection error. Please refresh the page.', 'bot');
     };
 
     ws.onclose = () => {
         console.log('[chatbot] WebSocket closed');
+        setStatus('Offline', false);
         ws = null;
     };
 }

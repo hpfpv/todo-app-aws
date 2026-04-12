@@ -54,6 +54,7 @@ jobs:
           echo "VITE_COGNITO_IDENTITY_POOL_ID=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/identity-pool-id --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
           echo "VITE_S3_BUCKET=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/s3-bucket --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
           echo "VITE_CHATBOT_WS_ENDPOINT=$(aws ssm get-parameter --name /todo-houessou-com/ai-assistant/websocket-endpoint --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
+          echo "VITE_CDN_DOMAIN=$(aws ssm get-parameter --name /todo-houessou-com/attachments-service/cdn-domain --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
           echo "FRONTEND_BUCKET=$(aws ssm get-parameter --name /todo-houessou-com/frontend/s3-bucket --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
           echo "CF_DISTRIBUTION_ID=$(aws ssm get-parameter --name /todo-houessou-com/frontend/cf-distribution-id --query Parameter.Value --output text --region ${{ secrets.AWS_REGION }})" >> $GITHUB_ENV
 
@@ -73,6 +74,7 @@ jobs:
           VITE_S3_BUCKET: ${{ env.VITE_S3_BUCKET }}
           VITE_AWS_REGION: ${{ secrets.AWS_REGION }}
           VITE_CHATBOT_WS_ENDPOINT: ${{ env.VITE_CHATBOT_WS_ENDPOINT }}
+          VITE_CDN_DOMAIN: ${{ env.VITE_CDN_DOMAIN }}
 
       - name: Deploy to S3
         run: |
