@@ -9,6 +9,7 @@ interface PersistedMessage {
 
 const CHAT_HISTORY_KEY = 'chatHistory';
 const CHAT_FRESH_KEY = 'chatFreshSession';
+const UPLOAD_INTENT_RE = /upload|attach|add a file|share a file|provide the file|drag.*file|file.*url/i;
 
 let ws: WebSocket | null = null;
 let _intentionalClose = false;
@@ -130,6 +131,7 @@ export function displayMessage(text: string, sender: Sender = 'user', persist = 
 
     if (sender === 'bot') {
         messageElement.innerHTML = '<span class="bot-avatar-sm">✦</span>' + formatBotText(text);
+        if (persist) _maybeAppendUploadButton(messageElement);
     } else {
         messageElement.textContent = text;
     }
@@ -177,11 +179,56 @@ export function sendMessage(): void {
     ws.send(JSON.stringify({ human: message }));
 }
 
+function _maybeAppendUploadButton(el: HTMLElement): void {
+    const text = el.textContent ?? '';
+    if (!UPLOAD_INTENT_RE.test(text)) return;
+    const btn = document.createElement('button');
+    btn.className = 'chat-upload-btn';
+    btn.type = 'button';
+    btn.textContent = '📎 Upload file';
+    btn.addEventListener('click', () => {
+        const fileInput = document.getElementById('chatFileInput') as HTMLInputElement | null;
+        fileInput?.click();
+    });
+    el.appendChild(btn);
+}
+
+async function _handleFileUpload(file: File): Promise<void> {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        displayMessage('Not connected. Please open the chat panel again.', 'bot', false);
+        return;
+    }
+
+    displayMessage(`Uploading ${file.name}…`, 'bot', false);
+    displayTypingIndicator();
+
+    try {
+        const { uploadToS3 } = await import('./s3upload');
+        const { config: appConfig } = await import('./config');
+        const todoID = localStorage.getItem('todoID') ?? '';
+        const key = await uploadToS3(file, todoID || 'unassigned');
+        const fileUrl = `https://${appConfig.cdnDomain}/${key}`;
+
+        removeTypingIndicator();
+
+        const msg = todoID
+            ? `I just uploaded "${file.name}". Its URL is: ${fileUrl}. Please attach it to the currently open todo.`
+            : `I just uploaded "${file.name}". Its URL is: ${fileUrl}. Please ask me which todo to attach it to.`;
+
+        displayMessage(msg, 'user');
+        displayTypingIndicator();
+        ws.send(JSON.stringify({ human: msg }));
+    } catch (err) {
+        removeTypingIndicator();
+        displayMessage('File upload failed. Please try again.', 'bot', false);
+        console.error('[chatbot] file upload error:', err);
+    }
+}
+
 export function initChatDropZone(): void {
     const drawer = document.getElementById('chatDrawer');
     if (!drawer) return;
 
-    // Prevent re-registering listeners
     if (drawer.dataset.dropzoneInit) return;
     drawer.dataset.dropzoneInit = '1';
 
@@ -198,33 +245,25 @@ export function initChatDropZone(): void {
         e.preventDefault();
         drawer.classList.remove('drag-over');
         const file = e.dataTransfer?.files?.[0];
-        if (!file || !ws || ws.readyState !== WebSocket.OPEN) return;
+        if (!file) return;
+        await _handleFileUpload(file);
+    });
+}
 
-        displayMessage(`Uploading ${file.name}…`, 'bot', false);
-        displayTypingIndicator();
+export function initChatFileInput(): void {
+    const fileInput = document.getElementById('chatFileInput') as HTMLInputElement | null;
+    const attachBtn = document.getElementById('chatAttachBtn') as HTMLButtonElement | null;
+    if (!fileInput || !attachBtn) return;
 
-        try {
-            const { uploadToS3 } = await import('./s3upload');
-            const { config: appConfig } = await import('./config');
-            const todoID = localStorage.getItem('todoID') ?? '';
-            const key = await uploadToS3(file, todoID || 'unassigned');
-            const fileUrl = `https://${appConfig.cdnDomain}/${key}`;
+    if (fileInput.dataset.chatInit) return;
+    fileInput.dataset.chatInit = '1';
 
-            removeTypingIndicator();
-            displayMessage(
-                `File "${file.name}" uploaded. I'll ask the AI to attach it to a todo.`,
-                'bot',
-                false,
-            );
+    attachBtn.addEventListener('click', () => fileInput.click());
 
-            const msg = `I just uploaded a file named "${file.name}". Its URL is: ${fileUrl}. Please attach it to the appropriate todo, or ask me which todo to attach it to.`;
-            displayMessage(msg, 'user');
-            displayTypingIndicator();
-            ws.send(JSON.stringify({ human: msg }));
-        } catch (err) {
-            removeTypingIndicator();
-            displayMessage('File upload failed. Please try again.', 'bot', false);
-            console.error('[chatbot] drop upload error:', err);
-        }
+    fileInput.addEventListener('change', async () => {
+        const file = fileInput.files?.[0];
+        fileInput.value = '';
+        if (!file) return;
+        await _handleFileUpload(file);
     });
 }
