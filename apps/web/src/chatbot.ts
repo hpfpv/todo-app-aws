@@ -9,6 +9,7 @@ interface PersistedMessage {
 
 const CHAT_HISTORY_KEY = 'chatHistory';
 const CHAT_FRESH_KEY = 'chatFreshSession';
+const UPLOAD_INTENT_RE = /upload|attach|add a file|share a file|provide the file|drag.*file|file.*url/i;
 
 let ws: WebSocket | null = null;
 let _intentionalClose = false;
@@ -130,6 +131,7 @@ export function displayMessage(text: string, sender: Sender = 'user', persist = 
 
     if (sender === 'bot') {
         messageElement.innerHTML = '<span class="bot-avatar-sm">✦</span>' + formatBotText(text);
+        if (persist) _maybeAppendUploadButton(messageElement);
     } else {
         messageElement.textContent = text;
     }
@@ -175,6 +177,20 @@ export function sendMessage(): void {
     displayTypingIndicator();
 
     ws.send(JSON.stringify({ human: message }));
+}
+
+function _maybeAppendUploadButton(el: HTMLElement): void {
+    const text = el.textContent ?? '';
+    if (!UPLOAD_INTENT_RE.test(text)) return;
+    const btn = document.createElement('button');
+    btn.className = 'chat-upload-btn';
+    btn.type = 'button';
+    btn.textContent = '📎 Upload file';
+    btn.addEventListener('click', () => {
+        const fileInput = document.getElementById('chatFileInput') as HTMLInputElement | null;
+        fileInput?.click();
+    });
+    el.appendChild(btn);
 }
 
 async function _handleFileUpload(file: File): Promise<void> {
@@ -229,6 +245,24 @@ export function initChatDropZone(): void {
         e.preventDefault();
         drawer.classList.remove('drag-over');
         const file = e.dataTransfer?.files?.[0];
+        if (!file) return;
+        await _handleFileUpload(file);
+    });
+}
+
+export function initChatFileInput(): void {
+    const fileInput = document.getElementById('chatFileInput') as HTMLInputElement | null;
+    const attachBtn = document.getElementById('chatAttachBtn') as HTMLButtonElement | null;
+    if (!fileInput || !attachBtn) return;
+
+    if (fileInput.dataset.chatInit) return;
+    fileInput.dataset.chatInit = '1';
+
+    attachBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async () => {
+        const file = fileInput.files?.[0];
+        fileInput.value = '';
         if (!file) return;
         await _handleFileUpload(file);
     });
