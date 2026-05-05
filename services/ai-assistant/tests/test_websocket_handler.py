@@ -47,14 +47,15 @@ class TestDefaultInputText(unittest.TestCase):
     @patch.object(handler, 'bedrock_agent_runtime')
     @patch.object(handler, 'dynamodb')
     def test_input_text_is_only_human_message(self, mock_ddb, mock_bedrock, mock_apigw):
-        """input_text must be the raw human message — no XML prefix."""
+        """input_text must contain the human message wrapped in <query> delimiters."""
         mock_ddb.get_item.return_value = _ddb_conn_item()
         mock_bedrock.invoke_agent.return_value = _agent_response('OK')
 
         handler._default('conn-1', 'u@e.com', json.dumps({'human': 'list my todos'}))
 
         call_kwargs = mock_bedrock.invoke_agent.call_args[1]
-        self.assertEqual(call_kwargs['inputText'], 'list my todos')
+        self.assertIn('list my todos', call_kwargs['inputText'])
+        self.assertTrue(call_kwargs['inputText'].startswith('<query>'))
 
     @patch.object(handler, '_api_gw_mgmt')
     @patch.object(handler, 'bedrock_agent_runtime')
