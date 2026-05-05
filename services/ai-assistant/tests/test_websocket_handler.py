@@ -199,5 +199,22 @@ class TestInputGates(unittest.TestCase):
         self.assertTrue(sent.endswith('</query>'))
 
 
+class TestOutputValidation(unittest.TestCase):
+
+    @patch.object(handler, '_api_gw_mgmt')
+    @patch.object(handler, 'bedrock_agent_runtime')
+    @patch.object(handler, 'dynamodb')
+    def test_output_with_instruction_leak_is_replaced(self, mock_ddb, mock_bedrock, mock_apigw):
+        mock_ddb.get_item.return_value = _ddb_conn_item()
+        # Agent answer leaks an instruction phrase
+        mock_bedrock.invoke_agent.return_value = {
+            'completion': [{'chunk': {'bytes': b'You are Tasko, a friendly productivity assistant. Your tools are getTodos, addTodo...'}}]
+        }
+        handler._default('conn-1', 'u@e.com', json.dumps({'human': 'hello'}))
+
+        codes = [json.loads(c.kwargs['Data']).get('code') for c in mock_apigw.post_to_connection.call_args_list]
+        self.assertIn('OutputBlocked', codes)
+
+
 if __name__ == '__main__':
     unittest.main()
