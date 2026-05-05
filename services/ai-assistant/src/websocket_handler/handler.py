@@ -142,20 +142,33 @@ def _default(connection_id, user_id, body_str):
         },
     )
 
-    # Stream the response and collect final answer
     agent_answer = ''
     for event in agent_response['completion']:
         if 'chunk' in event:
-            agent_answer = event['chunk']['bytes'].decode('utf-8')
+            chunk_text = event['chunk']['bytes'].decode('utf-8')
+            agent_answer += chunk_text
+            if _api_gw_mgmt:
+                try:
+                    _api_gw_mgmt.post_to_connection(
+                        ConnectionId=connection_id,
+                        Data=json.dumps({'type': 'chunk', 'text': chunk_text}),
+                    )
+                except _api_gw_mgmt.exceptions.GoneException:
+                    logger.info(json.dumps({'level': 'INFO', 'action': 'connection_gone', 'connectionId': connection_id}))
+                    return {'statusCode': 200}
         elif 'trace' in event and ENABLE_TRACE:
             logger.info(json.dumps({'trace': event['trace']}))
 
     if not agent_answer:
-        logger.warning(json.dumps({
-            'level': 'WARN', 'route': '$default', 'action': 'empty_agent_response',
-            'connectionId': connection_id,
-        }))
         agent_answer = 'Sorry, I could not get a response. Please try again.'
+        if _api_gw_mgmt:
+            try:
+                _api_gw_mgmt.post_to_connection(
+                    ConnectionId=connection_id,
+                    Data=json.dumps({'type': 'chunk', 'text': agent_answer}),
+                )
+            except Exception:
+                pass
 
     duration_ms = int((time.time() - start) * 1000)
     logger.info(json.dumps({
@@ -168,18 +181,14 @@ def _default(connection_id, user_id, body_str):
         'agentDurationMs': duration_ms,
     }))
 
-    # Post response back to the WebSocket connection
     if _api_gw_mgmt:
         try:
             _api_gw_mgmt.post_to_connection(
                 ConnectionId=connection_id,
-                Data=json.dumps({'response': agent_answer}),
+                Data=json.dumps({'type': 'done'}),
             )
-        except _api_gw_mgmt.exceptions.GoneException:
-            logger.info(json.dumps({
-                'level': 'INFO', 'action': 'connection_gone',
-                'connectionId': connection_id,
-            }))
+        except Exception:
+            pass
 
     return {'statusCode': 200}
 

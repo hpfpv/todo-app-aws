@@ -114,5 +114,38 @@ class TestDefaultSessionAttributes(unittest.TestCase):
         self.assertEqual(call_kwargs['sessionId'], 'existing-sess-xyz')
 
 
+class TestStreamingResponse(unittest.TestCase):
+
+    @patch.object(handler, '_api_gw_mgmt')
+    @patch.object(handler, 'bedrock_agent_runtime')
+    @patch.object(handler, 'dynamodb')
+    def test_each_chunk_is_posted_individually(self, mock_ddb, mock_bedrock, mock_apigw):
+        mock_ddb.get_item.return_value = _ddb_conn_item()
+        mock_bedrock.invoke_agent.return_value = {
+            'completion': [
+                {'chunk': {'bytes': b'Hel'}},
+                {'chunk': {'bytes': b'lo '}},
+                {'chunk': {'bytes': b'world'}},
+            ]
+        }
+
+        handler._default('conn-1', 'u@e.com', json.dumps({'human': 'hi'}))
+
+        # 3 chunks + 1 'done' frame = 4 calls
+        self.assertEqual(mock_apigw.post_to_connection.call_count, 4)
+
+        # Each chunk posted in order
+        first_three = [
+            json.loads(c.kwargs['Data'])
+            for c in mock_apigw.post_to_connection.call_args_list[:3]
+        ]
+        self.assertEqual([f['type'] for f in first_three], ['chunk', 'chunk', 'chunk'])
+        self.assertEqual([f['text'] for f in first_three], ['Hel', 'lo ', 'world'])
+
+        # Final frame is 'done'
+        last = json.loads(mock_apigw.post_to_connection.call_args_list[-1].kwargs['Data'])
+        self.assertEqual(last['type'], 'done')
+
+
 if __name__ == '__main__':
     unittest.main()
