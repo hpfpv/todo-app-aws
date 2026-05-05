@@ -83,6 +83,7 @@ Resources:
                 - dynamodb:GetItem
                 - dynamodb:PutItem
                 - dynamodb:DeleteItem
+                - dynamodb:UpdateItem
               Resource: !GetAtt BotTable.Arn
             - Effect: Allow
               Action: bedrock:InvokeAgent
@@ -243,6 +244,9 @@ Resources:
       ApiId: !Ref ChatbotWebSocketApi
       DeploymentId: !Ref ChatbotDeployment
       StageName: production
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 5
       Tags:
         Project: todo-houessou-com
         Service: ai-assistant

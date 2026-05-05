@@ -24,6 +24,26 @@ _api_gw_mgmt = boto3.client('apigatewaymanagementapi', endpoint_url=WS_ENDPOINT)
 cloudwatch = boto3.client('cloudwatch')
 METRICS_NAMESPACE = 'LLMSecurity/TodoChatbot'
 MAX_INPUT_LEN = 1000
+RATE_LIMIT_WINDOW_SECONDS = 300
+RATE_LIMIT_MAX = 30
+
+
+def _check_rate_limit(user_id):
+    """Returns True if request is allowed; False if rate-limited. Fixed-window per user."""
+    pk = f'ratelimit#{user_id}'
+    now = int(time.time())
+    ttl = now + RATE_LIMIT_WINDOW_SECONDS
+    resp = dynamodb.update_item(
+        TableName=BOT_TABLE,
+        Key={'pk': {'S': pk}},
+        UpdateExpression='ADD #c :one SET #t = if_not_exists(#t, :ttl)',
+        ExpressionAttributeNames={'#c': 'count', '#t': 'ttl'},
+        ExpressionAttributeValues={':one': {'N': '1'}, ':ttl': {'N': str(ttl)}},
+        ReturnValues='ALL_NEW',
+    )
+    count = int(resp['Attributes']['count']['N'])
+    return count <= RATE_LIMIT_MAX
+
 
 INJECTION_PATTERNS = [
     r"ignore\s+(all\s+)?(previous\s+)?instructions",
@@ -183,6 +203,13 @@ def _default(connection_id, user_id, body_str):
             'level': 'WARN', 'route': '$default',
             'action': 'session_recovery', 'connectionId': connection_id,
         }))
+
+    # Rate limit (per-user fixed window)
+    if not _check_rate_limit(user_id):
+        _emit_metric('RateLimited')
+        _post_error(connection_id, 'RateLimited',
+                    f'Slow down — {RATE_LIMIT_MAX} messages per {RATE_LIMIT_WINDOW_SECONDS // 60} minutes.')
+        return {'statusCode': 200}
 
     # Length cap
     if len(human) > MAX_INPUT_LEN:
