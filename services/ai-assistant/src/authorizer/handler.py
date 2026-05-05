@@ -65,14 +65,22 @@ def lambda_handler(event, context):
         return _policy('anonymous', 'Deny', method_arn)
 
     try:
+        client_id = os.environ.get('COGNITO_CLIENT_ID')
+        if not client_id:
+            logger.error(json.dumps({'level': 'ERROR', 'result': 'Deny', 'reason': 'COGNITO_CLIENT_ID not configured'}))
+            return _policy('anonymous', 'Deny', method_arn)
+
         header = jwt.get_unverified_header(token)
         public_key = _get_public_key(header['kid'])
         payload = jwt.decode(
             token,
             public_key,
             algorithms=['RS256'],
-            options={'verify_aud': False},
+            audience=client_id,
         )
+        if payload.get('token_use') != 'id':
+            logger.info(json.dumps({'level': 'INFO', 'result': 'Deny', 'reason': 'wrong token_use'}))
+            return _policy('anonymous', 'Deny', method_arn)
         user_id = payload.get('email') or payload.get('cognito:username', 'unknown')
         logger.info(json.dumps({
             'level': 'INFO',
