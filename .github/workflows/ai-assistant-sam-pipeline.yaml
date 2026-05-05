@@ -26,6 +26,7 @@ jobs:
 
       - name: Read config
         run: |
+          set -euo pipefail
           STACK_NAME=$(jq -r '.aiAssistantStackName' infra/sam/config.json)
           echo "STACK_NAME=$STACK_NAME" >> $GITHUB_ENV
 
