@@ -54,7 +54,12 @@ def _err(event, message):
 
 
 def _assert_owns_todo(user_id, todo_id):
-    resp = client.get_item(TableName=TODO_TABLE, Key={'todoID': {'S': todo_id}})
+    try:
+        resp = client.get_item(TableName=TODO_TABLE, Key={'todoID': {'S': todo_id}})
+    except Exception as exc:
+        _emit_metric('UnauthorizedActionAttempt', [{'Name': 'Reason', 'Value': 'OwnershipCheckFailed'}])
+        logger.warning(json.dumps({'action': 'assert_owns_todo_error', 'todoID': todo_id, 'error': str(exc)}))
+        return False
     item = resp.get('Item')
     if not item:
         return False
@@ -118,6 +123,7 @@ def addTodoNotes(todoID, notes):
         UpdateExpression='SET notes = :n',
         ExpressionAttributeValues={':n': {'S': notes}},
     )
+    logger.info(json.dumps({'action': 'addTodoNotes', 'todoID': todoID}))
     return {'Update': 'Success'}
 
 
@@ -128,6 +134,7 @@ def completeTodo(todoID):
         UpdateExpression='SET completed = :b',
         ExpressionAttributeValues={':b': {'BOOL': True}},
     )
+    logger.info(json.dumps({'action': 'completeTodo', 'todoID': todoID}))
     return {'Update': 'Success'}
 
 
@@ -162,6 +169,7 @@ def listTodoFiles(todoID):
         KeyConditions={'todoID': {'AttributeValueList': [{'S': todoID}], 'ComparisonOperator': 'EQ'}},
     )
     files = [{'fileID': i['fileID']['S'], 'fileName': i['fileName']['S'], 'filePath': i['filePath']['S']} for i in resp.get('Items', [])]
+    logger.info(json.dumps({'action': 'listTodoFiles', 'todoID': todoID, 'count': len(files)}))
     return {'files': files}
 
 
@@ -178,6 +186,7 @@ def addTodoFile(todoID, fileName, fileUrl):
             'filePath': {'S': fileUrl},
         },
     )
+    logger.info(json.dumps({'action': 'addTodoFile', 'todoID': todoID, 'fileName': fileName}))
     return {'status': 'success', 'fileID': file_id}
 
 
@@ -196,6 +205,7 @@ def deleteTodoFile(todoID, fileID):
         except Exception as e:
             logger.warning(json.dumps({'action': 'deleteTodoFile_s3_warn', 'fileID': fileID, 'error': str(e)}))
     client.delete_item(TableName=FILES_TABLE, Key={'fileID': {'S': fileID}})
+    logger.info(json.dumps({'action': 'deleteTodoFile', 'todoID': todoID, 'fileID': fileID}))
     return {'status': 'success'}
 
 
