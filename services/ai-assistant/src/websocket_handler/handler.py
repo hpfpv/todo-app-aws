@@ -34,6 +34,21 @@ INJECTION_PATTERNS = [
     r"forget\s+(everything|your\s+training|your\s+instructions)",
 ]
 
+OUTPUT_BLOCKLIST_PATTERNS = [
+    r"you\s+are\s+tasko",
+    r"your\s+tools\s+are",
+    r"action\s*group",
+    r"system\s+prompt",
+    r"\$prompt_session",
+]
+
+
+def _scan_output_for_leak(text):
+    for pat in OUTPUT_BLOCKLIST_PATTERNS:
+        if re.search(pat, text, re.IGNORECASE):
+            return pat
+    return None
+
 
 def _emit_metric(name, dimensions=None):
     try:
@@ -239,6 +254,12 @@ def _default(connection_id, user_id, body_str):
         'responseLength': len(agent_answer),
         'agentDurationMs': duration_ms,
     }))
+
+    leaked = _scan_output_for_leak(agent_answer)
+    if leaked:
+        _emit_metric('OutputBlocked', [{'Name': 'Pattern', 'Value': leaked[:64]}])
+        _post_error(connection_id, 'OutputBlocked', "I'm unable to share that information.")
+        return {'statusCode': 200}
 
     if _api_gw_mgmt:
         try:
