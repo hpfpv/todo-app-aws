@@ -547,7 +547,7 @@ Resources:
   TodoChatbotGuardrail:
     Type: AWS::Bedrock::Guardrail
     Properties:
-      Name: !Sub "${AWS::StackName}-prompt-injection-guard"
+      Name: !Sub "${AWS::StackName}-guardrail"
       BlockedInputMessaging: "I'm here to help with your todos. I can't help with that request."
       BlockedOutputsMessaging: "I'm unable to share that information."
       ContentPolicyConfig:
