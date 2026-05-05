@@ -7,6 +7,10 @@ Parameters:
     Type: String
     Description: Cognito User Pool ID for JWT validation
 
+  CognitoUserPoolClientId:
+    Type: String
+    Description: Cognito User Pool Client ID (App Client) for JWT audience validation
+
 Globals:
   Function:
     Runtime: python3.12
@@ -54,6 +58,7 @@ Resources:
       Environment:
         Variables:
           COGNITO_USER_POOL_ID: !Ref CognitoUserPoolId
+          COGNITO_CLIENT_ID: !Ref CognitoUserPoolClientId
           COGNITO_REGION: !Sub "${AWS::Region}"
 
   WebSocketHandlerFunction:
