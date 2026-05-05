@@ -11,6 +11,14 @@ Parameters:
     Type: String
     Description: Cognito User Pool Client ID (App Client) for JWT audience validation
 
+  AlertEmail:
+    Type: String
+    Default: ''
+    Description: Email to receive security alerts (leave empty to skip subscription)
+
+Conditions:
+  HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
+
 Globals:
   Function:
     Runtime: python3.12
@@ -91,6 +99,12 @@ Resources:
             - Effect: Allow
               Action: execute-api:ManageConnections
               Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatbotWebSocketApi}/production/POST/@connections/*"
+            - Effect: Allow
+              Action: cloudwatch:PutMetricData
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  cloudwatch:namespace: LLMSecurity/TodoChatbot
 
   ActionGroupHandlerFunction:
     Type: AWS::Serverless::Function
@@ -139,6 +153,12 @@ Resources:
                 - !Sub
                   - "${BucketArn}/*"
                   - BucketArn: !ImportValue "todo-houessou-com-attachments-service-TodoFilesBucketArn"
+            - Effect: Allow
+              Action: cloudwatch:PutMetricData
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  cloudwatch:namespace: LLMSecurity/TodoChatbot
 
   EnableBedrockLoggingFunction:
     Type: AWS::Serverless::Function
@@ -360,6 +380,9 @@ Resources:
               - Effect: Allow
                 Action: lambda:InvokeFunction
                 Resource: !GetAtt ActionGroupHandlerFunction.Arn
+              - Effect: Allow
+                Action: bedrock:ApplyGuardrail
+                Resource: !GetAtt TodoChatbotGuardrail.GuardrailArn
 
   TodoAgent:
     Type: AWS::Bedrock::Agent
@@ -368,6 +391,9 @@ Resources:
       FoundationModel: amazon.nova-lite-v1:0
       AgentResourceRoleArn: !GetAtt TodoAgentRole.Arn
       AutoPrepare: true
+      GuardrailConfiguration:
+        GuardrailIdentifier: !GetAtt TodoChatbotGuardrail.GuardrailId
+        GuardrailVersion: DRAFT
       Instruction: |
         You are Tasko, a friendly and efficient productivity assistant built into the
         TodoHouessou app. You help users stay on top of their tasks and keep things moving.
@@ -517,6 +543,113 @@ Resources:
         Project: todo-houessou-com
         Service: ai-assistant
         ManagedBy: SAM
+
+  TodoChatbotGuardrail:
+    Type: AWS::Bedrock::Guardrail
+    Properties:
+      Name: !Sub "${AWS::StackName}-prompt-injection-guard"
+      BlockedInputMessaging: "I'm here to help with your todos. I can't help with that request."
+      BlockedOutputsMessaging: "I'm unable to share that information."
+      ContentPolicyConfig:
+        FiltersConfig:
+          - Type: PROMPT_ATTACK
+            InputStrength: HIGH
+            OutputStrength: NONE
+      TopicPolicyConfig:
+        TopicsConfig:
+          - Name: prompt-extraction
+            Definition: "Requests to reveal, repeat, or output the AI system prompt or internal configuration."
+            Type: DENY
+          - Name: role-override
+            Definition: "Requests to act as a different AI, ignore current instructions, or bypass safety guidelines."
+            Type: DENY
+          - Name: off-topic-non-todo
+            Definition: "Topics unrelated to managing todos, tasks, notes, due dates, or file attachments in the TodoHouessou app."
+            Type: DENY
+      WordPolicyConfig:
+        WordsConfig:
+          - Text: "ignore previous instructions"
+          - Text: "ignore all previous instructions"
+          - Text: "you are now"
+          - Text: "jailbreak"
+          - Text: "system prompt"
+        ManagedWordListsConfig:
+          - Type: PROFANITY
+      SensitiveInformationPolicyConfig:
+        PiiEntitiesConfig:
+          - Type: EMAIL
+            Action: ANONYMIZE
+          - Type: PHONE
+            Action: ANONYMIZE
+      Tags:
+        - Key: Project
+          Value: todo-houessou-com
+        - Key: Service
+          Value: ai-assistant
+        - Key: ManagedBy
+          Value: SAM
+
+  # ── Security Alerting ─────────────────────────────────────────────────────
+
+  SecurityAlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AWS::StackName}-security-alerts"
+
+  SecurityAlertsEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAlertEmail
+    Properties:
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+      TopicArn: !Ref SecurityAlertsTopic
+
+  # ── CloudWatch Security Alarms ────────────────────────────────────────────
+
+  InjectionBlockedSpikeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-injection-spike"
+      Namespace: LLMSecurity/TodoChatbot
+      MetricName: InjectionBlocked
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+
+  OutputBlockedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-output-blocked"
+      Namespace: LLMSecurity/TodoChatbot
+      MetricName: OutputBlocked
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+
+  UnauthorizedActionAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-unauthorized-action"
+      Namespace: LLMSecurity/TodoChatbot
+      MetricName: UnauthorizedActionAttempt
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
 
   TodoAgentAlias:
     Type: AWS::Bedrock::AgentAlias
