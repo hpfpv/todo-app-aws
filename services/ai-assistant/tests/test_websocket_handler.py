@@ -216,5 +216,31 @@ class TestOutputValidation(unittest.TestCase):
         self.assertIn('OutputBlocked', codes)
 
 
+class TestRateLimit(unittest.TestCase):
+
+    @patch.object(handler, '_api_gw_mgmt')
+    @patch.object(handler, 'bedrock_agent_runtime')
+    @patch.object(handler, 'dynamodb')
+    def test_blocks_when_count_exceeds_limit(self, mock_ddb, mock_bedrock, mock_apigw):
+        mock_ddb.get_item.return_value = _ddb_conn_item()
+        mock_ddb.update_item.return_value = {'Attributes': {'count': {'N': '31'}}}
+
+        handler._default('conn-1', 'u@e.com', json.dumps({'human': 'hi'}))
+        mock_bedrock.invoke_agent.assert_not_called()
+        codes = [json.loads(c.kwargs['Data']).get('code') for c in mock_apigw.post_to_connection.call_args_list]
+        self.assertIn('RateLimited', codes)
+
+    @patch.object(handler, '_api_gw_mgmt')
+    @patch.object(handler, 'bedrock_agent_runtime')
+    @patch.object(handler, 'dynamodb')
+    def test_allows_when_under_limit(self, mock_ddb, mock_bedrock, mock_apigw):
+        mock_ddb.get_item.return_value = _ddb_conn_item()
+        mock_ddb.update_item.return_value = {'Attributes': {'count': {'N': '5'}}}
+        mock_bedrock.invoke_agent.return_value = {'completion': [{'chunk': {'bytes': b'ok'}}]}
+
+        handler._default('conn-1', 'u@e.com', json.dumps({'human': 'hi'}))
+        mock_bedrock.invoke_agent.assert_called_once()
+
+
 if __name__ == '__main__':
     unittest.main()
