@@ -26,6 +26,7 @@ jobs:
 
       - name: Read config
         run: |
+          set -euo pipefail
           STACK_NAME=$(jq -r '.aiAssistantStackName' infra/sam/config.json)
           echo "STACK_NAME=$STACK_NAME" >> $GITHUB_ENV
 
@@ -35,6 +36,19 @@ jobs:
             --output text \
             --region ${{ secrets.AWS_REGION }})
           echo "COGNITO_USER_POOL_ID=$COGNITO_USER_POOL_ID" >> $GITHUB_ENV
+
+          COGNITO_CLIENT_ID=$(aws ssm get-parameter \
+            --name "/todo-houessou-com/main-service/cognito-client-id" \
+            --query Parameter.Value \
+            --output text \
+            --region ${{ secrets.AWS_REGION }})
+          echo "COGNITO_CLIENT_ID=$COGNITO_CLIENT_ID" >> $GITHUB_ENV
+
+          ALERT_EMAIL=$(aws ssm get-parameter \
+            --name /todo-houessou-com/ai-assistant/alert-email \
+            --query Parameter.Value --output text \
+            --region ${{ secrets.AWS_REGION }} 2>/dev/null || echo '')
+          echo "ALERT_EMAIL=$ALERT_EMAIL" >> $GITHUB_ENV
 
       - name: sam build
         working-directory: ./infra/sam/ai-assistant
@@ -50,4 +64,4 @@ jobs:
             --stack-name $STACK_NAME \
             --region ${{ secrets.AWS_REGION }} \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --parameter-overrides CognitoUserPoolId=$COGNITO_USER_POOL_ID
+            --parameter-overrides CognitoUserPoolId=$COGNITO_USER_POOL_ID CognitoUserPoolClientId=$COGNITO_CLIENT_ID AlertEmail=$ALERT_EMAIL

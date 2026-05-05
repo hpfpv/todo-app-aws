@@ -14,6 +14,9 @@ const UPLOAD_INTENT_RE = /upload|attach|add a file|share a file|provide the file
 let ws: WebSocket | null = null;
 let _intentionalClose = false;
 
+let _streamingBubble: HTMLElement | null = null;
+let _streamingText = '';
+
 function setStatus(label: string, connected: boolean): void {
     const el = document.querySelector<HTMLElement>('.drawer-status');
     if (!el) return;
@@ -84,9 +87,15 @@ export function openChatSession(): void {
     };
 
     ws.onmessage = (event: MessageEvent) => {
-        const data = JSON.parse(event.data as string);
-        removeTypingIndicator();
-        displayMessage(data.response, 'bot');
+        const frame = JSON.parse(event.data as string);
+        if (frame.type === 'chunk') {
+            appendChunk(frame.text as string);
+        } else if (frame.type === 'done') {
+            finalizeStream();
+        } else if (frame.type === 'error') {
+            removeTypingIndicator();
+            replaceStreamWithError(frame.text as string);
+        }
     };
 
     ws.onerror = () => {
@@ -177,6 +186,42 @@ export function sendMessage(): void {
     displayTypingIndicator();
 
     ws.send(JSON.stringify({ human: message }));
+}
+
+function appendChunk(text: string): void {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    _streamingText += text;
+
+    if (!_streamingBubble) {
+        removeTypingIndicator();
+        const bubble = document.createElement('div');
+        bubble.classList.add('message', 'bot');
+        chatMessages.appendChild(bubble);
+        _streamingBubble = bubble;
+    }
+
+    _streamingBubble.innerHTML =
+        '<span class="bot-avatar-sm">✦</span>' + formatBotText(_streamingText);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function finalizeStream(): void {
+    if (!_streamingBubble) return;
+    persistMessage(_streamingText, 'bot');
+    _maybeAppendUploadButton(_streamingBubble);
+    _streamingBubble = null;
+    _streamingText = '';
+}
+
+function replaceStreamWithError(text: string): void {
+    if (_streamingBubble) {
+        _streamingBubble.remove();
+        _streamingBubble = null;
+        _streamingText = '';
+    }
+    displayMessage(text, 'bot', true);
 }
 
 function _maybeAppendUploadButton(el: HTMLElement): void {

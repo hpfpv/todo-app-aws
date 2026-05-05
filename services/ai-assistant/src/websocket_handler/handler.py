@@ -2,6 +2,7 @@ import boto3
 import json
 import logging
 import os
+import re
 import time
 import uuid
 
@@ -19,6 +20,83 @@ SESSION_TTL_SECONDS = 1800
 
 WS_ENDPOINT = os.environ.get('WS_ENDPOINT', '')
 _api_gw_mgmt = boto3.client('apigatewaymanagementapi', endpoint_url=WS_ENDPOINT) if WS_ENDPOINT else None
+
+cloudwatch = boto3.client('cloudwatch')
+METRICS_NAMESPACE = 'LLMSecurity/TodoChatbot'
+MAX_INPUT_LEN = 1000
+RATE_LIMIT_WINDOW_SECONDS = 300
+RATE_LIMIT_MAX = 30
+
+
+def _check_rate_limit(user_id):
+    """Returns True if request is allowed; False if rate-limited. Fixed-window per user."""
+    pk = f'ratelimit#{user_id}'
+    now = int(time.time())
+    ttl = now + RATE_LIMIT_WINDOW_SECONDS
+    resp = dynamodb.update_item(
+        TableName=BOT_TABLE,
+        Key={'pk': {'S': pk}},
+        UpdateExpression='ADD #c :one SET #t = if_not_exists(#t, :ttl)',
+        ExpressionAttributeNames={'#c': 'count', '#t': 'ttl'},
+        ExpressionAttributeValues={':one': {'N': '1'}, ':ttl': {'N': str(ttl)}},
+        ReturnValues='ALL_NEW',
+    )
+    count = int(resp['Attributes']['count']['N'])
+    return count <= RATE_LIMIT_MAX
+
+
+INJECTION_PATTERNS = [
+    r"ignore\s+(all\s+)?(previous\s+)?instructions",
+    r"you\s+are\s+now",
+    r"(reveal|repeat|print|output)\s+(your\s+)?system\s+prompt",
+    r"<!--.{0,300}(ignore|override|system)",
+    r"\[SYSTEM\s*(OVERRIDE|COMMAND|INSTRUCTION)\]",
+    r"forget\s+(everything|your\s+training|your\s+instructions)",
+]
+
+OUTPUT_BLOCKLIST_PATTERNS = [
+    r"you\s+are\s+tasko",
+    r"your\s+tools\s+are",
+    r"action\s*group",
+    r"system\s+prompt",
+    r"\$prompt_session",
+]
+
+
+def _scan_output_for_leak(text):
+    for pat in OUTPUT_BLOCKLIST_PATTERNS:
+        if re.search(pat, text, re.IGNORECASE):
+            return pat
+    return None
+
+
+def _emit_metric(name, dimensions=None):
+    try:
+        cloudwatch.put_metric_data(
+            Namespace=METRICS_NAMESPACE,
+            MetricData=[{'MetricName': name, 'Value': 1, 'Unit': 'Count', 'Dimensions': dimensions or []}],
+        )
+    except Exception as exc:
+        logger.warning(json.dumps({'action': 'metric_failed', 'metric': name, 'error': str(exc)}))
+
+
+def _scan_for_injection(text):
+    for pat in INJECTION_PATTERNS:
+        if re.search(pat, text, re.IGNORECASE | re.DOTALL):
+            return pat
+    return None
+
+
+def _post_error(connection_id, code, text):
+    if not _api_gw_mgmt:
+        return
+    try:
+        _api_gw_mgmt.post_to_connection(
+            ConnectionId=connection_id,
+            Data=json.dumps({'type': 'error', 'code': code, 'text': text}),
+        )
+    except Exception:
+        pass
 
 
 def _connect(connection_id, user_id, fresh=False):
@@ -126,7 +204,30 @@ def _default(connection_id, user_id, body_str):
             'action': 'session_recovery', 'connectionId': connection_id,
         }))
 
-    input_text = human
+    # Rate limit (per-user fixed window)
+    if not _check_rate_limit(user_id):
+        _emit_metric('RateLimited')
+        _post_error(connection_id, 'RateLimited',
+                    f'Slow down — {RATE_LIMIT_MAX} messages per {RATE_LIMIT_WINDOW_SECONDS // 60} minutes.')
+        return {'statusCode': 200}
+
+    # Length cap
+    if len(human) > MAX_INPUT_LEN:
+        _emit_metric('LengthExceeded')
+        _post_error(connection_id, 'LengthExceeded', f'Message too long. Max {MAX_INPUT_LEN} characters.')
+        return {'statusCode': 200}
+
+    # Regex injection scan
+    matched = _scan_for_injection(human)
+    if matched:
+        _emit_metric('InjectionBlocked', [{'Name': 'Pattern', 'Value': matched[:64]}])
+        _post_error(connection_id, 'InjectionBlocked',
+                    "I'm here to help with your todos. I can't help with that request.")
+        return {'statusCode': 200}
+
+    # Strip HTML comments and wrap in <query>
+    human_clean = re.sub(r"<!--.*?-->", "", human, flags=re.DOTALL).strip()
+    input_text = f"<query>\n{human_clean}\n</query>"
 
     # Invoke Bedrock Agent — userID is injected via promptSessionAttributes,
     # referenced as $prompt_session.userID$ in the agent instruction
@@ -142,20 +243,33 @@ def _default(connection_id, user_id, body_str):
         },
     )
 
-    # Stream the response and collect final answer
     agent_answer = ''
     for event in agent_response['completion']:
         if 'chunk' in event:
-            agent_answer = event['chunk']['bytes'].decode('utf-8')
+            chunk_text = event['chunk']['bytes'].decode('utf-8')
+            agent_answer += chunk_text
+            if _api_gw_mgmt:
+                try:
+                    _api_gw_mgmt.post_to_connection(
+                        ConnectionId=connection_id,
+                        Data=json.dumps({'type': 'chunk', 'text': chunk_text}),
+                    )
+                except _api_gw_mgmt.exceptions.GoneException:
+                    logger.info(json.dumps({'level': 'INFO', 'action': 'connection_gone', 'connectionId': connection_id}))
+                    return {'statusCode': 200}
         elif 'trace' in event and ENABLE_TRACE:
             logger.info(json.dumps({'trace': event['trace']}))
 
     if not agent_answer:
-        logger.warning(json.dumps({
-            'level': 'WARN', 'route': '$default', 'action': 'empty_agent_response',
-            'connectionId': connection_id,
-        }))
         agent_answer = 'Sorry, I could not get a response. Please try again.'
+        if _api_gw_mgmt:
+            try:
+                _api_gw_mgmt.post_to_connection(
+                    ConnectionId=connection_id,
+                    Data=json.dumps({'type': 'chunk', 'text': agent_answer}),
+                )
+            except Exception:
+                pass
 
     duration_ms = int((time.time() - start) * 1000)
     logger.info(json.dumps({
@@ -168,18 +282,20 @@ def _default(connection_id, user_id, body_str):
         'agentDurationMs': duration_ms,
     }))
 
-    # Post response back to the WebSocket connection
+    leaked = _scan_output_for_leak(agent_answer)
+    if leaked:
+        _emit_metric('OutputBlocked', [{'Name': 'Pattern', 'Value': leaked[:64]}])
+        _post_error(connection_id, 'OutputBlocked', "I'm unable to share that information.")
+        return {'statusCode': 200}
+
     if _api_gw_mgmt:
         try:
             _api_gw_mgmt.post_to_connection(
                 ConnectionId=connection_id,
-                Data=json.dumps({'response': agent_answer}),
+                Data=json.dumps({'type': 'done'}),
             )
-        except _api_gw_mgmt.exceptions.GoneException:
-            logger.info(json.dumps({
-                'level': 'INFO', 'action': 'connection_gone',
-                'connectionId': connection_id,
-            }))
+        except Exception:
+            pass
 
     return {'statusCode': 200}
 
