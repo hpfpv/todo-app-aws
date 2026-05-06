@@ -256,13 +256,14 @@ async function _handleFileUpload(file: File): Promise<void> {
 
         removeTypingIndicator();
 
-        const msg = todoID
+        const visible = `Uploaded \`${file.name}\``;
+        const prompt = todoID
             ? `I just uploaded "${file.name}". Its URL is: ${fileUrl}. Please attach it to the currently open todo.`
             : `I just uploaded "${file.name}". Its URL is: ${fileUrl}. Please ask me which todo to attach it to.`;
 
-        displayMessage(msg, 'user');
+        displayMessage(visible, 'user');
         displayTypingIndicator();
-        ws.send(JSON.stringify({ human: msg }));
+        ws.send(JSON.stringify({ human: prompt }));
     } catch (err) {
         removeTypingIndicator();
         displayMessage('File upload failed. Please try again.', 'bot', false);
