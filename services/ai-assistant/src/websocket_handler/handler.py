@@ -225,9 +225,14 @@ def _default(connection_id, user_id, body_str):
                     "I'm here to help with your todos. I can't help with that request.")
         return {'statusCode': 200}
 
-    # Strip HTML comments and wrap in <query>
-    human_clean = re.sub(r"<!--.*?-->", "", human, flags=re.DOTALL).strip()
-    input_text = f"<query>\n{human_clean}\n</query>"
+    # Strip HTML comments (defense against indirect injection in pasted content).
+    # NOTE: previously this also wrapped the message in <query>...</query> as a
+    # defensive delimiter (a pattern that works well with Claude). Nova Lite
+    # treats those tags as content and mirrors them back, emitting responses
+    # like "User: <response>...</response>" — a textbook XML-tag-leakage bug.
+    # The Bedrock Agent already structurally separates instruction from input,
+    # so the wrap was unnecessary defense-in-depth that broke Nova's output.
+    input_text = re.sub(r"<!--.*?-->", "", human, flags=re.DOTALL).strip()
 
     # Invoke Bedrock Agent — userID is injected via promptSessionAttributes,
     # referenced as $prompt_session.userID$ in the agent instruction

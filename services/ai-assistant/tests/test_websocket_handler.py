@@ -47,7 +47,7 @@ class TestDefaultInputText(unittest.TestCase):
     @patch.object(handler, 'bedrock_agent_runtime')
     @patch.object(handler, 'dynamodb')
     def test_input_text_is_only_human_message(self, mock_ddb, mock_bedrock, mock_apigw):
-        """input_text must contain the human message wrapped in <query> delimiters."""
+        """input_text contains the (HTML-comment-stripped) human message and no XML wrap."""
         mock_ddb.get_item.return_value = _ddb_conn_item()
         mock_ddb.update_item.return_value = {'Attributes': {'count': {'N': '1'}}}
         mock_bedrock.invoke_agent.return_value = _agent_response('OK')
@@ -55,8 +55,7 @@ class TestDefaultInputText(unittest.TestCase):
         handler._default('conn-1', 'u@e.com', json.dumps({'human': 'list my todos'}))
 
         call_kwargs = mock_bedrock.invoke_agent.call_args[1]
-        self.assertIn('list my todos', call_kwargs['inputText'])
-        self.assertTrue(call_kwargs['inputText'].startswith('<query>'))
+        self.assertEqual(call_kwargs['inputText'], 'list my todos')
 
     @patch.object(handler, '_api_gw_mgmt')
     @patch.object(handler, 'bedrock_agent_runtime')
@@ -199,14 +198,18 @@ class TestInputGates(unittest.TestCase):
     @patch.object(handler, '_api_gw_mgmt')
     @patch.object(handler, 'bedrock_agent_runtime')
     @patch.object(handler, 'dynamodb')
-    def test_input_is_wrapped_in_query_delimiters(self, mock_ddb, mock_bedrock, mock_apigw):
+    def test_input_text_is_not_xml_wrapped(self, mock_ddb, mock_bedrock, mock_apigw):
+        """Nova Lite mirrors XML-shaped delimiters back as output structure.
+        Don't wrap user input in <query> tags — the Bedrock Agent already
+        separates instruction from input structurally."""
         mock_ddb.get_item.return_value = _ddb_conn_item()
         mock_ddb.update_item.return_value = {'Attributes': {'count': {'N': '1'}}}
         mock_bedrock.invoke_agent.return_value = {'completion': [{'chunk': {'bytes': b'ok'}}]}
         handler._default('conn-1', 'u@e.com', json.dumps({'human': 'list todos'}))
         sent = mock_bedrock.invoke_agent.call_args.kwargs['inputText']
-        self.assertTrue(sent.startswith('<query>'))
-        self.assertTrue(sent.endswith('</query>'))
+        self.assertNotIn('<query>', sent)
+        self.assertNotIn('</query>', sent)
+        self.assertEqual(sent, 'list todos')
 
 
 class TestOutputValidation(unittest.TestCase):
