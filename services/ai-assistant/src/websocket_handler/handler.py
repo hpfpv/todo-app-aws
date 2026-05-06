@@ -241,6 +241,9 @@ def _default(connection_id, user_id, body_str):
         sessionState={
             'promptSessionAttributes': {'userID': user_id},
         },
+        streamingConfigurations={
+            'streamFinalResponse': True,
+        },
     )
 
     agent_answer = ''
@@ -320,12 +323,5 @@ def lambda_handler(event, context):
                 'level': 'ERROR', 'route': '$default',
                 'connectionId': connection_id, 'error': str(exc),
             }))
-            if _api_gw_mgmt:
-                try:
-                    _api_gw_mgmt.post_to_connection(
-                        ConnectionId=connection_id,
-                        Data=json.dumps({'response': 'Sorry, something went wrong. Please try again.'}),
-                    )
-                except Exception:
-                    pass
+            _post_error(connection_id, 'InternalError', 'Sorry, something went wrong. Please try again.')
             raise
