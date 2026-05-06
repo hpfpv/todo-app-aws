@@ -147,7 +147,9 @@ export function displayMessage(text: string, sender: Sender = 'user', persist = 
     messageElement.classList.add('message', sender);
 
     if (sender === 'bot') {
-        messageElement.innerHTML = '<span class="bot-avatar-sm">✦</span>' + formatBotText(text);
+        messageElement.innerHTML =
+            '<span class="bot-avatar-sm">✦</span>' +
+            '<span class="message-body">' + formatBotText(text) + '</span>';
         if (persist) _maybeAppendUploadButton(messageElement);
     } else {
         messageElement.textContent = text;
@@ -211,7 +213,8 @@ function appendChunk(text: string): void {
     }
 
     _streamingBubble.innerHTML =
-        '<span class="bot-avatar-sm">✦</span>' + formatBotText(_streamingText);
+        '<span class="bot-avatar-sm">✦</span>' +
+        '<span class="message-body">' + formatBotText(_streamingText) + '</span>';
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 

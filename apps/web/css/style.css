@@ -307,6 +307,11 @@ p {
     gap: 8px;
 }
 
+.message.bot .message-body {
+    flex: 1;
+    min-width: 0;
+}
+
 .message.bot code {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
     font-size: 0.92em;
