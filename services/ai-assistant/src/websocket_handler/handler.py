@@ -241,6 +241,9 @@ def _default(connection_id, user_id, body_str):
         sessionState={
             'promptSessionAttributes': {'userID': user_id},
         },
+        streamingConfigurations={
+            'streamFinalResponse': True,
+        },
     )
 
     agent_answer = ''
