@@ -265,8 +265,13 @@ Resources:
       DeploymentId: !Ref ChatbotDeployment
       StageName: production
       DefaultRouteSettings:
-        ThrottlingBurstLimit: 10
-        ThrottlingRateLimit: 5
+        # Note: this applies to outbound @connections messaging too, not just
+        # inbound. Token streaming emits many frames per response, so the limit
+        # must accommodate that. The cost-protection layer is the per-user
+        # DynamoDB rate limit (30 msg / 5 min) — this stage throttle is just a
+        # backstop against runaway clients.
+        ThrottlingBurstLimit: 200
+        ThrottlingRateLimit: 100
       Tags:
         Project: todo-houessou-com
         Service: ai-assistant
