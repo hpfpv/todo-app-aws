@@ -45,11 +45,19 @@ export function clearChatHistory(): void {
 }
 
 function formatBotText(text: string): string {
-    return text
+    let s = text
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>');
+        .replace(/>/g, '&gt;');
+
+    // Inline markdown — bold and code. Applied AFTER escaping so the source
+    // text can't introduce HTML; the tags we emit here are the only HTML
+    // in the output.
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+    s = s.replace(/\n/g, '<br>');
+    return s;
 }
 
 export function openChatSession(): void {
