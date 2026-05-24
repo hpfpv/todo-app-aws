@@ -11,6 +11,10 @@ superpowers/
 # Docs (local only)
 docs/content/
 docs/blog-post/
+docs/superpowers/
+
+# Planning (local only)
+.planning/
 
 # Node / Vite
 node_modules/
