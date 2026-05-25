@@ -592,14 +592,14 @@ Resources:
           - Name: off-topic-non-todo
             Definition: "Any topic that is not directly about managing the user's own todos, tasks, notes, due dates, or file attachments inside the TodoHouessou app. This includes general technology questions, programming help, cloud services explanations, CLI commands, recipes, weather, jokes, or any general knowledge request — even if the topic is technical or AWS-related."
             Examples:
+              # Bedrock Guardrails caps topic examples at 5. Pick the most
+              # representative across categories: tech explainer, CLI/command,
+              # programming/debugging, general knowledge, entertainment.
               - "Explain what AWS Lambda is."
-              - "Write me a comparison of AWS Lambda versus AWS Fargate."
               - "Show me the AWS CLI command to list S3 buckets."
-              - "How do I write a Python function?"
+              - "Help me debug this Python code."
               - "What's the capital of France?"
               - "Tell me a joke."
-              - "Help me debug this code."
-              - "Recommend a restaurant."
             Type: DENY
       WordPolicyConfig:
         WordsConfig:
