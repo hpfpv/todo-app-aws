@@ -120,14 +120,12 @@ export function openChatSession(): void {
             setStatus('Offline', false);
             return;
         }
-        // Unexpected close (server timeout) — auto-reconnect if drawer still open
-        const drawer = document.getElementById('chatDrawer');
-        if (drawer?.classList.contains('open')) {
-            setStatus('Reconnecting…', false);
-            setTimeout(() => openChatSession(), 1500);
-        } else {
-            setStatus('Offline', false);
-        }
+        // Unexpected close (server timeout, Lambda redeploy, network blip).
+        // Always reconnect unless the user explicitly closed the panel —
+        // openChatSession is now called on page load so the WS is meant to
+        // stay alive for the whole session, not just while the drawer is open.
+        setStatus('Reconnecting…', false);
+        setTimeout(() => openChatSession(), 1500);
     };
 }
 
