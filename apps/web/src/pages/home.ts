@@ -12,6 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Restore chat history from previous session
     restoreChatHistory();
 
+    // Auto-connect the chat WebSocket if user is authed. The chat panel renders
+    // on page load (input field visible), so a "connect on FAB click" design
+    // left users typing into an Offline drawer with no signal that they had to
+    // click anything. Connecting eagerly keeps the panel ready.
+    if (localStorage.getItem('sessionTokens')) {
+        openChatSession();
+    }
+
+    // Refresh todos when the bot completes a write so the stats bar reflects
+    // bot-initiated changes. The chatbot module emits this event on stream end
+    // when the response text suggests data was modified.
+    document.addEventListener('chat:writeCompleted', () => {
+        getTodos(renderTodos);
+    });
+
     // Sign out button — clear chat history before logging out
     document.getElementById('signOutButton')?.addEventListener('click', () => {
         clearChatHistory();

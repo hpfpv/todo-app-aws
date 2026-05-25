@@ -218,10 +218,20 @@ function appendChunk(text: string): void {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+const WRITE_KEYWORDS_RE = /\b(added|deleted|completed|marked|updated|created|removed|attached)\b/i;
+
 function finalizeStream(): void {
     if (!_streamingBubble) return;
     persistMessage(_streamingText, 'bot');
     _maybeAppendUploadButton(_streamingBubble);
+
+    // Signal a likely data-modifying response so the host page can refresh
+    // its view. Word-based heuristic: false positives mean a wasted GET; false
+    // negatives mean stale stats until the next page interaction.
+    if (WRITE_KEYWORDS_RE.test(_streamingText)) {
+        document.dispatchEvent(new CustomEvent('chat:writeCompleted'));
+    }
+
     _streamingBubble = null;
     _streamingText = '';
 }
