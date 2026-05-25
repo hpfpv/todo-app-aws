@@ -153,6 +153,79 @@ class TestStreamingResponse(unittest.TestCase):
         self.assertEqual(last['type'], 'done')
 
 
+class TestTemplateTokenStripping(unittest.TestCase):
+    """Nova Lite occasionally leaks template tokens (<answer>, <response>, etc.) into
+    chunked output. These pollute conversation history and destabilise the model on
+    follow-up turns, so they must be stripped before reaching the client."""
+
+    @patch.object(handler, '_api_gw_mgmt')
+    @patch.object(handler, 'bedrock_agent_runtime')
+    @patch.object(handler, 'dynamodb')
+    def test_answer_tag_is_stripped_from_chunk(self, mock_ddb, mock_bedrock, mock_apigw):
+        mock_ddb.get_item.return_value = _ddb_conn_item()
+        mock_ddb.update_item.return_value = {'Attributes': {'count': {'N': '1'}}}
+        mock_bedrock.invoke_agent.return_value = {
+            'completion': [{'chunk': {'bytes': b"I've added the todo. <answer>"}}]
+        }
+
+        handler._default('conn-1', 'u@e.com', json.dumps({'human': 'add a todo titled X'}))
+
+        chunk_frames = [
+            json.loads(c.kwargs['Data'])
+            for c in mock_apigw.post_to_connection.call_args_list
+            if json.loads(c.kwargs['Data']).get('type') == 'chunk'
+        ]
+        joined = ''.join(f['text'] for f in chunk_frames)
+        self.assertNotIn('<answer>', joined)
+        self.assertNotIn('</answer>', joined)
+        self.assertIn("I've added the todo.", joined)
+
+    @patch.object(handler, '_api_gw_mgmt')
+    @patch.object(handler, 'bedrock_agent_runtime')
+    @patch.object(handler, 'dynamodb')
+    def test_multiple_template_tokens_are_stripped(self, mock_ddb, mock_bedrock, mock_apigw):
+        mock_ddb.get_item.return_value = _ddb_conn_item()
+        mock_ddb.update_item.return_value = {'Attributes': {'count': {'N': '1'}}}
+        mock_bedrock.invoke_agent.return_value = {
+            'completion': [{'chunk': {'bytes':
+                b'<response>Hello <thinking>x</thinking> world</response>'}}]
+        }
+
+        handler._default('conn-1', 'u@e.com', json.dumps({'human': 'hi'}))
+
+        chunk_frames = [
+            json.loads(c.kwargs['Data'])
+            for c in mock_apigw.post_to_connection.call_args_list
+            if json.loads(c.kwargs['Data']).get('type') == 'chunk'
+        ]
+        joined = ''.join(f['text'] for f in chunk_frames)
+        for token in ['<response>', '</response>', '<thinking>', '</thinking>']:
+            self.assertNotIn(token, joined)
+
+    @patch.object(handler, '_api_gw_mgmt')
+    @patch.object(handler, 'bedrock_agent_runtime')
+    @patch.object(handler, 'dynamodb')
+    def test_user_angle_brackets_in_content_are_preserved(self, mock_ddb, mock_bedrock, mock_apigw):
+        """The stripper must only target known template tokens, not arbitrary
+        angle-bracket content the user or model legitimately emits."""
+        mock_ddb.get_item.return_value = _ddb_conn_item()
+        mock_ddb.update_item.return_value = {'Attributes': {'count': {'N': '1'}}}
+        mock_bedrock.invoke_agent.return_value = {
+            'completion': [{'chunk': {'bytes': b'Use <div> for layout, not <span>.'}}]
+        }
+
+        handler._default('conn-1', 'u@e.com', json.dumps({'human': 'hi'}))
+
+        chunk_frames = [
+            json.loads(c.kwargs['Data'])
+            for c in mock_apigw.post_to_connection.call_args_list
+            if json.loads(c.kwargs['Data']).get('type') == 'chunk'
+        ]
+        joined = ''.join(f['text'] for f in chunk_frames)
+        self.assertIn('<div>', joined)
+        self.assertIn('<span>', joined)
+
+
 class TestInputGates(unittest.TestCase):
 
     @patch.object(handler, '_api_gw_mgmt')

@@ -62,6 +62,22 @@ OUTPUT_BLOCKLIST_PATTERNS = [
     r"\$prompt_session",
 ]
 
+# Nova Lite occasionally leaks its internal chat-template tokens into the
+# response stream (e.g. trailing "<answer>", "<response>", "<thinking>"). They
+# never carry meaning for the user and they pollute conversation history,
+# which in turn confuses Nova on subsequent turns. Strip them before the chunk
+# leaves the server.
+TEMPLATE_TOKEN_RE = re.compile(
+    r"</?\s*(answer|response|query|thinking|tool_use|tool_call|tool_result|"
+    r"reasoning|reflection|instruction|prompt|message|sender|user|assistant)"
+    r"\s*/?>",
+    re.IGNORECASE,
+)
+
+
+def _strip_template_tokens(text):
+    return TEMPLATE_TOKEN_RE.sub("", text)
+
 
 def _scan_output_for_leak(text):
     for pat in OUTPUT_BLOCKLIST_PATTERNS:
@@ -254,8 +270,15 @@ def _default(connection_id, user_id, body_str):
     agent_answer = ''
     for event in agent_response['completion']:
         if 'chunk' in event:
-            chunk_text = event['chunk']['bytes'].decode('utf-8')
+            raw_chunk = event['chunk']['bytes'].decode('utf-8')
+            # Strip Nova template-token leakage before either streaming the chunk
+            # out or accumulating it into agent_answer. Without this, a leaked
+            # "<answer>" in turn N pollutes the conversation history and
+            # destabilises Nova on turn N+1 (it starts refusing valid requests).
+            chunk_text = _strip_template_tokens(raw_chunk)
             agent_answer += chunk_text
+            if not chunk_text:
+                continue
             if _api_gw_mgmt:
                 try:
                     _api_gw_mgmt.post_to_connection(
