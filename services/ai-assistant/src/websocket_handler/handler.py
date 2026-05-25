@@ -289,7 +289,11 @@ def _default(connection_id, user_id, body_str):
                     logger.info(json.dumps({'level': 'INFO', 'action': 'connection_gone', 'connectionId': connection_id}))
                     return {'statusCode': 200}
         elif 'trace' in event and ENABLE_TRACE:
-            logger.info(json.dumps({'trace': event['trace']}))
+            # Bedrock trace events embed datetime objects (timestamps), which
+            # the default JSON encoder doesn't handle. default=str coerces them
+            # to ISO strings; without this, the entire turn fails with
+            # "Object of type datetime is not JSON serializable".
+            logger.info(json.dumps({'trace': event['trace']}, default=str))
 
     if not agent_answer:
         agent_answer = 'Sorry, I could not get a response. Please try again.'
