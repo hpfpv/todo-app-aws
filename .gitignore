@@ -16,6 +16,10 @@ docs/superpowers/
 # Planning (local only)
 .planning/
 
+# Playwright test artifacts (local only)
+*.png
+.playwright-mcp/
+
 # Node / Vite
 node_modules/
 apps/web/dist/
